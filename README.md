@@ -85,7 +85,7 @@ cnpm run build
 
 > 群已满，请加以下群号，感谢老哥们支持！
 
-群号：684849582
+群号：895724688
 
 其它交流群请查看文档首页 [vueNextAdmin 解疑问](https://lyt-top.gitee.io/vue-next-admin-doc-preview/)
 
