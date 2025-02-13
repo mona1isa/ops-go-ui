@@ -79,7 +79,9 @@ cnpm run build
 
 #### 📚 开发文档
 
-- 查看开发文档：<a href="https://lyt-top.gitee.io/vue-next-admin-doc-preview" target="_blank">vue-next-admin-doc</a>
+- 查看开发文档：<a href="https://lyt-top.gitee.io/vue-next-admin-doc-preview" target="_blank">https://lyt-top.gitee.io/vue-next-admin-doc-preview</a>
+- 查看开发文档：<a href="https://lyt-top.github.io/vue-next-admin-doc-preview/" target="_blank">https://lyt-top.github.io/vue-next-admin-doc-preview/</a>
+
 
 #### 💯 学习交流加 QQ 群
 
