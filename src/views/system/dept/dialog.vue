@@ -75,7 +75,7 @@ const emit = defineEmits(['refresh']);
 
 // 定义变量内容
 const deptDialogFormRef = ref();
-const state = reactive({
+const state = ref({
 	ruleForm: {
 		deptLevel: [] as string[], // 上级部门
 		deptName: '', // 部门名称
