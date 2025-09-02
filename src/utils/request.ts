@@ -35,7 +35,11 @@ service.interceptors.response.use(
 	(response) => {
 		// 对响应数据做点什么
 		const res = response.data;
-		if (res.code && res.code !== 0) {
+		if (!res) {
+			ElMessage.error('响应数据格式异常');
+			return Promise.reject(new Error('Invalid API response format'));
+		}
+		if (res.code == undefined || res.code === 0) {
 			// `token` 过期或者账号已在别处登录
 			if (res.code === 401 || res.code === 4001) {
 				Session.clear(); // 清除浏览器全部临时缓存
@@ -44,7 +48,8 @@ service.interceptors.response.use(
 					.then(() => {})
 					.catch(() => {});
 			}
-			return Promise.reject(service.interceptors.response);
+			const msg = res.msg || 'Error' || `Business error with code: ${res.code}`;
+			return Promise.reject(new Error(msg));
 		} else {
 			return res;
 		}

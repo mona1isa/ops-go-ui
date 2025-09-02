@@ -1,7 +1,7 @@
 <template>
 	<el-form size="large" class="login-content-form">
 		<el-form-item class="login-animation1">
-			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.userName" clearable autocomplete="off">
+			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.username" clearable autocomplete="off">
 				<template #prefix>
 					<el-icon class="el-input__icon"><ele-User /></el-icon>
 				</template>
@@ -44,7 +44,9 @@
 			</el-col>
 			<el-col :span="1"></el-col>
 			<el-col :span="8">
-				<el-button class="login-content-code" v-waves>1234</el-button>
+				<el-button class="login-content-code" v-waves @click="getCaptchaCode">
+					<img class="login-content-code-img" :src="captcha.img" style="max-width: 100%; height: auto;" />
+				</el-button>
 			</el-col>
 		</el-form-item>
 		<el-form-item class="login-animation4">
@@ -56,7 +58,7 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import { reactive, computed } from 'vue';
+import { reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
@@ -68,6 +70,7 @@ import { initBackEndControlRoutes } from '/@/router/backEnd';
 import { Session } from '/@/utils/storage';
 import { formatAxis } from '/@/utils/formatTime';
 import { NextLoading } from '/@/utils/loading';
+import { getCaptchaApi, useLoginApi } from '/@/api/login';
 
 // 定义变量内容
 const { t } = useI18n();
@@ -78,26 +81,55 @@ const router = useRouter();
 const state = reactive({
 	isShowPassword: false,
 	ruleForm: {
-		userName: 'admin',
+		username: 'admin',
 		password: '123456',
-		code: '1234',
+		code: '',
+		uuid: '',
 	},
 	loading: {
 		signIn: false,
 	},
 });
 
+// 定义验证码
+const captcha = reactive({
+	code: 0,
+	img: '',
+	uuid: '',
+});
+
+const captchaApi = getCaptchaApi();
+
+// 页面加载完毕，获取验证码
+onMounted(() => {
+	getCaptchaCode();
+});
+
 // 时间获取
 const currentTime = computed(() => {
 	return formatAxis(new Date());
 });
+
+// 获取验证码
+const getCaptchaCode = async () => {
+	const response = await captchaApi.getCaptcha();
+	captcha.code = response.code;
+	captcha.img = "data:image/png;base64," + response.img;
+	state.ruleForm.uuid = response.uuid;
+};
+
 // 登录
 const onSignIn = async () => {
 	state.loading.signIn = true;
-	// 存储 token 到浏览器缓存
-	Session.set('token', Math.random().toString(36).substr(0));
-	// 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
-	Cookies.set('userName', state.ruleForm.userName);
+	const response = await useLoginApi().signIn(state.ruleForm);
+	if (response.code === 200) {
+		// 存储 token 到浏览器缓存
+		Session.set('token', response.token);
+		// 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
+		Cookies.set('username', state.ruleForm.username);
+		state.loading.signIn = false;
+	}
+	
 	if (!themeConfig.value.isRequestRoutes) {
 		// 前端控制路由，2、请注意执行顺序
 		const isNoPower = await initFrontEndControlRoutes();

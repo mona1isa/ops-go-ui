@@ -1,6 +1,20 @@
 import request from '/@/utils/request';
 
 /**
+ * 获取后端验证码
+ */
+export function getCaptchaApi() {
+	return { 
+		getCaptcha: ()=> {
+			return request({
+				url: '/api/captcha/generate',
+				method: 'get',
+			});
+		}
+	};
+}
+
+/**
  * （不建议写成 request.post(xxx)，因为这样 post 时，无法 params 与 data 同时传参）
  *
  * 登录api接口集合
@@ -11,14 +25,14 @@ export function useLoginApi() {
 	return {
 		signIn: (data: object) => {
 			return request({
-				url: '/user/signIn',
+				url: '/api/user/login',
 				method: 'post',
 				data,
 			});
 		},
 		signOut: (data: object) => {
 			return request({
-				url: '/user/signOut',
+				url: '/api/user/logout',
 				method: 'post',
 				data,
 			});
