@@ -1,9 +1,10 @@
 import request from '/@/utils/request';
+import { Session } from '/@/utils/storage';
 
 /**
  * 获取后端验证码
  */
-export function getCaptchaApi() {
+export function useCaptchaApi() {
 	return { 
 		getCaptcha: ()=> {
 			return request({
@@ -30,11 +31,13 @@ export function useLoginApi() {
 				data,
 			});
 		},
-		signOut: (data: object) => {
+		signOut: () => {
 			return request({
 				url: '/api/user/logout',
-				method: 'post',
-				data,
+				method: 'get',
+				headers: {
+					'Authorization': Session.get('token'),
+				},
 			});
 		},
 	};

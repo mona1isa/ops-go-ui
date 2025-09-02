@@ -70,7 +70,7 @@ import { initBackEndControlRoutes } from '/@/router/backEnd';
 import { Session } from '/@/utils/storage';
 import { formatAxis } from '/@/utils/formatTime';
 import { NextLoading } from '/@/utils/loading';
-import { getCaptchaApi, useLoginApi } from '/@/api/login';
+import { useCaptchaApi, useLoginApi } from '/@/api/login';
 
 // 定义变量内容
 const { t } = useI18n();
@@ -98,7 +98,7 @@ const captcha = reactive({
 	uuid: '',
 });
 
-const captchaApi = getCaptchaApi();
+const captchaApi = useCaptchaApi();
 
 // 页面加载完毕，获取验证码
 onMounted(() => {
