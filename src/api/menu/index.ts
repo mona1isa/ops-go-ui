@@ -12,18 +12,20 @@ import request from '/@/utils/request';
  */
 export function useMenuApi() {
 	return {
-		getAdminMenu: (params?: object) => {
+		getAdminMenu: (data: object) => {
 			return request({
-				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json',
-				method: 'get',
-				params,
+				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json
+				url: '/api/menu/list',
+				method: 'post',
+				data,
 			});
 		},
-		getTestMenu: (params?: object) => {
+		getTestMenu: (data: object) => {
 			return request({
-				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json',
-				method: 'get',
-				params,
+				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json
+				url: '/api/menu/list',
+				method: 'post',
+				data,
 			});
 		},
 	};

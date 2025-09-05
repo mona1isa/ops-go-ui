@@ -35,9 +35,17 @@ export function useLoginApi() {
 			return request({
 				url: '/api/user/logout',
 				method: 'get',
-				headers: {
-					'Authorization': Session.get('token'),
-				},
+			});
+		},
+	};
+}
+
+export function userInfoApi() {
+	return {
+		getOpsUserInfo: () => {
+			return request({
+				url: '/api/user/info',
+				method: 'get',
 			});
 		},
 	};

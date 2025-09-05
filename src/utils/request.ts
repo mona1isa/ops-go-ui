@@ -64,6 +64,8 @@ service.interceptors.response.use(
 			if (error.response.data) ElMessage.error(error.response.statusText);
 			else ElMessage.error('接口路径找不到');
 		}
+		// Session.clear(); // 清除浏览器全部临时缓存
+		// window.location.href = '/login'; // 去登录页
 		return Promise.reject(error);
 	}
 );

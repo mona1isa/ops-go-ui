@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia';
 import Cookies from 'js-cookie';
 import { Session } from '/@/utils/storage';
+import { userInfoApi } from '/@/api/login/index';
 
+const userInfoApiInstance = userInfoApi();
 /**
  * 用户信息
  * @methods setUserInfos 设置用户信息
@@ -9,10 +11,10 @@ import { Session } from '/@/utils/storage';
 export const useUserInfo = defineStore('userInfo', {
 	state: (): UserInfosState => ({
 		userInfos: {
-			userName: '',
+			username: '',
 			photo: '',
 			time: 0,
-			roles: [],
+			roles: '',
 			authBtnList: [],
 		},
 	}),
@@ -22,7 +24,8 @@ export const useUserInfo = defineStore('userInfo', {
 			if (Session.get('userInfo')) {
 				this.userInfos = Session.get('userInfo');
 			} else {
-				const userInfos = <UserInfos>await this.getApiUserInfo();
+				// const userInfos = <UserInfos>await this.getApiUserInfo();
+				const userInfos = <UserInfos>await this.getOpsUserInfo();
 				this.userInfos = userInfos;
 			}
 		},
@@ -66,6 +69,26 @@ export const useUserInfo = defineStore('userInfo', {
 					Session.set('userInfo', userInfos);
 					resolve(userInfos);
 				}, 0);
+			});
+		},
+
+		async getOpsUserInfo() {
+			// 真实接口请求用户信息
+			return new Promise((resolve) => {
+				let adminAuthBtnList: Array<string> = ['btn.add', 'btn.del', 'btn.edit', 'btn.link'];
+				userInfoApiInstance.getOpsUserInfo().then((res) => {
+					if (res && res.code === 200) {
+						const userInfos = {
+							username: res.data.username,
+							photo: res.data.avatar,
+							time: new Date().getTime(),
+							role: res.data.roleName,
+							authBtnList: adminAuthBtnList,
+						};
+						Session.set('userInfo', userInfos);
+						resolve(userInfos);
+					}
+				});
 			});
 		},
 	},
