@@ -14,7 +14,7 @@ export const useUserInfo = defineStore('userInfo', {
 			username: '',
 			photo: '',
 			time: 0,
-			roles: '',
+			role: '',
 			authBtnList: [],
 		},
 	}),

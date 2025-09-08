@@ -115,9 +115,9 @@ export function getBackEndControlRoutes() {
 	// 模拟 admin 与 test
 	const stores = useUserInfo(pinia);
 	const { userInfos } = storeToRefs(stores);
-	const auth = userInfos.value.roles;
+	const role = userInfos.value.role;
 	// 管理员 admin
-	if (auth.toLowerCase() === 'admin') {
+	if (role.toLowerCase() === 'admin') {
 		return menuApi.getAdminMenu({});
 	} else {
 		// 其它用户 test
