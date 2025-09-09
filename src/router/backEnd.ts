@@ -67,7 +67,6 @@ export async function initBackEndControlRoutes() {
  */
 export async function setFilterMenuAndCacheTagsViewRoutes() {
 	const storesRoutesList = useRoutesList(pinia);
-	console.log('dynamicRoutes=', dynamicRoutes);
 	storesRoutesList.setRoutesList(dynamicRoutes[0].children as any);
 	setCacheTagsViewRoutes();
 }
@@ -117,14 +116,7 @@ export function getBackEndControlRoutes() {
 	const { userInfos } = storeToRefs(stores);
 	const role = userInfos.value.role;
 	// 管理员 admin
-	if (role.toLowerCase() === 'admin') {
-		return menuApi.getAdminMenu({});
-	} else {
-		// 其它用户 test
-		return menuApi.getTestMenu({});
-	}
-	
-	
+	return menuApi.getRoutes();
 }
 
 /**

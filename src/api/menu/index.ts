@@ -12,7 +12,7 @@ import request from '/@/utils/request';
  */
 export function useMenuApi() {
 	return {
-		getAdminMenu: (data: object) => {
+		getMenuList: (data: object) => {
 			return request({
 				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json
 				url: '/api/menu/list',
@@ -20,12 +20,11 @@ export function useMenuApi() {
 				data,
 			});
 		},
-		getTestMenu: (data: object) => {
+		getRoutes: () => {
 			return request({
 				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json
-				url: '/api/menu/list',
-				method: 'post',
-				data,
+				url: '/api/menu/getRoutes',
+				method: 'get',
 			});
 		},
 	};
