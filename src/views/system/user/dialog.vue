@@ -99,16 +99,15 @@ const userDialogFormRef = ref();
 const state = reactive({
 	ruleForm: {
 		userName: '', // 账户名称
-		userNickname: '', // 用户昵称
-		roleSign: '', // 关联角色
-		department: [] as string[], // 部门
+		nickname: '', // 用户昵称
+		role: '', // 关联角色
+		deptId: [] as string[], // 部门
 		phone: '', // 手机号
 		email: '', // 邮箱
 		sex: '', // 性别
 		password: '', // 账户密码
-		overdueTime: '', // 账户过期
 		status: true, // 用户状态
-		describe: '', // 用户描述
+		remark: '', // 用户描述
 	},
 	deptData: [] as DeptTreeType[], // 部门数据
 	dialog: {

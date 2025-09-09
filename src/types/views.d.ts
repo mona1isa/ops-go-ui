@@ -84,17 +84,16 @@ declare type TreeType = {
 // user
 declare type RowUserType<T = any> = {
 	userName: string;
-	userNickname: string;
-	roleSign: string;
-	department: string[];
+	nickname: string;
+	role: string;
+	deptId: string[];
 	phone: string;
 	email: string;
 	sex: string;
 	password: string;
-	overdueTime: T;
 	status: boolean;
-	describe: string;
-	createTime: T;
+	remark: string;
+	createAt: T;
 };
 
 interface SysUserTableType extends TableType {
