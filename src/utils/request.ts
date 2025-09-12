@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Session } from '/@/utils/storage';
 import qs from 'qs';
+import router from '../router';
 
 // 配置新建一个 axios 实例
 const service: AxiosInstance = axios.create({
@@ -60,12 +61,13 @@ service.interceptors.response.use(
 			ElMessage.error('网络超时');
 		} else if (error.message == 'Network Error') {
 			ElMessage.error('网络连接错误');
+		} else if (error.message.indexOf('Request failed with status code 401') != -1) {
+			Session.clear(); // 清除浏览器全部临时缓存
+			router.push('/login'); // 去登录页
 		} else {
 			if (error.response.data) ElMessage.error(error.response.statusText);
 			else ElMessage.error('接口路径找不到');
 		}
-		// Session.clear(); // 清除浏览器全部临时缓存
-		// window.location.href = '/login'; // 去登录页
 		return Promise.reject(error);
 	}
 );

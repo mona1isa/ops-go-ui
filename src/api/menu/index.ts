@@ -12,19 +12,32 @@ import request from '/@/utils/request';
  */
 export function useMenuApi() {
 	return {
+		getRoutes: () => {
+			return request({
+				url: '/api/menu/getRoutes',
+				method: 'get',
+			});
+		},
 		getMenuList: (data: object) => {
 			return request({
-				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json
 				url: '/api/menu/list',
 				method: 'post',
 				data,
 			});
 		},
-		getRoutes: () => {
+
+		addMenu: (data: object) => {
 			return request({
-				// /gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json
-				url: '/api/menu/getRoutes',
-				method: 'get',
+				url: '/api/menu/add',
+				method: 'post',
+				data,
+			});
+		},
+		editMenu: (data: object) => {
+			return request({
+				url: '/api/menu/edit',
+				method: 'post',
+				data,
 			});
 		},
 	};

@@ -60,6 +60,7 @@ declare type RouteItem<T = any> = {
 	url?: string;
 	transUrl?: string;
 	title?: string;
+	parentId?: string | number;
 	id?: string | number;
 };
 

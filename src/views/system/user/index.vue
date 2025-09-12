@@ -95,24 +95,6 @@ const getTableData = () => {
 		}
 		
 	});
-	// for (let i = 0; i < 2; i++) {
-	// 	data.push({
-	// 		userName: i === 0 ? 'admin' : 'test',
-	// 		userNickname: i === 0 ? '我是管理员' : '我是普通用户',
-	// 		roleSign: i === 0 ? 'admin' : 'common',
-	// 		department: i === 0 ? ['vueNextAdmin', 'IT外包服务'] : ['vueNextAdmin', '资本控股'],
-	// 		phone: '12345678910',
-	// 		email: 'vueNextAdmin@123.com',
-	// 		sex: '女',
-	// 		password: '123456',
-	// 		overdueTime: new Date(),
-	// 		status: true,
-	// 		describe: i === 0 ? '不可删除' : '测试用户',
-	// 		createTime: new Date().toLocaleString(),
-	// 	});
-	// }
-	// state.tableData.data = data;
-	// state.tableData.total = state.tableData.data.length;
 	setTimeout(() => {
 		state.tableData.loading = false;
 	}, 500);

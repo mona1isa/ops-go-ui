@@ -37,7 +37,7 @@
 				</el-table-column>
 				<el-table-column label="权限标识" show-overflow-tooltip>
 					<template #default="scope">
-						<span>{{ scope.row.meta.roles }}</span>
+						<span>{{ scope.row.perms }}</span>
 					</template>
 				</el-table-column>
 				<el-table-column label="排序" show-overflow-tooltip width="80">
@@ -47,7 +47,7 @@
 				</el-table-column>
 				<el-table-column label="类型" show-overflow-tooltip width="80">
 					<template #default="scope">
-						<el-tag type="success" size="small">{{ scope.row.xx }}菜单</el-tag>
+						<el-tag type="success" size="small">{{ getTypeText(scope.row.type) }}</el-tag>
 					</template>
 				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
@@ -69,10 +69,13 @@ import { RouteRecordRaw } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import { useRoutesList } from '/@/stores/routesList';
-// import { setBackEndControlRefreshRoutes } from "/@/router/backEnd";
+import { setBackEndControlRefreshRoutes } from "/@/router/backEnd";
+import { useMenuApi } from '/@/api/menu';
 
 // 引入组件
 const MenuDialog = defineAsyncComponent(() => import('/@/views/system/menu/dialog.vue'));
+
+const menuApi = useMenuApi();
 
 // 定义变量内容
 const stores = useRoutesList();
@@ -88,11 +91,25 @@ const state = reactive({
 // 获取路由数据，真实请从接口获取
 const getTableData = () => {
 	state.tableData.loading = true;
-	state.tableData.data = routesList.value;
+	// state.tableData.data = routesList.value;
+	menuApi.getMenuList({}).then((res) => {
+		state.tableData.data = res.data;
+	});
 	setTimeout(() => {
 		state.tableData.loading = false;
 	}, 500);
 };
+
+// 获取菜单类型
+const getTypeText = (type: string) => {
+	switch (type) {
+		case 'C': return '目录';
+		case 'M': return '菜单';
+		case 'F': return '按钮';
+		default: return '未知';
+	}	
+};
+
 // 打开新增菜单弹窗
 const onOpenAddMenu = (type: string) => {
 	menuDialogRef.value.openDialog(type);
@@ -111,7 +128,7 @@ const onTabelRowDel = (row: RouteRecordRaw) => {
 		.then(() => {
 			ElMessage.success('删除成功');
 			getTableData();
-			//await setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+			setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 		})
 		.catch(() => {});
 };
