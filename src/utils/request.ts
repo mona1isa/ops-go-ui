@@ -56,8 +56,12 @@ service.interceptors.response.use(
 		}
 	},
 	(error) => {
+		console.log('oooooooooooooooooooo' + error); // for debug
 		// 对响应错误做点什么
-		if (error.message.indexOf('timeout') != -1) {
+		if (error.response?.status === 400) {
+			const msg = error.response.data?.msg || '请求参数错误';
+			ElMessage.error(msg);
+		} else if (error.message.indexOf('timeout') != -1) {
 			ElMessage.error('网络超时');
 		} else if (error.message == 'Network Error') {
 			ElMessage.error('网络连接错误');
@@ -65,8 +69,7 @@ service.interceptors.response.use(
 			Session.clear(); // 清除浏览器全部临时缓存
 			router.push('/login'); // 去登录页
 		} else {
-			if (error.response.data) ElMessage.error(error.response.statusText);
-			else ElMessage.error('接口路径找不到');
+			ElMessage.error(error.response?.statusText || '接口路径找不到');
 		}
 		return Promise.reject(error);
 	}

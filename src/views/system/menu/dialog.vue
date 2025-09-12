@@ -207,7 +207,6 @@ const getMenuData = (routes: RouteItems) => {
 };
 // 打开弹窗
 const openDialog = (type: string, row?: any) => {
-	console.log("打开弹窗，操作类型：", type, row);
 	if (type === 'edit') {
 		// 模拟数据，实际请走接口
 		row.menuType = 'menu';
@@ -215,11 +214,9 @@ const openDialog = (type: string, row?: any) => {
 		state.ruleForm = JSON.parse(JSON.stringify(row));
 		state.dialog.title = '修改菜单';
 		state.dialog.submitTxt = '修 改';
-		state.dialog.type = 'edit';
 	} else {
 		state.dialog.title = '新增菜单';
 		state.dialog.submitTxt = '新 增';
-		state.dialog.type = 'add';
 		// 清空表单，此项需加表单验证才能使用
 		// nextTick(() => {
 		// 	menuDialogFormRef.value.resetFields();
