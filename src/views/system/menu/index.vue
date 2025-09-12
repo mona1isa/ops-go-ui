@@ -2,8 +2,8 @@
 	<div class="system-menu-container layout-pd">
 		<el-card shadow="hover">
 			<div class="system-menu-search mb15">
-				<el-input size="default" placeholder="请输入菜单名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10">
+				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px"> </el-input>
+				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
@@ -83,6 +83,7 @@ const { routesList } = storeToRefs(stores);
 const menuDialogRef = ref();
 const state = reactive({
 	tableData: {
+		name: '',
 		data: [] as RouteRecordRaw[],
 		loading: true,
 	},
@@ -91,8 +92,8 @@ const state = reactive({
 // 获取路由数据，真实请从接口获取
 const getTableData = () => {
 	state.tableData.loading = true;
-	// state.tableData.data = routesList.value;
-	menuApi.getMenuList({}).then((res) => {
+	const data = {"name": state.tableData.name};
+	menuApi.getMenuList(data).then((res) => {
 		state.tableData.data = res.data;
 	});
 	setTimeout(() => {
@@ -120,15 +121,19 @@ const onOpenEditMenu = (type: string, row: RouteRecordRaw) => {
 };
 // 删除当前行
 const onTabelRowDel = (row: RouteRecordRaw) => {
-	ElMessageBox.confirm(`此操作将永久删除路由：${row.path}, 是否继续?`, '提示', {
+	ElMessageBox.confirm(`此操作将永久删除菜单：${String(row.name)}, 是否继续?`, '提示', {
 		confirmButtonText: '删除',
 		cancelButtonText: '取消',
 		type: 'warning',
 	})
 		.then(() => {
-			ElMessage.success('删除成功');
-			getTableData();
-			setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+			menuApi.delMenu(row.id).then(() => {
+				ElMessage.success('删除成功');
+				getTableData();
+				setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+			})
+
+			.catch(() => {});
 		})
 		.catch(() => {});
 };

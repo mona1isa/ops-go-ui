@@ -40,5 +40,12 @@ export function useMenuApi() {
 				data,
 			});
 		},
+
+		delMenu: (id: string | number) => {
+			return request({
+				url: '/api/menu/' + id,
+				method: 'delete',
+			});
+		}
 	};
 }

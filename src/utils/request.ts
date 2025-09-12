@@ -56,7 +56,6 @@ service.interceptors.response.use(
 		}
 	},
 	(error) => {
-		console.log('oooooooooooooooooooo' + error); // for debug
 		// 对响应错误做点什么
 		if (error.response?.status === 400) {
 			const msg = error.response.data?.msg || '请求参数错误';
