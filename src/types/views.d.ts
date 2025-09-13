@@ -105,21 +105,23 @@ declare interface SysUserState {
 }
 
 declare type DeptTreeType = {
-	deptName: string;
-	createTime: string;
+	id: number | string; // 部门ID
+	name: string;
+	parentId: number; // 父部门ID
+	orderNum: number;
+	createAt: string;
 	status: boolean;
-	sort: number;
-	describe: string;
-	id: number | string;
+	remark: string;
 	children?: DeptTreeType[];
 };
 
 // dept
 declare interface RowDeptType extends DeptTreeType {
-	deptLevel: string[];
-	person: string;
-	phone: string;
-	email: string;
+	ids: number[], // 部门ID
+	name: '', // 部门名称
+	orderNum: 0, // 排序
+	status: true, // 部门状态
+	remark: '', // 部门描述
 }
 
 interface SysDeptTableType extends TableType {

@@ -253,7 +253,6 @@ const parentId = computed(() => {
 });
 
 const onSubmit = () => {
-	
 	if (state.dialog.type === 'add') { // 新增菜单
 		menuApi.addMenu({
 			...state.ruleForm,
