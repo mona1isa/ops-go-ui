@@ -36,11 +36,6 @@
 					</el-col>
 					<template v-if="state.ruleForm.type !== 'F'">
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="路由名称">
-								<el-input v-model="state.ruleForm.path" placeholder="路由中的 name 值" clearable></el-input>
-							</el-form-item>
-						</el-col>
-						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 							<el-form-item label="路由路径">
 								<el-input v-model="state.ruleForm.path" placeholder="路由中的 path 值" clearable></el-input>
 							</el-form-item>
@@ -128,7 +123,16 @@
 								</el-radio-group>
 							</el-form-item>
 						</el-col>
+			
 					</template>
+					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
+						<el-form-item label="状态">
+							<el-radio-group v-model="state.ruleForm.status">
+								<el-radio :label="true">启用</el-radio>
+								<el-radio :label="false">禁用</el-radio>
+							</el-radio-group>
+						</el-form-item>
+					</el-col>
 				</el-row>
 			</el-form>
 			<template #footer>
@@ -185,6 +189,7 @@ const state = reactive({
 		roles: '', // 权限标识，取角色管理
 		perms: '', // 菜单类型为按钮时，权限标识
 		url: '', // 外链/内嵌时链接地址（http:xxx.com）
+		status: true, // 状态: true 启用  false 禁用
 	},
 	menuData: [] as RouteItems, // 上级菜单数据
 	dialog: {
