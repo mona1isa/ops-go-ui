@@ -85,6 +85,7 @@ declare type TreeType = {
 declare type RowUserType<T = any> = {
 	userName: string;
 	nickname: string;
+	roleName: string;
 	role: string;
 	deptId: string[];
 	phone: string;

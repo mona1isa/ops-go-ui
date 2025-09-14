@@ -10,12 +10,12 @@
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="用户昵称">
-							<el-input v-model="state.ruleForm.userNickname" placeholder="请输入用户昵称" clearable></el-input>
+							<el-input v-model="state.ruleForm.nickname" placeholder="请输入用户昵称" clearable></el-input>
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="关联角色">
-							<el-select v-model="state.ruleForm.roleSign" placeholder="请选择" clearable class="w100">
+							<el-select v-model="state.ruleForm.roleName" placeholder="请选择" clearable class="w100">
 								<el-option label="超级管理员" value="admin"></el-option>
 								<el-option label="普通用户" value="common"></el-option>
 							</el-select>
@@ -29,7 +29,7 @@
 								placeholder="请选择部门"
 								clearable
 								class="w100"
-								v-model="state.ruleForm.department"
+								v-model="state.ruleForm.deptId"
 							>
 								<template #default="{ node, data }">
 									<span>{{ data.deptName }}</span>
@@ -100,6 +100,7 @@ const state = reactive({
 	ruleForm: {
 		userName: '', // 账户名称
 		nickname: '', // 用户昵称
+		roleName: '', // 关联角色名称
 		role: '', // 关联角色
 		deptId: [] as string[], // 部门
 		phone: '', // 手机号

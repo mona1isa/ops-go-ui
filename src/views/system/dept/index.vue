@@ -33,7 +33,9 @@
 					</template>
 				</el-table-column>
 				<el-table-column prop="remark" label="部门描述" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="createTime" label="创建时间" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="createdAt" label="创建时间" show-overflow-tooltip>
+					<template #default="scope">{{ dayjs(scope.row.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</template>
+				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
 						<el-button size="small" text type="primary" @click="onOpenAddDept('add')">新增</el-button>
@@ -50,6 +52,7 @@
 <script setup lang="ts" name="systemDept">
 import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
+import { dayjs } from 'element-plus';
 import { useDeptApi } from '/@/api/dept';
 
 // 部门接口

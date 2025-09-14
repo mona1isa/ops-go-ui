@@ -20,7 +20,7 @@
 				<el-table-column type="id" label="序号" width="60" />
 				<el-table-column prop="userName" label="用户名称" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="nickName" label="用户昵称" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="roleSign" label="关联角色" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="roleName" label="关联角色" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="deptId" label="部门" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="phone" label="手机号" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="email" label="邮箱" show-overflow-tooltip></el-table-column>
@@ -31,7 +31,9 @@
 					</template>
 				</el-table-column>
 				<el-table-column prop="remark" label="用户描述" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="createdAt" label="创建时间" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="createdAt" label="创建时间" show-overflow-tooltip>
+					<template #default="scope">{{ dayjs(scope.row.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</template>
+				</el-table-column>
 				<el-table-column label="操作" width="100">
 					<template #default="scope">
 						<el-button :disabled="scope.row.userName === 'admin'" size="small" text type="primary" @click="onOpenEditUser('edit', scope.row)"
@@ -62,7 +64,8 @@
 <script setup lang="ts" name="systemUser">
 import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { useUserInfoApi } from '/@/api/user/index'
+import { dayjs } from 'element-plus';
+import { useUserInfoApi } from '/@/api/user/index';
 
 const userApi = useUserInfoApi();
 
