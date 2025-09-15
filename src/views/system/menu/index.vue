@@ -2,7 +2,7 @@
 	<div class="system-menu-container layout-pd">
 		<el-card shadow="hover">
 			<div class="system-menu-search mb15">
-				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px"> </el-input>
+				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px" clearable> </el-input>
 				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
 					<el-icon>
 						<ele-Search />

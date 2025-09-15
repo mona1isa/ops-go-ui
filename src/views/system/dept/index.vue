@@ -78,12 +78,8 @@ const state = reactive<SysDeptState>({
 // 初始化表格数据
 const getTableData = () => {
 	state.tableData.loading = true;
-	const data = {
-		name: state.tableData.param.name,
-	};
-	deptApi.getDeptList(data).then((res) => {
+	deptApi.getDeptTree().then((res) => {
 		state.tableData.data = res.data;
-		// state.tableData.total = data.total;
 	});
 
 	setTimeout(() => {

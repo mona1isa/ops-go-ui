@@ -2,8 +2,8 @@
 	<div class="system-user-container layout-padding">
 		<el-card shadow="hover" class="layout-padding-auto">
 			<div class="system-user-search mb15">
-				<el-input size="default" placeholder="请输入用户名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10">
+				<el-input v-model="state.tableData.param.userName" size="default" placeholder="请输入用户名称" style="max-width: 180px" clearable> </el-input>
+				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
@@ -17,7 +17,7 @@
 				</el-button>
 			</div>
 			<el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
-				<el-table-column type="id" label="序号" width="60" />
+				<el-table-column prop="id" label="序号" width="60" />
 				<el-table-column prop="userName" label="用户名称" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="nickName" label="用户昵称" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="roleName" label="关联角色" show-overflow-tooltip></el-table-column>

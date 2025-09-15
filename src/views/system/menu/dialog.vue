@@ -4,7 +4,7 @@
 			<el-form ref="menuDialogFormRef" :model="state.ruleForm" size="default" label-width="80px">
 				<el-row :gutter="35">
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-						<el-form-item label="上级菜单">
+						<el-form-item label="上级菜单" prop="parentId">
 							<el-cascader
 								:options="state.menuData"
 								:props="{ checkStrictly: true, value: 'id', label: 'title' }"
@@ -21,7 +21,7 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-						<el-form-item label="菜单类型">
+						<el-form-item label="菜单类型" prop="type">
 							<el-radio-group v-model="state.ruleForm.type">
 								<el-radio label="C">目录</el-radio>
 								<el-radio label="M">菜单</el-radio>
@@ -30,28 +30,28 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="菜单名称">
+						<el-form-item label="菜单名称" prop="name">
 							<el-input v-model="state.ruleForm.name" clearable></el-input>
 						</el-form-item>
 					</el-col>
 					<template v-if="state.ruleForm.type !== 'F'">
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="路由路径">
+							<el-form-item label="路由路径" prop="path">
 								<el-input v-model="state.ruleForm.path" placeholder="路由中的 path 值" clearable></el-input>
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="菜单图标">
+							<el-form-item label="菜单图标" prop="icon">
 								<IconSelector placeholder="请输入菜单图标" v-model="state.ruleForm.icon" />
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="组件路径">
+							<el-form-item label="组件路径" prop="component">
 								<el-input v-model="state.ruleForm.component" placeholder="组件路径" clearable></el-input>
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="链接地址">
+							<el-form-item label="链接地址" prop="url">
 								<el-input
 									v-model="state.ruleForm.url"
 									placeholder="外链/内嵌时链接地址（http:xxx.com）"
@@ -72,19 +72,19 @@
 					</template>
 					<template v-if="state.ruleForm.type === 'F'">
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="权限标识">
+							<el-form-item label="权限标识" prop="perms">
 								<el-input v-model="state.ruleForm.perms" placeholder="请输入权限标识" clearable></el-input>
 							</el-form-item>
 						</el-col>
 					</template>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="菜单排序">
+						<el-form-item label="菜单排序" prop="orderNum">
 							<el-input-number v-model="state.ruleForm.orderNum" controls-position="right" placeholder="请输入排序" class="w100" />
 						</el-form-item>
 					</el-col>
 					<template v-if="state.ruleForm.type === 'M'">
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="是否隐藏">
+							<el-form-item label="是否隐藏" prop="isHide">
 								<el-radio-group v-model="state.ruleForm.isHide">
 									<el-radio :label="true">隐藏</el-radio>
 									<el-radio :label="false">不隐藏</el-radio>
@@ -92,7 +92,7 @@
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="页面缓存">
+							<el-form-item label="页面缓存" prop="keepAlive">
 								<el-radio-group v-model="state.ruleForm.keepAlive">
 									<el-radio :label="true">缓存</el-radio>
 									<el-radio :label="false">不缓存</el-radio>
@@ -100,7 +100,7 @@
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="是否固定">
+							<el-form-item label="是否固定" prop="isAffix">
 								<el-radio-group v-model="state.ruleForm.isAffix">
 									<el-radio :label="true">固定</el-radio>
 									<el-radio :label="false">不固定</el-radio>
@@ -108,7 +108,7 @@
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="是否外链">
+							<el-form-item label="是否外链" prop="isLink">
 								<el-radio-group v-model="state.ruleForm.isLink" :disabled="state.ruleForm.isLink">
 									<el-radio :label="true">是</el-radio>
 									<el-radio :label="false">否</el-radio>
@@ -116,7 +116,7 @@
 							</el-form-item>
 						</el-col>
 						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-							<el-form-item label="是否内嵌">
+							<el-form-item label="是否内嵌" prop="isIframe">
 								<el-radio-group v-model="state.ruleForm.isIframe" @change="onSelectIframeChange">
 									<el-radio :label="true">是</el-radio>
 									<el-radio :label="false">否</el-radio>
@@ -126,7 +126,7 @@
 			
 					</template>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
-						<el-form-item label="状态">
+						<el-form-item label="状态" prop="status">
 							<el-radio-group v-model="state.ruleForm.status">
 								<el-radio :label="true">启用</el-radio>
 								<el-radio :label="false">禁用</el-radio>
@@ -260,6 +260,7 @@ const onSubmit = () => {
 		}).then((res) => {
 			if (res && res.code === 200) {
 				ElMessage.success('新增成功');
+				emit('refresh');
 			}
 		});
 	 } else if (state.dialog.type === 'edit') { // 修改菜单
@@ -269,12 +270,13 @@ const onSubmit = () => {
 		}).then((res) => {
 			if (res && res.code === 200) {
 				ElMessage.success('修改成功');
+				emit('refresh');
 			}
 		});
 	} 
 	closeDialog(); // 关闭弹窗
 	setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
-	emit('refresh');
+	
 };
 // 页面加载时
 onMounted(() => {

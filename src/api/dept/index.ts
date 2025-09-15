@@ -1,3 +1,4 @@
+import { get } from 'sortablejs';
 import request from '/@/utils/request';
 
 export function useDeptApi() {
@@ -30,5 +31,12 @@ export function useDeptApi() {
                 data,
             });
         },
+
+        getDeptTree: () => {
+            return request({
+                url: '/api/dept/tree',
+                method: 'get',
+            });
+        }
     }
 }

@@ -2,7 +2,7 @@
 	<div class="system-role-container layout-padding">
 		<div class="system-role-padding layout-padding-auto layout-padding-view">
 			<div class="system-user-search mb15">
-				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入角色名称" style="max-width: 180px"> </el-input>
+				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入角色名称" style="max-width: 180px" clearable> </el-input>
 				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
 					<el-icon>
 						<ele-Search />
