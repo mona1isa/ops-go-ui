@@ -59,12 +59,12 @@ declare type ParamsState = {
  */
 // role
 declare interface RowRoleType {
-	roleName: string;
-	roleSign: string;
-	describe: string;
-	sort: number;
-	status: boolean;
-	createTime: string;
+	id: number;
+	name: string;
+	status: string;
+	remark: string;
+	orderNum: number;
+	createdAt: string;
 }
 
 interface SysRoleTableType extends TableType {
@@ -86,7 +86,7 @@ declare type RowUserType<T = any> = {
 	userName: string;
 	nickname: string;
 	roleName: string;
-	role: string;
+	roleId: string;
 	deptId: string[];
 	phone: string;
 	email: string;

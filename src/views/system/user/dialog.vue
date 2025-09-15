@@ -15,9 +15,13 @@
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="关联角色">
-							<el-select v-model="state.ruleForm.roleName" placeholder="请选择" clearable class="w100">
-								<el-option label="超级管理员" value="admin"></el-option>
-								<el-option label="普通用户" value="common"></el-option>
+							<el-select v-model="state.ruleForm.roleId" placeholder="请选择" clearable class="w100">
+								<el-option
+									v-for="role in state.roleData"
+									:key="role.id"
+									:label="role.name"
+									:value="role.id"
+								></el-option>
 							</el-select>
 						</el-form-item>
 					</el-col>
@@ -62,18 +66,13 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="账户过期">
-							<el-date-picker v-model="state.ruleForm.overdueTime" type="date" placeholder="请选择" class="w100"> </el-date-picker>
-						</el-form-item>
-					</el-col>
-					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="用户状态">
 							<el-switch v-model="state.ruleForm.status" inline-prompt active-text="启" inactive-text="禁"></el-switch>
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
 						<el-form-item label="用户描述">
-							<el-input v-model="state.ruleForm.describe" type="textarea" placeholder="请输入用户描述" maxlength="150"></el-input>
+							<el-input v-model="state.ruleForm.remark" type="textarea" placeholder="请输入用户描述" maxlength="150"></el-input>
 						</el-form-item>
 					</el-col>
 				</el-row>
@@ -90,9 +89,17 @@
 
 <script setup lang="ts" name="systemUserDialog">
 import { reactive, ref } from 'vue';
+import { useDeptApi } from '/@/api/dept';
+import { useRoleApi } from '/@/api/role';
 
 // 定义子组件向父组件传值/事件
 const emit = defineEmits(['refresh']);
+
+// 部门接口
+const deptApi = useDeptApi();
+
+// 角色接口
+const roleApi = useRoleApi();
 
 // 定义变量内容
 const userDialogFormRef = ref();
@@ -100,8 +107,7 @@ const state = reactive({
 	ruleForm: {
 		userName: '', // 账户名称
 		nickname: '', // 用户昵称
-		roleName: '', // 关联角色名称
-		role: '', // 关联角色
+		roleId: '', // 关联角色ID
 		deptId: [] as string[], // 部门
 		phone: '', // 手机号
 		email: '', // 邮箱
@@ -111,6 +117,7 @@ const state = reactive({
 		remark: '', // 用户描述
 	},
 	deptData: [] as DeptTreeType[], // 部门数据
+	roleData: [] as RowRoleType[], // 角色数据
 	dialog: {
 		isShowDialog: false,
 		type: '',
@@ -129,12 +136,10 @@ const openDialog = (type: string, row: RowUserType) => {
 		state.dialog.title = '新增用户';
 		state.dialog.submitTxt = '新 增';
 		// 清空表单，此项需加表单验证才能使用
-		// nextTick(() => {
-		// 	userDialogFormRef.value.resetFields();
-		// });
+		userDialogFormRef.value.resetFields();
 	}
 	state.dialog.isShowDialog = true;
-	getMenuData();
+	getDeptData();
 };
 // 关闭弹窗
 const closeDialog = () => {
@@ -151,32 +156,16 @@ const onSubmit = () => {
 	// if (state.dialog.type === 'add') { }
 };
 // 初始化部门数据
-const getMenuData = () => {
-	state.deptData.push({
-		deptName: 'vueNextAdmin',
-		createTime: new Date().toLocaleString(),
-		status: true,
-		sort: Math.random(),
-		describe: '顶级部门',
-		id: Math.random(),
-		children: [
-			{
-				deptName: 'IT外包服务',
-				createTime: new Date().toLocaleString(),
-				status: true,
-				sort: Math.random(),
-				describe: '总部',
-				id: Math.random(),
-			},
-			{
-				deptName: '资本控股',
-				createTime: new Date().toLocaleString(),
-				status: true,
-				sort: Math.random(),
-				describe: '分部',
-				id: Math.random(),
-			},
-		],
+const getDeptData = () => {
+	deptApi.getDeptList({}).then((res) => {
+		state.deptData = res.data;
+	});
+};
+
+// 初始化角色数据
+const getRoleData = () => {
+	roleApi.getRoleList({}).then((res) => {
+		state.roleData = res.data;
 	});
 };
 
