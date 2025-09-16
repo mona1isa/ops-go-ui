@@ -19,15 +19,19 @@
 			<el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
 				<el-table-column prop="id" label="序号" width="60" />
 				<el-table-column prop="userName" label="用户名称" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="nickName" label="用户昵称" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="nickname" label="用户昵称" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="roleName" label="关联角色" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="deptId" label="部门" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="deptName" label="部门" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="phone" label="手机号" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="email" label="邮箱" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="status" label="用户状态" show-overflow-tooltip>
 					<template #default="scope">
-						<el-tag type="success" v-if="scope.row.status === '1'">启用</el-tag>
-						<el-tag type="info" v-else>禁用</el-tag>
+						<el-switch 
+							v-model="scope.row.status" 
+							inline-prompt active-text="启" active-value="1" 
+							inactive-text="禁" inactive-value="0" 
+							@click="onStatusChange(scope.row)">
+						</el-switch>
 					</template>
 				</el-table-column>
 				<el-table-column prop="remark" label="用户描述" show-overflow-tooltip></el-table-column>
@@ -118,11 +122,37 @@ const onRowDel = (row: RowUserType) => {
 		type: 'warning',
 	})
 		.then(() => {
-			getTableData();
-			ElMessage.success('删除成功');
+			userApi.deleteUser(row.id).then((res) => {
+				if (res && res.code === 200) {
+					ElMessage.success('删除成功');
+					getTableData();
+				} else {
+					ElMessage.error(res.msg);
+					return;
+				}
+			});
+			
 		})
 		.catch(() => {});
 };
+
+// 修改用户状态
+const onStatusChange = (row: RowUserType) => {
+	let data = {
+		id: row.id,
+		status: row.status,
+	};
+	userApi.updateUserStatus(data).then((res) => {
+		if (res && res.code === 200) {
+			ElMessage.success('修改成功');
+			getTableData();
+		} else {
+			ElMessage.error(res.msg);
+			return;
+		}
+	});
+};
+
 // 分页改变
 const onHandleSizeChange = (val: number) => {
 	state.tableData.param.pageSize = val;

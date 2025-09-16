@@ -83,18 +83,20 @@ declare type TreeType = {
 
 // user
 declare type RowUserType<T = any> = {
+	id: number;
 	userName: string;
 	nickname: string;
 	roleName: string;
-	roleId: string;
-	deptId: string[];
+	roleId: number;
+	deptId: number;
 	phone: string;
 	email: string;
-	sex: string;
+	sex: number | string;
 	password: string;
-	status: boolean;
+	status: string;
 	remark: string;
 	createAt: T;
+	deptIds: number[];
 };
 
 interface SysUserTableType extends TableType {
@@ -106,7 +108,7 @@ declare interface SysUserState {
 }
 
 declare type DeptTreeType = {
-	id: number | string; // 部门ID
+	id: number; // 部门ID
 	name: string;
 	parentId: number; // 父部门ID
 	orderNum: number;

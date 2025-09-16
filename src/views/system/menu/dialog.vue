@@ -176,7 +176,7 @@ const state = reactive({
 		name: '', // 菜单名称
 		component: '', // 组件路径
 		componentAlias: '', // 组件路径别名
-		isLink: false, // 是否外链
+		isLink: false, // 是否外链 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink: 链接地址不为空`
 		orderNum: 0, // 菜单排序
 		path: '', // 路由路径
 		title: '', // 菜单名称
@@ -184,7 +184,6 @@ const state = reactive({
 		isHide: false, // 是否隐藏
 		keepAlive: true, // 是否缓存
 		isAffix: false, // 是否固定
-			// isLink: '', // 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink: 链接地址不为空`
 		isIframe: false, // 是否内嵌，开启条件，`1、isIframe:true 2、isLink：链接地址不为空`
 		roles: '', // 权限标识，取角色管理
 		perms: '', // 菜单类型为按钮时，权限标识

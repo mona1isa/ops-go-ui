@@ -30,9 +30,16 @@ export function useUserInfoApi() {
                 data,
             });
         },
-        deleteUser: (id: object) => {
+        updateUserStatus: (data: object) => {
             return request({
-                url: '/api/user/rm/:id',
+                url: '/api/user/changeStatus',
+                method: 'post',
+                data,
+            });
+        },
+        deleteUser: (id: number) => {
+            return request({
+                url: '/api/user/rm/'+ id,
                 method: 'delete',
             });
         },
