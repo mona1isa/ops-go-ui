@@ -129,10 +129,6 @@ const onSignIn = async () => {
 		Cookies.set('username', state.ruleForm.username);
 		state.loading.signIn = false;
 	}
-	
-	setTimeout(() => {
-		state.loading.signIn = false;
-	}, 500);
 
 	if (!themeConfig.value.isRequestRoutes) {
 		// 前端控制路由，2、请注意执行顺序

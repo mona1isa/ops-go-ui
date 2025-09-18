@@ -65,6 +65,7 @@ declare interface RowRoleType {
 	remark: string;
 	orderNum: number;
 	createdAt: string;
+	menuIds: number[];
 }
 
 interface SysRoleTableType extends TableType {

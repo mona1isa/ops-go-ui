@@ -26,7 +26,15 @@
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
 						<el-form-item label="菜单权限">
-							<el-tree :data="state.menuData" :props="state.menuProps" show-checkbox class="menu-data-tree" />
+							<el-tree 
+							ref="menuTreeRef"
+							:data="state.menuData" 
+							:props="state.menuProps" 
+							show-checkbox 
+							check-strictly
+							class="menu-data-tree" 
+							node-key="id" 
+							:default-checked-keys="state.ruleForm.menuIds" />
 						</el-form-item>
 					</el-col>
 				</el-row>
@@ -60,16 +68,19 @@ const emit = defineEmits(['refresh']);
 const roleDialogFormRef = ref();
 const rules = reactive({
   name: [
-    { required: true, message: '角色名称不能为空', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' },
+	{ required: true, message: '角色名称不能为空', trigger: 'blur' },
+	{ min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' },
   ],
   orderNum: [
-    { required: true, message: '排序不能为空', trigger: 'blur' },
+	{ required: true, message: '排序不能为空', trigger: 'blur' },
   ],
   status: [
-    { required: true, message: '角色状态不能为空', trigger: 'change' },
+	{ required: true, message: '角色状态不能为空', trigger: 'change' },
   ],
 });
+
+// Define menuTreeRef
+const menuTreeRef = ref();
 
 const initialState = {
   id: 0,
@@ -78,6 +89,7 @@ const initialState = {
   status: '1',
   remark: '',
   createdAt: '',
+  menuIds: [] as number[], // 确保初始化为数组
 };
 
 const state = reactive({
@@ -85,7 +97,8 @@ const state = reactive({
 	menuData: [] as TreeType[],
 	menuProps: {
 		children: 'children',
-		label: 'label',
+		label: 'name',
+		id: 'id',
 	},
 	dialog: {
 		isShowDialog: false,
@@ -98,7 +111,9 @@ const state = reactive({
 // 打开弹窗
 const openDialog = (type: string, row: RowRoleType) => {
 	if (type === 'edit') {
-		state.ruleForm = row;
+		state.ruleForm = {
+			...row,
+		};
 		state.dialog.title = '修改角色';
 		state.dialog.submitTxt = '修 改';
 	} else {
@@ -124,22 +139,26 @@ const onCancel = () => {
 };
 // 提交
 const onSubmit = () => {
-  roleDialogFormRef.value.validate((valid: boolean) => {
-    if (valid) {
-      const apiCall = state.dialog.type === 'add' 
-        ? roleApi.addRole(state.ruleForm) 
-        : roleApi.editRole(state.ruleForm);
-      
-      apiCall.then(() => {
-        closeDialog();
-        emit('refresh'); // 确保接口成功后再触发刷新
-      }).catch((error) => {
-        ElMessage.error(error.message);
-      });
-    } else {
-      ElMessage.error('请填写完整表单');
-    }
-  });
+	const checkedKeys = menuTreeRef.value.getCheckedKeys();
+
+	console.log("=============", checkedKeys)
+	state.ruleForm.menuIds = checkedKeys;
+	roleDialogFormRef.value.validate((valid: boolean) => {
+		if (valid) {
+			const apiCall = state.dialog.type === 'add' 
+				? roleApi.addRole(state.ruleForm) 
+				: roleApi.editRole(state.ruleForm);
+		
+			apiCall.then(() => {
+				closeDialog();
+				emit('refresh'); // 确保接口成功后再触发刷新
+			}).catch((error) => {
+				ElMessage.error(error.message);
+			});
+		} else {
+		ElMessage.error('请填写完整表单');
+		}
+	});
 };
 
 // 获取菜单结构数据
@@ -147,6 +166,30 @@ const getMenuData = () => {
 	menuApi.getMenuList({}).then((res) => {
 		state.menuData = res.data;
 	});
+};
+
+
+const extractIds = (nodes: RouteItem[]): number[] => {
+	const ids: number[] = [];
+	nodes.forEach((node) => {
+		ids.push(Number(node.id));
+		if (node.children && node.children.length > 0) {
+			ids.push(...extractIds(node.children));
+		}
+	});
+	return ids;
+};
+
+const onTreeClick = (item: RouteItem) => {
+	let ids: number[] = [];
+	ids.push(item.id);
+	if (item.children && item.children.length > 0) {
+		if (state.ruleForm.menuIds.includes(item.parentId?Number(item.parentId):-1)) {
+			ids.push(Number(item.parentId));
+		}
+		ids.push(...extractIds(item.children));
+	}
+  	state.ruleForm.menuIds.push(...ids);
 };
 
 // 暴露变量

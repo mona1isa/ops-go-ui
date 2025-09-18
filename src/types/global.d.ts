@@ -60,8 +60,8 @@ declare type RouteItem<T = any> = {
 	url?: string;
 	transUrl?: string;
 	title?: string;
-	parentId?: string | number;
-	id?: string | number;
+	parentId: string | number;
+	id: number;
 };
 
 // 声明路由 to from
