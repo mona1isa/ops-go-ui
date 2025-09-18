@@ -25,11 +25,9 @@
 				:tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
 			>
 				<el-table-column prop="name" label="部门名称" show-overflow-tooltip> </el-table-column>
-				<el-table-column prop="orderNum" label="排序" show-overflow-tooltip width="80" ></el-table-column>
 				<el-table-column prop="status" label="部门状态" show-overflow-tooltip>
 					<template #default="scope">
-						<el-tag type="success" v-if="scope.row.status">启用</el-tag>
-						<el-tag type="info" v-else>禁用</el-tag>
+						<el-switch v-model="scope.row.status" inline-prompt active-text="启" inactive-text="禁" @click="onStatusChange(scope.row)"></el-switch>
 					</template>
 				</el-table-column>
 				<el-table-column prop="remark" label="部门描述" show-overflow-tooltip></el-table-column>
@@ -115,6 +113,28 @@ const onTabelRowDel = (row: DeptTreeType) => {
 			
 		})
 		.catch(() => {});
+};
+
+const onStatusChange = (row: DeptTreeType) => {
+	const newStatus = row.status ? 1 : 0; // 将布尔值转换为数字
+	const data = {
+		id: row.id,
+		status: row.status,
+	};
+	deptApi.updateDeptStatus(data).then((res) => {
+		if (res && res.code === 200) {
+			getTableData
+			ElMessage.success('状态更新成功');
+		} else {
+			// 如果更新失败，恢复原状态
+			row.status = !row.status;
+			ElMessage.error(res.msg);
+		}
+	}).catch(() => {
+		// 如果请求失败，恢复原状态
+		row.status = !row.status;
+		ElMessage.error('网络错误，状态更新失败');
+	});
 };
 // 页面加载时
 onMounted(() => {
