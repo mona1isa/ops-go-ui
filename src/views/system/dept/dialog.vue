@@ -112,7 +112,7 @@ const openDialog = (type: string, row: RowDeptType) => {
 		state.dialog.title = '新增部门';
 		state.dialog.submitTxt = '新 增';
 		// 清空表单，此项需加表单验证才能使用
-		deptDialogFormRef.value?.resetFields();
+		state.ruleForm = {...initState };
 	}
 	state.dialog.type = type;
 	state.dialog.isShowDialog = true;

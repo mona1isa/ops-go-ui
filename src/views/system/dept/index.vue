@@ -105,12 +105,14 @@ const onTabelRowDel = (row: DeptTreeType) => {
 			deptApi.delDept(row.id).then((res) => {
 				// 删除成功后
 				if (res && res.code === 200) {
+					getTableData();
 					ElMessage.success('删除成功');
 				} else {
+					getTableData();
 					ElMessage.error(res.msg);
 				}
 			});
-			getTableData();
+			
 		})
 		.catch(() => {});
 };
