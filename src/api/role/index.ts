@@ -36,5 +36,27 @@ export function useRoleApi() {
                 data,
             });
         },
+
+        getMenuIds: (roleId: string | number) => {
+            return request({
+                url: '/api/role/menu/' + roleId,
+                method: 'get',
+            });
+        },
+
+        getUserIds: (roleId: string | number) => {
+            return request({
+                url: '/api/role/user/' + roleId,
+                method: 'get',
+            });
+        },
+
+        assignUsers: (data: object) => {
+            return request({
+                url: '/api/role/assignUsers',
+                method: 'post',
+                data,
+            });
+        },
     }
 }

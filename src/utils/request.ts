@@ -67,6 +67,8 @@ service.interceptors.response.use(
 		} else if (error.message.indexOf('Request failed with status code 401') != -1) {
 			Session.clear(); // 清除浏览器全部临时缓存
 			router.push('/login'); // 去登录页
+		} else if (error.response?.status === 500 || error.response?.data.code === 500) {
+			ElMessage.error(error.response?.data.msg || '服务器错误');
 		} else {
 			ElMessage.error(error.response?.statusText || '接口路径找不到');
 		}

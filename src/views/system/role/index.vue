@@ -30,11 +30,10 @@
 				<el-table-column prop="createdAt" label="创建时间" show-overflow-tooltip>
 					<template #default="scope">{{ dayjs(scope.row.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</template>
 				</el-table-column>
-				<el-table-column label="操作" width="100">
+				<el-table-column label="操作" width="180">
 					<template #default="scope">
-						<el-button :disabled="scope.row.name === 'Admin'" size="small" text type="primary" @click="onOpenEditRole('edit', scope.row)"
-							>修改</el-button
-						>
+						<el-button :disabled="scope.row.name === 'Admin'" size="small" text type="primary" @click="onOpenEditRole('edit', scope.row)">修改</el-button>
+						<el-button v-if="scope.row.name !== 'Admin'" size="small" text type="primary" @click="onOpenAuthUser(scope.row)">分配用户</el-button>
 						<el-button :disabled="scope.row.name === 'Admin'" size="small" text type="primary" @click="onRowDel(scope.row)">删除</el-button>
 					</template>
 				</el-table-column>
@@ -54,6 +53,7 @@
 			</el-pagination>
 		</div>
 		<RoleDialog ref="roleDialogRef" @refresh="getTableData()" />
+		<RoleAuthUser ref="roleAuthUserRef" @refresh="getUserTableData()" />
 	</div>
 </template>
 
@@ -68,6 +68,7 @@ const roleApi = useRoleApi();
 
 // 引入组件
 const RoleDialog = defineAsyncComponent(() => import('/@/views/system/role/dialog.vue'));
+const RoleAuthUser = defineAsyncComponent(() => import('/@/views/system/role/authUser.vue'));
 
 // 定义变量内容
 const roleDialogRef = ref();
@@ -95,6 +96,13 @@ const getTableData = () => {
 	});
 }
 
+// 定义用户数据变量
+const roleAuthUserRef = ref();
+// 获取用户数据
+const getUserTableData = () => {
+	roleAuthUserRef.value.getTableData();
+}
+
 // 打开新增角色弹窗
 const onOpenAddRole = (type: string) => {
 	roleDialogRef.value.openDialog(type);
@@ -103,6 +111,10 @@ const onOpenAddRole = (type: string) => {
 const onOpenEditRole = (type: string, row: Object) => {
 	roleDialogRef.value.openDialog(type, row);
 };
+// 打开用户授权窗口
+const onOpenAuthUser = (row: Object) => {
+	roleAuthUserRef.value.openDialog(row);
+}
 // 删除角色
 const onRowDel = (row: RowRoleType) => {
 	ElMessageBox.confirm(`此操作将永久删除角色名称：“${row.name}”，是否继续?`, '提示', {

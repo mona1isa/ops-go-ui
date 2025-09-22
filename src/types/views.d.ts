@@ -82,6 +82,10 @@ declare type TreeType = {
 	children?: TreeType[];
 };
 
+declare interface RoleAuthUserState {
+	tableData: SysUserTableType;
+}
+
 // user
 declare type RowUserType<T = any> = {
 	id: number;

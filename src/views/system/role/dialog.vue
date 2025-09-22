@@ -111,12 +111,15 @@ const state = reactive({
 // 打开弹窗
 const openDialog = (type: string, row: RowRoleType) => {
 	if (type === 'edit') {
+		roleApi.getMenuIds(row.id).then((res) => {
+			state.ruleForm.menuIds = res.data || [];
+		});
 		state.ruleForm = {
 			...row,
 		};
 		state.dialog.title = '修改角色';
 		state.dialog.submitTxt = '修 改';
-	} else {
+	} else if (type === 'add') {
 		state.dialog.title = '新增角色';
 		state.dialog.submitTxt = '新 增';
 		// 重置表单数据和验证状态
@@ -124,6 +127,13 @@ const openDialog = (type: string, row: RowRoleType) => {
 		nextTick(() => {
 		  roleDialogFormRef.value?.resetFields();
 		});
+	} else if (type === 'authUser') {
+		state.ruleForm = {
+			...row,
+		};
+		state.dialog.title = '分配用户';
+		state.dialog.submitTxt = '分 配';
+
 	}
 	state.dialog.type = type;
 	state.dialog.isShowDialog = true;
@@ -141,7 +151,6 @@ const onCancel = () => {
 const onSubmit = () => {
 	const checkedKeys = menuTreeRef.value.getCheckedKeys();
 
-	console.log("=============", checkedKeys)
 	state.ruleForm.menuIds = checkedKeys;
 	roleDialogFormRef.value.validate((valid: boolean) => {
 		if (valid) {
