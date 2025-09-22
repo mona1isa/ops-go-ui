@@ -37,6 +37,14 @@ export function useDeptApi() {
                 url: '/api/dept/tree',
                 method: 'get',
             });
-        }
+        },
+
+        updateDeptStatus: (data: object) => {
+            return request({
+                url: '/api/dept/updateStatus',
+                method: 'post',
+                data,
+            });
+        },
     }
 }
