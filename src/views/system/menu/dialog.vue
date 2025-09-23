@@ -76,6 +76,21 @@
 								<el-input v-model="state.ruleForm.perms" placeholder="请输入权限标识" clearable></el-input>
 							</el-form-item>
 						</el-col>
+						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+							<el-form-item label="接口地址" prop="requestUrl">
+								<el-input v-model="state.ruleForm.requestUrl" placeholder="接口请求地址" clearable></el-input>
+							</el-form-item>
+						</el-col>
+						<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+							<el-form-item label="请求方式" prop="requestMethod">
+								<el-select v-model="state.ruleForm.requestMethod" placeholder="请求方式" clearable class="w100">
+									<el-option label="GET" value="GET"></el-option>
+									<el-option label="POST" value="POST"></el-option>
+									<el-option label="PUT" value="PUT"></el-option>
+									<el-option label="DELETE" value="DELETE"></el-option>
+								</el-select>
+							</el-form-item>
+						</el-col>
 					</template>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="菜单排序" prop="orderNum">
@@ -123,7 +138,6 @@
 								</el-radio-group>
 							</el-form-item>
 						</el-col>
-			
 					</template>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
 						<el-form-item label="状态" prop="status">
@@ -189,6 +203,8 @@ const state = reactive({
 		perms: '', // 菜单类型为按钮时，权限标识
 		url: '', // 外链/内嵌时链接地址（http:xxx.com）
 		status: true, // 状态: true 启用  false 禁用
+		requestUrl: '',  // 接口请求地址
+		requestMethod: '', // 请求方式
 	},
 	menuData: [] as RouteItems, // 上级菜单数据
 	dialog: {
@@ -210,12 +226,14 @@ const getMenuData = (routes: RouteItems) => {
 	return arr;
 };
 // 打开弹窗
-const openDialog = (type: string, row?: any) => {
+const openDialog = (type: string, row: Object) => {
+	
 	if (type === 'edit') {
-		// 模拟数据，实际请走接口
-		row.menuType = 'menu';
-		row.menuSort = Math.floor(Math.random() * 100);
 		state.ruleForm = JSON.parse(JSON.stringify(row));
+
+		// 设置上级菜单路径
+        state.ruleForm.ids = getParentIds(state.menuData, state.ruleForm.parentId);
+
 		state.dialog.title = '修改菜单';
 		state.dialog.submitTxt = '修 改';
 	} else {
@@ -250,6 +268,23 @@ const parentId = computed(() => {
   const ids: number[] = state.ruleForm.ids; // 明确类型为数组
   return ids[ids.length - 1]; // 取最后一级
 });
+
+// 修改菜单回显上级菜单
+// 获取从根到当前节点的 ID 数组
+const getParentIds = (menuData: RouteItems, parentId: number): number[] => {
+    for (const item of menuData) {
+        if (item.id === parentId) {
+            return [item.id];
+        }
+        if (item.children) {
+            const childPath = getParentIds(item.children, parentId);
+            if (childPath.length) {
+                return [item.id, ...childPath];
+            }
+        }
+    }
+    return [];
+};
 
 const onSubmit = () => {
 	if (state.dialog.type === 'add') { // 新增菜单

@@ -50,6 +50,16 @@
 						<el-tag type="success" size="small">{{ getTypeText(scope.row.type) }}</el-tag>
 					</template>
 				</el-table-column>
+				<el-table-column label="请求地址" show-overflow-tooltip>
+					<template #default="scope">
+						<span>{{ scope.row.requestUrl }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="请求方式" show-overflow-tooltip>
+					<template #default="scope">
+						<span>{{ scope.row.requestMethod }}</span>
+					</template>
+				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
 						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')">新增</el-button>
@@ -116,7 +126,7 @@ const onOpenAddMenu = (type: string) => {
 	menuDialogRef.value.openDialog(type);
 };
 // 打开编辑菜单弹窗
-const onOpenEditMenu = (type: string, row: RouteRecordRaw) => {
+const onOpenEditMenu = (type: string, row: Object) => {
 	menuDialogRef.value.openDialog(type, row);
 };
 // 删除当前行

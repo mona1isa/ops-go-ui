@@ -62,6 +62,8 @@ declare type RouteItem<T = any> = {
 	title?: string;
 	parentId: string | number;
 	id: number;
+	requestUrl: string;
+	requestMethod: string;
 };
 
 // 声明路由 to from

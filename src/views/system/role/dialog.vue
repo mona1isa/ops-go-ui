@@ -189,18 +189,6 @@ const extractIds = (nodes: RouteItem[]): number[] => {
 	return ids;
 };
 
-const onTreeClick = (item: RouteItem) => {
-	let ids: number[] = [];
-	ids.push(item.id);
-	if (item.children && item.children.length > 0) {
-		if (state.ruleForm.menuIds.includes(item.parentId?Number(item.parentId):-1)) {
-			ids.push(Number(item.parentId));
-		}
-		ids.push(...extractIds(item.children));
-	}
-  	state.ruleForm.menuIds.push(...ids);
-};
-
 // 暴露变量
 defineExpose({
 	openDialog,
