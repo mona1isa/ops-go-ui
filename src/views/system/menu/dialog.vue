@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts" name="systemMenuDialog">
-import { defineAsyncComponent, reactive, onMounted, ref, computed } from 'vue';
+import { defineAsyncComponent, reactive, onMounted, ref, computed, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRoutesList } from '/@/stores/routesList';
 import { i18n } from '/@/i18n/index';
@@ -240,9 +240,9 @@ const openDialog = (type: string, row: Object) => {
 		state.dialog.title = '新增菜单';
 		state.dialog.submitTxt = '新 增';
 		// 清空表单，此项需加表单验证才能使用
-		// nextTick(() => {
-		// 	menuDialogFormRef.value.resetFields();
-		// });
+		nextTick(() => {
+			menuDialogFormRef.value.resetFields();
+		});
 	}
 	state.dialog.type = type;
 	state.dialog.isShowDialog = true;
