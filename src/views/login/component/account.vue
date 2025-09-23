@@ -130,17 +130,11 @@ const onSignIn = async () => {
 		state.loading.signIn = false;
 	}
 
-	if (!themeConfig.value.isRequestRoutes) {
-		// 前端控制路由，2、请注意执行顺序
-		const isNoPower = await initFrontEndControlRoutes();
-		signInSuccess(isNoPower);
-	} else {
-		// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
-		// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-		const isNoPower = await initBackEndControlRoutes();
-		// 执行完 initBackEndControlRoutes，再执行 signInSuccess
-		signInSuccess(isNoPower);
-	}
+	// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
+	// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
+	const isNoPower = await initBackEndControlRoutes();
+	// 执行完 initBackEndControlRoutes，再执行 signInSuccess
+	signInSuccess(isNoPower);
 };
 // 登录成功后的跳转
 const signInSuccess = (isNoPower: boolean | undefined) => {
