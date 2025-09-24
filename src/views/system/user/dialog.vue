@@ -14,8 +14,8 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="关联角色" prop="roleId">
-							<el-select v-model="state.ruleForm.roleId" placeholder="请选择" clearable class="w100">
+						<el-form-item label="关联角色" prop="roleIds">
+							<el-select v-model="state.ruleForm.roleIds" placeholder="请选择" multiple clearable class="w100">
 								<el-option
 									v-for="role in state.roleData"
 									:key="role.id"
@@ -162,7 +162,7 @@ const initState = {
 	deptIds: [] as number[], // 部门ID路劲
 	userName: '', // 账户名称
 	nickname: '', // 用户昵称
-	roleId: null as number | null, // 关联角色ID（初始为空）
+	roleIds: [] as number[], // 关联角色ID（初始为空）
 	deptId: 0, // 部门
 	phone: '', // 手机号
 	email: '', // 邮箱

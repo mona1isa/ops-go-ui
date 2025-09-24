@@ -20,7 +20,7 @@
 				<el-table-column prop="id" label="序号" width="60" />
 				<el-table-column prop="userName" label="用户名称" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="nickname" label="用户昵称" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="roleName" label="关联角色" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="roleNames" label="关联角色" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="deptName" label="部门" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="phone" label="手机号" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="email" label="邮箱" show-overflow-tooltip></el-table-column>

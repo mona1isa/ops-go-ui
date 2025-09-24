@@ -92,7 +92,7 @@ declare type RowUserType<T = any> = {
 	userName: string;
 	nickname: string;
 	roleName: string;
-	roleId: number;
+	roleIds: number[];
 	deptId: number;
 	phone: string;
 	email: string;
