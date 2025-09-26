@@ -50,7 +50,7 @@
 						<el-tag type="success" size="small">{{ getTypeText(scope.row.type) }}</el-tag>
 					</template>
 				</el-table-column>
-				<el-table-column label="请求地址" show-overflow-tooltip>
+				<el-table-column label="请求地址" width="250" show-overflow-tooltip>
 					<template #default="scope">
 						<span>{{ scope.row.requestUrl }}</span>
 					</template>

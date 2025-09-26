@@ -58,5 +58,11 @@ export function useRoleApi() {
                 data,
             });
         },
+
+        getAssignUserInfo: (roleId: string | number) => {
+            return request({
+                url: '/api/role/assignUserInfo/' + roleId,
+            });
+        },
     }
 }

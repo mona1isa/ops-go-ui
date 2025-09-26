@@ -1,32 +1,26 @@
 <template>
 	<div class="system-role-container layout-padding">
         <el-dialog :title="state.dialog.title" v-model="state.dialog.isShowDialog">
-            <div class="system-role-padding layout-padding-auto layout-padding-view">
-                <el-table 
+            <div class="system-role-transfer-center">
+                <el-transfer
+                    v-model="state.selectedUserIds"
+                    :data="state.transferData"
+                    filterable
+                    filter-placeholder="请输入用户名搜索"
+                    :props="{ key: 'id', label: 'name' }"
+                    :titles="['未分配', '已分配']"
+                    :button-texts="['移除', '添加']"
+                    :loading="state.tableData.loading"
                     ref="userTableRef"
-                    :data="state.tableData.data" 
-                    v-loading="state.tableData.loading" 
-                    style="width: 100%"
-                    @selection-change="handleSelectionChange"
+                    @change="handleSelectionChange"
                 >
-                    <el-table-column type="selection" width="55" align="center" />
-                    <el-table-column prop="id" label="序号" width="60" align="center" />
-                    <el-table-column prop="userName" label="用户名称" show-overflow-tooltip />
-                    <el-table-column prop="remark" label="备注" show-overflow-tooltip />
-                </el-table>
-                <el-pagination
-                    @size-change="onHandleSizeChange"
-                    @current-change="onHandleCurrentChange"
-                    class="mt15 auth-user-pagination"
-                    :pager-count="5"
-                    :page-sizes="[10, 20, 30]"
-                    v-model:current-page="state.tableData.param.pageNum"
-                    background
-                    v-model:page-size="state.tableData.param.pageSize"
-                    layout="total, sizes, prev, pager, next, jumper"
-                    :total="state.tableData.total"
-                >
-                </el-pagination>
+                    <template #left-empty>
+                        <el-empty :image-size="60" description="No data" />
+                    </template>
+                    <template #right-empty>
+                        <el-empty :image-size="60" description="No data" />
+                    </template>
+                </el-transfer>
             </div>
             <template #footer>
 				<span class="dialog-footer">
@@ -67,6 +61,8 @@ const initialState = {
 };
 
 const state = reactive({
+    transferData: [] as any[],
+    selectedUserIds: [] as number[], // 已选择的用户ID
 	tableData: {
 	    data: [],
 	    total: 0,
@@ -92,27 +88,14 @@ const state = reactive({
 const getTableData = () => {
 	state.tableData.loading = true;
     let selectedUserIds = [] as number[];
-    roleApi.getUserIds(state.form.id).then((res) => {
+    roleApi.getAssignUserInfo(state.form.id).then((res) => {
         const data = res.data;
-        selectedUserIds = data;
-        userApi.getUserPage(state.tableData.param).then((res) => {
-            const data = res.data;
-            state.tableData.data = data.data;
-            state.tableData.total = data.total;
-            state.form.selectedUserIds = selectedUserIds;
-            setTimeout(() => {
-                state.tableData.loading = false;
-                nextTick(() => {
-                    if (userTableRef.value) {
-                        state.tableData.data.forEach((row: any) => {
-                            if (selectedUserIds.includes(row.id)) {
-                                userTableRef.value.toggleRowSelection(row, true);
-                            }
-                        });
-                    }
-                });
-            }, 500);
-        });
+        // 合并所有用户
+        state.transferData = [...(data.assigned || []), ...(data.unassigned || [])];
+        // 只取已分配用户的id
+        state.selectedUserIds = (data.assigned || []).map((item: any) => item.id);
+        state.tableData.loading = false;
+        
     });
 }
 
@@ -156,16 +139,6 @@ const onSubmit = async () => {
     }
 };
 
-// 分页改变
-const onHandleSizeChange = (val: number) => {
-	state.tableData.param.pageSize = val;
-	getTableData();
-};
-// 分页改变
-const onHandleCurrentChange = (val: number) => {
-	state.tableData.param.pageNum = val;
-	getTableData();
-};
 
 // 暴露变量
 defineExpose({
@@ -175,17 +148,10 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
-.system-role-dialog-container {
-	.menu-data-tree {
-		width: 100%;
-		border: 1px solid var(--el-border-color);
-		border-radius: var(--el-input-border-radius, var(--el-border-radius-base));
-		padding: 5px;
-	}
-}
-
-.auth-user-pagination {
-    margin-left: 5px;
-    margin-bottom: 5px;
+.system-role-transfer-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; // 可根据需要调整高度
 }
 </style>
