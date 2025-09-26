@@ -138,10 +138,10 @@ const handleSelectionChange = (val: any[]) => {
 };
 
 const onSubmit = async () => {
-    if (state.form.selectedUserIds.length === 0) {
-        ElMessage.warning('请至少选择一个用户');
-        return;
-    }
+    // if (state.form.selectedUserIds.length === 0) {
+    //     ElMessage.warning('请至少选择一个用户');
+    //     return;
+    // }
     
     try {
         await roleApi.assignUsers({
