@@ -37,7 +37,6 @@ import { reactive, ref, nextTick } from 'vue';
 import { useRoleApi } from '/@/api/role';
 import { useUserInfoApi } from '/@/api/user';
 import { ElMessage } from 'element-plus';
-import { number } from 'echarts';
 
 
 // 角色接口
@@ -62,16 +61,13 @@ const initialState = {
 
 const state = reactive({
     transferData: [] as any[],
-    selectedUserIds: [] as number[], // 已选择的用户ID
-	tableData: {
-	    data: [],
-	    total: 0,
-	    loading: false,
-	    param: {
-	        pageNum: 1,
-	        pageSize: 10,
-	    },
-	} as any,
+    selectedUserIds: [] as number[], // 当前选中的用户ID
+    assignedUserIds: [] as number[], // 初始分配的用户ID
+    addedUserIds: [] as number[],    // 新添加的用户ID
+    removedUserIds: [] as number[],  // 被移除的用户ID
+    tableData: {
+        loading: false,
+    },
 	dialog: {
 		isShowDialog: false,
 		type: '',
@@ -80,22 +76,26 @@ const state = reactive({
 	},
 	form: {
 	    id: 0, // 角色ID
-	    selectedUserIds: [] as number[],
 	},
 });
 
 // 获取用户列表并回显选中已经被分配角色的用户ID
 const getTableData = () => {
 	state.tableData.loading = true;
-    let selectedUserIds = [] as number[];
     roleApi.getAssignUserInfo(state.form.id).then((res) => {
         const data = res.data;
         // 合并所有用户
         state.transferData = [...(data.assigned || []), ...(data.unassigned || [])];
-        // 只取已分配用户的id
-        state.selectedUserIds = (data.assigned || []).map((item: any) => item.id);
+        // 保存初始分配的用户ID
+        state.assignedUserIds = (data.assigned || []).map((item: any) => item.id);
+        // 当前选中的用户ID
+        state.selectedUserIds = [...state.assignedUserIds];
         state.tableData.loading = false;
-        
+        nextTick(() => {
+            if (userTableRef.value) {
+                userTableRef.value.clearQuery();
+            }
+        });
     });
 }
 
@@ -116,20 +116,22 @@ const onCancel = () => {
 	closeDialog();
 };
 
-const handleSelectionChange = (val: any[]) => {
-    state.form.selectedUserIds = val.map(item => item.id);
+// 监听穿梭框变化，计算新增和移除的用户ID
+const handleSelectionChange = (newSelectedIds: number[]) => {
+    // 新添加的用户：现在有，原来没有
+    state.addedUserIds = newSelectedIds.filter(id => !state.assignedUserIds.includes(id));
+    // 被移除的用户：原来有，现在没有
+    state.removedUserIds = state.assignedUserIds.filter(id => !newSelectedIds.includes(id));
+    // 更新当前选中的用户ID
+    state.selectedUserIds = newSelectedIds;
 };
 
 const onSubmit = async () => {
-    // if (state.form.selectedUserIds.length === 0) {
-    //     ElMessage.warning('请至少选择一个用户');
-    //     return;
-    // }
-    
     try {
         await roleApi.assignUsers({
             roleId: state.form.id,
-            userIds: state.form.selectedUserIds
+            addedUserIds: state.addedUserIds,
+            removedUserIds: state.removedUserIds
         });
         ElMessage.success('分配成功');
         closeDialog();
