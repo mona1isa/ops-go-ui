@@ -49,7 +49,7 @@ const getGlobalI18n = computed(() => {
 // 设置初始化，防止刷新时恢复默认
 onBeforeMount(() => {
 	// 设置批量第三方 icon 图标
-	setIntroduction.cssCdn();
+	// setIntroduction.cssCdn();
 	// 设置批量第三方 js
 	setIntroduction.jsCdn();
 });
