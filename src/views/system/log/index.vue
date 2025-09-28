@@ -1,7 +1,7 @@
 <template>
     <div class="system-log-container layout-padding">
         <el-card shadow="hover" class="layout-padding-auto">
-            <div class="system-log-search mb15" style="display: flex; gap: 10px;">
+            <div class="system-log-search mb15">
                 <el-input v-model="state.tableData.param.createUser" size="default" placeholder="请输入用户名称" style="max-width: 180px" clearable> </el-input>
                 <el-input v-model="state.tableData.param.requestUri" size="default" placeholder="请输入请求地址" style="max-width: 180px" clearable> </el-input>
                 <el-input v-model="state.tableData.param.method" size="default" placeholder="请输入请求方法" style="max-width: 180px" clearable> </el-input>
@@ -98,6 +98,7 @@ const resetInput = () => {
     state.tableData.param.createUser = '';
     state.tableData.param.requestUri = '';
     state.tableData.param.method = '';
+    state.tableData.param.statusCode = '';
     getTableData();
 };
 
@@ -120,6 +121,9 @@ onMounted(() => {
 
 </script>
 
-<style lang="less" scoped>
-
+<style lang="scss" scoped>
+.system-log-search {
+    display: flex; 
+    gap: 10px;
+}
 </style>
