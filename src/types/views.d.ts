@@ -54,6 +54,31 @@ declare type ParamsState = {
 	tagsViewNameIsI18n: boolean;
 };
 
+declare type RowLogType = {
+	id: number;
+	method: string;
+	requestUri: string;
+	params: string;
+	resp: string;
+	ipAddr: string;
+	statusCode: string;
+	costTimeMs: number;
+	createAt: string;
+	updatedAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+};
+
+
+declare interface SysLogTableType extends TableType {
+	data: RowLogType[];
+}
+
+declare interface SysLogState {
+	tableData: SysLogTableType;
+}
+
 /**
  * views system
  */
