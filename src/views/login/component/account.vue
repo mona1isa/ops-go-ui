@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import { reactive, computed, onMounted } from 'vue';
+import { reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
@@ -103,6 +103,21 @@ const captchaApi = useCaptchaApi();
 // 页面加载完毕，获取验证码
 onMounted(() => {
 	getCaptchaCode();
+
+	// 监听Enter键登录
+	window.addEventListener('keydown', handleEnterKey);
+});
+
+// 处理 Enter 键事件
+const handleEnterKey = (event: KeyboardEvent) => {
+	if (event.key === 'Enter') {
+		onSignIn();
+	}
+};
+
+// 页面卸载，移除事件监听
+onUnmounted(() => {
+	window.removeEventListener('keydown', handleEnterKey);
 });
 
 // 时间获取

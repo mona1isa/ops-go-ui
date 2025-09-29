@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts" name="personal">
-import { reactive, computed } from 'vue';
+import { reactive, computed, onMounted } from 'vue';
 import { formatAxis } from '/@/utils/formatTime';
 import { newsInfoList, recommendList } from './mock';
 
@@ -205,6 +205,10 @@ const state = reactive<PersonalState>({
 // 当前时间提示语
 const currentTime = computed(() => {
 	return formatAxis(new Date());
+});
+
+onMounted(() => {
+	document.title = '个人中心';
 });
 </script>
 
