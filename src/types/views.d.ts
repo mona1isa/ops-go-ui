@@ -15,10 +15,8 @@ type Recommend = {
 };
 declare type PersonalState = {
 	personalForm: {
-		name: string;
+		username: string;
 		email: string;
-		autograph: string;
-		occupation: string;
 		phone: string;
 		sex: string;
 	};

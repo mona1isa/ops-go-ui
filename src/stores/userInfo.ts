@@ -15,6 +15,9 @@ export const useUserInfo = defineStore('userInfo', {
 			photo: '',
 			time: 0,
 			role: '',
+			ipAddr: '',
+			loginDate: '',
+			roleNames: '',
 			authBtnList: [],
 		},
 	}),
@@ -80,8 +83,10 @@ export const useUserInfo = defineStore('userInfo', {
 						const userInfos = {
 							username: res.data.username,
 							photo: res.data.avatar,
-							time: new Date().getTime(),
 							role: res.data.roleName,
+							ipAddr: res.data.ipAddr,
+							loginDate: res.data.loginDate,
+							roleNames: res.data.roleNames,
 							authBtnList: res.data.perms,
 						};
 						Session.set('userInfo', userInfos);
