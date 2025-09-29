@@ -43,40 +43,6 @@
 				</el-card>
 			</el-col>
 
-			<!-- 消息通知 -->
-			<el-col :xs="24" :sm="8" class="pl15 personal-info">
-				<el-card shadow="hover">
-					<template #header>
-						<span>消息通知</span>
-						<span class="personal-info-more">更多</span>
-					</template>
-					<div class="personal-info-box">
-						<ul class="personal-info-ul">
-							<li v-for="(v, k) in state.newsInfoList" :key="k" class="personal-info-li">
-								<a :href="v.link" target="_block" class="personal-info-li-title">{{ v.title }}</a>
-							</li>
-						</ul>
-					</div>
-				</el-card>
-			</el-col>
-
-			<!-- 营销推荐 -->
-			<el-col :span="24">
-				<el-card shadow="hover" class="mt15" header="营销推荐">
-					<el-row :gutter="15" class="personal-recommend-row">
-						<el-col :sm="6" v-for="(v, k) in state.recommendList" :key="k" class="personal-recommend-col">
-							<div class="personal-recommend" :style="{ 'background-color': v.bg }">
-								<SvgIcon :name="v.icon" :size="70" :style="{ color: v.iconColor }" />
-								<div class="personal-recommend-auto">
-									<div>{{ v.title }}</div>
-									<div class="personal-recommend-msg">{{ v.msg }}</div>
-								</div>
-							</div>
-						</el-col>
-					</el-row>
-				</el-card>
-			</el-col>
-
 			<!-- 更新信息 -->
 			<el-col :span="24">
 				<el-card shadow="hover" class="mt15 personal-edit" header="更新信息">
@@ -186,12 +152,9 @@
 <script setup lang="ts" name="personal">
 import { reactive, computed, onMounted } from 'vue';
 import { formatAxis } from '/@/utils/formatTime';
-import { newsInfoList, recommendList } from './mock';
 
 // 定义变量内容
 const state = reactive<PersonalState>({
-	newsInfoList,
-	recommendList,
 	personalForm: {
 		name: '',
 		email: '',

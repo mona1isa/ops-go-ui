@@ -14,8 +14,6 @@ type Recommend = {
 	iconColor: string;
 };
 declare type PersonalState = {
-	newsInfoList: NewInfo[];
-	recommendList: Recommend[];
 	personalForm: {
 		name: string;
 		email: string;
