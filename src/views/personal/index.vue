@@ -45,53 +45,42 @@
 
 			<!-- 更新信息 -->
 			<el-col :xs="24" :sm="12">
-				<el-card shadow="hover" class="mt15 personal-edit" header="更新信息">
+				<el-card shadow="hover" class="personal-edit" header="更新信息">
 					<div class="personal-edit-title">基本信息</div>
-					<el-form :model="state.personalForm" size="default" label-width="40px" class="mt35 mb35">
-						<el-row>
-							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb80">
-								<el-form-item label="昵称:" width="100" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
-									<el-input v-model="state.personalForm.username" placeholder="请输入昵称" clearable></el-input>
-								</el-form-item>
-							</el-col>
+					<el-form :model="state.personalForm" size="default" label-width="100px">
+						<el-row :gutter="20" style="margin-bottom: 10px;">
+							<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
+								<el-input v-model="state.personalForm.username" placeholder="请输入昵称" clearable></el-input>
+							</el-form-item>
 						</el-row>
-						<el-row>
-							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
-								<el-form-item label="邮箱:">
-									<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
-								</el-form-item>
-							</el-col>
+						<el-row :gutter="20" style="margin-bottom: 10px;">
+							<el-form-item label="邮箱:">
+								<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
+							</el-form-item>
 						</el-row>
-						<el-row>
-							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
-								<el-form-item label="手机:">
-									<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
-								</el-form-item>
-							</el-col>
+						<el-row :gutter="20" style="margin-bottom: 10px;">
+							<el-form-item label="手机:">
+								<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
+							</el-form-item>
 						</el-row>
-						<el-col>
-							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
-								<el-form-item label="性别">
-									<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
-										<el-option label="男" value="0"></el-option>
-										<el-option label="女" value="1"></el-option>
-									</el-select>
-								</el-form-item>
-							</el-col>
-							
-						</el-col>
-						<el-col :span="24">
-							<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-								<el-form-item>
-									<el-button type="primary">
-										<el-icon>
-											<ele-Position />
-										</el-icon>
-										更新个人信息
-									</el-button>
-								</el-form-item>
-							</el-col>
-						</el-col>
+						<el-row :gutter="20" style="margin-bottom: 10px;">
+							<el-form-item label="性别:">
+								<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
+									<el-option label="男" value="0"></el-option>
+									<el-option label="女" value="1"></el-option>
+								</el-select>
+							</el-form-item>
+						</el-row>
+						<el-row :gutter="20" style="margin-bottom: 10px;">
+							<el-form-item>
+								<el-button type="primary">
+									<el-icon>
+										<ele-Position />
+									</el-icon>
+									更新个人信息
+								</el-button>
+							</el-form-item>
+						</el-row>
 					</el-form>
 				</el-card>
 			</el-col>
@@ -255,48 +244,15 @@ onMounted(() => {
 		}
 	}
 	.personal-edit {
-		.personal-edit-title {
-			position: relative;
-			padding-left: 10px;
-			color: var(--el-text-color-regular);
-			&::after {
-				content: '';
-				width: 2px;
-				height: 10px;
-				position: absolute;
-				left: 0;
-				top: 50%;
-				transform: translateY(-50%);
-				background: var(--el-color-primary);
-			}
-		}
-		.personal-edit-safe-box {
-			border-bottom: 1px solid var(--el-border-color-light, #ebeef5);
-			padding: 15px 0;
-			.personal-edit-safe-item {
-				width: 100%;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				.personal-edit-safe-item-left {
-					flex: 1;
-					overflow: hidden;
-					.personal-edit-safe-item-left-label {
-						color: var(--el-text-color-regular);
-						margin-bottom: 5px;
-					}
-					.personal-edit-safe-item-left-value {
-						color: var(--el-text-color-secondary);
-						@include text-ellipsis(1);
-						margin-right: 15px;
-					}
-				}
-			}
-			&:last-of-type {
-				padding-bottom: 0;
-				border-bottom: none;
-			}
-		}
+		.personal-form {
+            text-align: left; // 确保表单内容左对齐
+            .el-form-item {
+                margin-bottom: 20px; // 设置每行的间距
+                label {
+                    text-align: left; // 确保标签左对齐
+                }
+            }
+        }
 	}
 }
 </style>
