@@ -3,13 +3,13 @@
 		<el-card shadow="hover">
 			<div class="system-menu-search mb15">
 				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px" clearable> </el-input>
-				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
+				<el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:menu:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddMenu('add')">
+				<el-button size="default" type="success" class="ml10" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>
@@ -62,9 +62,9 @@
 				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
-						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')">新增</el-button>
-						<el-button size="small" text type="primary" @click="onOpenEditMenu('edit', scope.row)">修改</el-button>
-						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)">删除</el-button>
+						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">新增</el-button>
+						<el-button size="small" text type="primary" @click="onOpenEditMenu('edit', scope.row)" v-auths="['sys:menu:edit']">修改</el-button>
+						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)" v-auths="['sys:menu:rm']">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>

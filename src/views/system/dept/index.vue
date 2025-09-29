@@ -3,13 +3,13 @@
 		<el-card shadow="hover" class="layout-padding-auto">
 			<div class="system-dept-search mb15">
 				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入部门名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10" @click="getTableData()">
+				<el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:dept:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddDept('add')">
+				<el-button size="default" type="success" class="ml10" @click="onOpenAddDept('add')" v-autsh="['sys:dept:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>
@@ -36,9 +36,9 @@
 				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
-						<el-button size="small" text type="primary" @click="onOpenAddDept('add')">新增</el-button>
-						<el-button size="small" text type="primary" @click="onOpenEditDept('edit', scope.row)">修改</el-button>
-						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)">删除</el-button>
+						<el-button size="small" text type="primary" @click="onOpenAddDept('add')" v-auths="['sys:dept:add']">新增</el-button>
+						<el-button size="small" text type="primary" @click="onOpenEditDept('edit', scope.row)" v-auths="['sys:dept:edit']">修改</el-button>
+						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)" v-auths="['sys:dept:rm']">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>

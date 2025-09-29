@@ -75,7 +75,6 @@ export const useUserInfo = defineStore('userInfo', {
 		async getOpsUserInfo() {
 			// 真实接口请求用户信息
 			return new Promise((resolve) => {
-				let adminAuthBtnList: Array<string> = ['btn.add', 'btn.del', 'btn.edit', 'btn.link'];
 				userInfoApiInstance.getOpsUserInfo().then((res) => {
 					if (res && res.code === 200) {
 						const userInfos = {
@@ -83,7 +82,7 @@ export const useUserInfo = defineStore('userInfo', {
 							photo: res.data.avatar,
 							time: new Date().getTime(),
 							role: res.data.roleName,
-							authBtnList: adminAuthBtnList,
+							authBtnList: res.data.perms,
 						};
 						Session.set('userInfo', userInfos);
 						resolve(userInfos);
