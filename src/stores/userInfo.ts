@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { Session } from '/@/utils/storage';
 import { userInfoApi } from '/@/api/login/index';
 import { id } from 'element-plus/es/locale';
+import { nextTick } from 'process';
 
 const userInfoApiInstance = userInfoApi();
 /**
@@ -13,6 +14,7 @@ export const useUserInfo = defineStore('userInfo', {
 	state: (): UserInfosState => ({
 		userInfos: {
 			id: 0,
+			nickname: '',
 			username: '',
 			photo: '',
 			time: 0,
@@ -37,10 +39,11 @@ export const useUserInfo = defineStore('userInfo', {
 		async getOpsUserInfo() {
 			// 真实接口请求用户信息
 			return new Promise((resolve) => {
-				userInfoApiInstance.getOpsUserInfo().then((res) => {
+				userInfoApiInstance.getOpsUserInfo().then((res) => { 
 					if (res && res.code === 200) {
 						const userInfos = {
 							id: res.data.id,
+							nickname: res.data.nickname,
 							username: res.data.username,
 							photo: res.data.avatar,
 							role: res.data.roleName,

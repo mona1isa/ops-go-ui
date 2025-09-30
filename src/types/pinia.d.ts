@@ -8,6 +8,7 @@ declare interface UserInfos<T = any> {
 	authBtnList: string[];
 	photo: string;
 	role: string;
+	nickname: string;
 	username: string;
 	ipAddr: string;
 	loginDate: string;

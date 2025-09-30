@@ -12,12 +12,12 @@
 						</div>
 						<div class="personal-user-right">
 							<el-row>
-								<el-col :span="24" class="personal-title mb18">{{ currentTime }}，admin，生活变的再糟糕，也不妨碍我变得更好！ </el-col>
+								<el-col :span="24" class="personal-title mb18">{{ currentTime }}，{{ state.personalForm.nickname }}，生活变的再糟糕，也不妨碍我变得更好！ </el-col>
 								<el-col :span="24">
 									<el-row>
 										<el-col :xs="24" :sm="8" class="personal-item mb6">
 											<div class="personal-item-label">昵称：</div>
-											<div class="personal-item-value">{{ userInfos.username }}</div>
+											<div class="personal-item-value">{{ state.personalForm.nickname }}</div>
 										</el-col>
 										<el-col :xs="24" :sm="16" class="personal-item mb6">
 											<div class="personal-item-label">身份：</div>
@@ -50,7 +50,7 @@
 					<el-form :model="state.personalForm" size="default" label-width="100px">
 						<el-row :gutter="20" class="update-info-gutter">
 							<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
-								<el-input v-model="state.personalForm.username" placeholder="请输入昵称" clearable></el-input>
+								<el-input v-model="state.personalForm.nickname" placeholder="请输入昵称" clearable></el-input>
 							</el-form-item>
 						</el-row>
 						<el-row :gutter="20" class="update-info-gutter">
@@ -107,7 +107,7 @@ const { userInfos } = storeToRefs(storesUserInfo);
 const state = reactive<PersonalState>({
 	personalForm: {
 		id: 0,
-		username: '',
+		nickname: '', 
 		email: '',
 		phone: '',
 		sex: '',
@@ -117,7 +117,7 @@ const state = reactive<PersonalState>({
 // 获取用户信息
 const getUserData = async () => {
 	userApi.getUserInfo({}).then((res) => {
-		state.personalForm.username = res.data.username;
+		state.personalForm.nickname = res.data.nickname;
 		state.personalForm.email = res.data.email;
 		state.personalForm.sex = res.data.sex;
 		state.personalForm.phone = res.data.phone;
@@ -128,7 +128,7 @@ const getUserData = async () => {
 // 更新用户信息
 const handleUpdateInfo = async () => {
 	let data = state.personalForm
-	userApi.updateUser(data).then((res) => {
+	userApi.updatePersonalInfo(data).then((res) => {
 		if (res && res.code === 200) {
 			getUserData();
 			ElMessage.success('更新成功');

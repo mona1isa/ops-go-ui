@@ -23,6 +23,13 @@ export function useUserInfoApi() {
                 data,
             });
         },
+        updatePersonalInfo: (data: object) => {
+            return request({
+                url: '/api/user/updatePersonalInfo',
+                method: 'post',
+                data,
+            });
+        },
         updateUser: (data: object) => {
             return request({
                 url: '/api/user/edit',
