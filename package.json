@@ -23,6 +23,7 @@
 		"element-plus": "^2.3.3",
 		"js-cookie": "^3.0.1",
 		"js-table2excel": "^1.0.3",
+		"jsencrypt": "^3.5.4",
 		"jsplumb": "^2.15.6",
 		"mitt": "^3.0.0",
 		"nprogress": "^0.2.0",

@@ -50,5 +50,12 @@ export function useUserInfoApi() {
                 method: 'delete',
             });
         },
+        updateUserPassword: (data: object) => {
+            return request({
+                url: '/api/user/updatePassword',
+                method: 'post',
+                data,
+            });
+        }
     }
 }

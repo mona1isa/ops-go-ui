@@ -46,42 +46,75 @@
 			<!-- 更新信息 -->
 			<el-col :xs="24" :sm="12">
 				<el-card shadow="hover" class="personal-edit" header="更新信息">
-					<div class="personal-edit-title">基本信息</div>
-					<el-form :model="state.personalForm" size="default" label-width="100px">
-						<el-row :gutter="20" class="update-info-gutter">
-							<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
-								<el-input v-model="state.personalForm.nickname" placeholder="请输入昵称" clearable></el-input>
-							</el-form-item>
-						</el-row>
-						<el-row :gutter="20" class="update-info-gutter">
-							<el-form-item label="邮箱:" :rules="[{ required: true, message: '请输入邮箱', trigger: 'blur' }, { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱', trigger: 'blur' }]">
-								<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
-							</el-form-item>
-						</el-row>
-						<el-row :gutter="20" class="update-info-gutter">
-							<el-form-item label="手机:" :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]">
-								<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
-							</el-form-item>
-						</el-row>
-						<el-row :gutter="20" class="update-info-gutter">
-							<el-form-item label="性别:">
-								<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
-									<el-option label="男" :value="0"></el-option>
-									<el-option label="女" :value="1"></el-option>
-								</el-select>
-							</el-form-item>
-						</el-row>
-						<el-row :gutter="20" class="update-info-gutter">
-							<el-form-item>
-								<el-button type="primary" @click="handleUpdateInfo" v-waves>
-									<el-icon>
-										<ele-Position />
-									</el-icon>
-									更新个人信息
-								</el-button>
-							</el-form-item>
-						</el-row>
-					</el-form>
+					<el-tabs v-model="activeTab">
+						<el-tab-pane label="基本信息" name="baseInfo">
+							<el-form :model="state.personalForm" size="default" label-width="100px">
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
+										<el-input v-model="state.personalForm.nickname" placeholder="请输入昵称" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="邮箱:" :rules="[{ required: true, message: '请输入邮箱', trigger: 'blur' }, { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱', trigger: 'blur' }]">
+										<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="手机:" :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]">
+										<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="性别:">
+										<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
+											<el-option label="男" :value="0"></el-option>
+											<el-option label="女" :value="1"></el-option>
+										</el-select>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item>
+										<el-button type="primary" @click="handleUpdateInfo" v-waves>
+											<el-icon>
+												<ele-Position />
+											</el-icon>
+											更新个人信息
+										</el-button>
+									</el-form-item>
+								</el-row>
+							</el-form>
+						</el-tab-pane>
+
+						<el-tab-pane label="修改密码" name="password">
+							<el-form :model="state.passwordForm" size="default" label-width="100px">
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="旧密码:" :rules="[{ required: true, message: '请输入旧密码', trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.oldPassword" placeholder="请输入旧密码" type="password" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="新密码:" :rules="[{ required: true, message: '请输入新密码', trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.newPassword" placeholder="请输入新密码" type="password" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item label="确认密码:" :rules="[{ required: true, message: '请确认新密码', trigger: 'blur' }, { validator: validatePassword, trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.confirmPassword" placeholder="请确认新密码" type="password" clearable></el-input>
+									</el-form-item>
+								</el-row>
+								<el-row :gutter="20" class="update-info-gutter">
+									<el-form-item>
+										<el-button type="primary" @click="handleUpdatePassword" v-waves>
+											<el-icon>
+												<ele-Position />
+											</el-icon>
+											更新密码
+										</el-button>
+									</el-form-item>
+								</el-row>
+							</el-form>
+						</el-tab-pane>
+					</el-tabs>
 				</el-card>
 			</el-col>
 		</el-row>
@@ -89,13 +122,16 @@
 </template>
 
 <script setup lang="ts" name="personal">
-import { reactive, computed, onMounted } from 'vue';
+import { reactive, computed, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { formatAxis } from '/@/utils/formatTime';
+
+const activeTab = ref('baseInfo');
 import defaultAvator from '/@/assets/default.png';
 import { useUserInfo } from '/@/stores/userInfo';
 import { useUserInfoApi } from '/@/api/user';
 import { ElMessage } from 'element-plus';
+import { encrypt } from '/@/utils/cryptoUtil';
 
 // 用户接口
 const userApi = useUserInfoApi();
@@ -111,6 +147,11 @@ const state = reactive<PersonalState>({
 		email: '',
 		phone: '',
 		sex: '',
+	},
+	passwordForm: {
+		oldPassword: '',
+		newPassword: '',
+		confirmPassword: '',
 	},
 });
 
@@ -131,6 +172,31 @@ const handleUpdateInfo = async () => {
 	userApi.updatePersonalInfo(data).then((res) => {
 		if (res && res.code === 200) {
 			getUserData();
+			ElMessage.success('更新成功');
+		} else {
+			ElMessage.error(res.msg||'更新失败');
+		}
+	});
+};
+
+const validatePassword = (rule: any, value: string, callback: any) => {
+	if (value !== state.passwordForm.newPassword) {
+		callback(new Error('两次输入的密码不一致'));
+	} else {
+		callback();
+	}
+};
+
+const handleUpdatePassword = () => {
+	// 密码更新逻辑
+	let data = {
+		"id": state.personalForm.id,
+		"oldPassword": encrypt(state.passwordForm.oldPassword),
+		"newPassword": encrypt(state.passwordForm.newPassword),
+		"confirmPassword": encrypt(state.passwordForm.confirmPassword),
+	}
+	userApi.updateUserPassword(data).then((res) => {
+		if (res && res.code === 200) {
 			ElMessage.success('更新成功');
 		} else {
 			ElMessage.error(res.msg||'更新失败');

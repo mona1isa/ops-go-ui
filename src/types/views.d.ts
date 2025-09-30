@@ -21,6 +21,11 @@ declare type PersonalState = {
 		phone: string;
 		sex: string;
 	};
+	passwordForm: {
+		oldPassword: string;
+		newPassword: string;
+		confirmPassword: string;
+	};
 };
 
 /**
