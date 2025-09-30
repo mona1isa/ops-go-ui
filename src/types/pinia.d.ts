@@ -4,6 +4,7 @@
 
 // 用户信息
 declare interface UserInfos<T = any> {
+	id: number;
 	authBtnList: string[];
 	photo: string;
 	role: string;

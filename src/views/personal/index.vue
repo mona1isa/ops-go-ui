@@ -48,32 +48,32 @@
 				<el-card shadow="hover" class="personal-edit" header="更新信息">
 					<div class="personal-edit-title">基本信息</div>
 					<el-form :model="state.personalForm" size="default" label-width="100px">
-						<el-row :gutter="20" style="margin-bottom: 10px;">
+						<el-row :gutter="20" class="update-info-gutter">
 							<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
 								<el-input v-model="state.personalForm.username" placeholder="请输入昵称" clearable></el-input>
 							</el-form-item>
 						</el-row>
-						<el-row :gutter="20" style="margin-bottom: 10px;">
-							<el-form-item label="邮箱:">
+						<el-row :gutter="20" class="update-info-gutter">
+							<el-form-item label="邮箱:" :rules="[{ required: true, message: '请输入邮箱', trigger: 'blur' }, { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱', trigger: 'blur' }]">
 								<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
 							</el-form-item>
 						</el-row>
-						<el-row :gutter="20" style="margin-bottom: 10px;">
-							<el-form-item label="手机:">
+						<el-row :gutter="20" class="update-info-gutter">
+							<el-form-item label="手机:" :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]">
 								<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
 							</el-form-item>
 						</el-row>
-						<el-row :gutter="20" style="margin-bottom: 10px;">
+						<el-row :gutter="20" class="update-info-gutter">
 							<el-form-item label="性别:">
 								<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
-									<el-option label="男" value="0"></el-option>
-									<el-option label="女" value="1"></el-option>
+									<el-option label="男" :value="0"></el-option>
+									<el-option label="女" :value="1"></el-option>
 								</el-select>
 							</el-form-item>
 						</el-row>
-						<el-row :gutter="20" style="margin-bottom: 10px;">
+						<el-row :gutter="20" class="update-info-gutter">
 							<el-form-item>
-								<el-button type="primary">
+								<el-button type="primary" @click="handleUpdateInfo" v-waves>
 									<el-icon>
 										<ele-Position />
 									</el-icon>
@@ -94,9 +94,11 @@ import { storeToRefs } from 'pinia';
 import { formatAxis } from '/@/utils/formatTime';
 import defaultAvator from '/@/assets/default.png';
 import { useUserInfo } from '/@/stores/userInfo';
+import { useUserInfoApi } from '/@/api/user';
+import { ElMessage } from 'element-plus';
 
 // 用户接口
-const userApi = useUserInfo();
+const userApi = useUserInfoApi();
 
 
 const storesUserInfo = useUserInfo();
@@ -104,6 +106,7 @@ const { userInfos } = storeToRefs(storesUserInfo);
 // 定义变量内容
 const state = reactive<PersonalState>({
 	personalForm: {
+		id: 0,
 		username: '',
 		email: '',
 		phone: '',
@@ -111,8 +114,28 @@ const state = reactive<PersonalState>({
 	},
 });
 
+// 获取用户信息
 const getUserData = async () => {
-	const data = {};
+	userApi.getUserInfo({}).then((res) => {
+		state.personalForm.username = res.data.username;
+		state.personalForm.email = res.data.email;
+		state.personalForm.sex = res.data.sex;
+		state.personalForm.phone = res.data.phone;
+		state.personalForm.id = res.data.id;
+	});
+};
+
+// 更新用户信息
+const handleUpdateInfo = async () => {
+	let data = state.personalForm
+	userApi.updateUser(data).then((res) => {
+		if (res && res.code === 200) {
+			getUserData();
+			ElMessage.success('更新成功');
+		} else {
+			ElMessage.error(res.msg||'更新失败');
+		}
+	});
 };
 
 // 当前时间提示语
@@ -127,6 +150,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.update-info-gutter {
+  margin-bottom: 10px;
+}
 @import '../../theme/mixins/index.scss';
 .personal {
 	.personal-user {
