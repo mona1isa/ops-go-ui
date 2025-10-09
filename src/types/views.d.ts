@@ -1,3 +1,5 @@
+import { de } from "element-plus/es/locale";
+
 /**
  * views personal
  */
@@ -364,3 +366,38 @@ declare type TableDemoState = {
 		printName: string;
 	};
 };
+
+// instance
+declare type RowInstanceType = {
+	id: number;
+	name: string;
+	deptId: number;
+	deptName: string;
+	cpu: number;
+	mem: number;
+	disk: number;
+	spec: string;
+	status: string;
+	os: string;
+	ip: string;
+	port: string;
+	createAt: string;
+	updateAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+};
+
+declare type InstanceStatusItem = {
+	id: number;
+	status: string;
+};
+
+declare interface InstanceTableType extends TableType {
+	data: RowInstanceType[];
+};
+
+declare interface InstanceState {
+	tableData: InstanceTableType;
+};
+
