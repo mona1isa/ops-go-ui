@@ -2,7 +2,7 @@
     <div class="app-container">
         <el-card shadow="hover" class="layout-padding-auto">
             <div class="app-search mb15">
-                <el-input v-model="state.tableData.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>
+                <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>
                 
                 <el-button size="default" type="primary" class="ml10" @click="getTableData()">
                     <el-icon>
@@ -62,15 +62,19 @@
 			>
 			</el-pagination>
         </el-card>
+        <InstanceDialog ref="instanceDialogRef" @refresh="getTableData()" />
     </div>
 </template>
 
 <script setup lang="ts" name="instanceIndex">
-import { onMounted, reactive, ref } from 'vue';
+import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
 import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
+
+// 引入组件
+const InstanceDialog = defineAsyncComponent(() => import('/@/views/instance/dialog.vue'));
 
 // 定义接口
 const instanceApi = useInstanceApi();
@@ -127,10 +131,12 @@ const onStatusChange = (row: InstanceStatusItem) => {
     });
 };
 
+// 打开修改窗口
 const onOpenEditInstance = (type: string, row: RowInstanceType) => {
     instanceDialogRef.value.openDialog(type, row);
 };
 
+// 打开新增窗口
 const onOpenAddInstance = (type: string) => {
     instanceDialogRef.value.openDialog(type);
 };

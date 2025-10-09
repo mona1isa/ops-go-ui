@@ -381,10 +381,10 @@ declare type RowInstanceType = {
 	os: string;
 	ip: string;
 	port: string;
-	createAt: string;
-	updateAt: string;
-	createBy: string;
-	updateBy: string;
+	createAt?: string;
+	updateAt?: string;
+	createBy?: string;
+	updateBy?: string;
 	remark: string;
 };
 

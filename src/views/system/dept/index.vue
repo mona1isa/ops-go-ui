@@ -52,6 +52,7 @@ import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { dayjs } from 'element-plus';
 import { useDeptApi } from '/@/api/dept';
+import { SysDeptState, DeptTreeType } from '/@/types/views';
 
 // 部门接口
 const deptApi = useDeptApi(); 

@@ -51,6 +51,7 @@
 import { ElMessage } from 'element-plus';
 import { reactive, ref, computed, onMounted } from 'vue';
 import { useDeptApi } from '/@/api/dept';
+import { DeptTreeType, RowDeptType } from '/@/types/views';
 
 // 部门接口
 const deptApi = useDeptApi();
