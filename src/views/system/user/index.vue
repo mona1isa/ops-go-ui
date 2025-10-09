@@ -68,6 +68,7 @@ import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { dayjs } from 'element-plus';
 import { useUserInfoApi } from '/@/api/user/index';
+import { SysUserState, RowUserType } from '/@/types/views';
 
 const userApi = useUserInfoApi();
 
