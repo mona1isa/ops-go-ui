@@ -42,7 +42,7 @@
 				</el-table-column>
 				<el-table-column label="排序" show-overflow-tooltip width="80">
 					<template #default="scope">
-						{{ scope.$index }}
+						{{ scope.row.orderNum}}
 					</template>
 				</el-table-column>
 				<el-table-column label="类型" show-overflow-tooltip width="80">
