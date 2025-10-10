@@ -411,8 +411,8 @@ declare type RowKeyType = {
 	port: number;
 	type: string;
 	status: string;
-	createAt: string;
-	updateAt: string;
+	createdAt: string;
+	updatedAt: string;
 	createBy: string;
 	updateBy: string;
 	remark: string;
