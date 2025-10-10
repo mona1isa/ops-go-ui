@@ -1,45 +1,66 @@
 <template>
     <div class="keys-index">
-        <el-card>
+        <el-card shadow="hover" class="layout-padding-auto">
+            <div class="system-user-search mb15 demo-form-inline">
+				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入密钥名称" style="max-width: 180px; margin-right: 20px;" clearable> </el-input>
+				<el-select v-model="state.tableData.param.protocol" size="default" placeholder="请选择协议" style="max-width: 180px; margin-right: 20px;" clearable>
+                    <el-option label="SSH" value="ssh"></el-option>
+                    <el-option label="RDP" value="rdp"></el-option>
+                    <el-option label="VNC" value="vnc"></el-option>
+                </el-select>
+                <el-select v-model="state.tableData.param.status" size="default" placeholder="请选择状态" style="max-width: 180px; margin-right: 20px;" clearable>
+                    <el-option label="启用" value="1"></el-option>
+                    <el-option label="禁用" value="0"></el-option>
+                </el-select>
+                <el-button size="default" type="primary" class="ml10" @click="getTableData()">
+					<el-icon>
+						<ele-Search />
+					</el-icon>
+					查询
+				</el-button>
+				<el-button size="default" type="success" class="ml10" @click="onOpenAddKey('add')" >
+					<el-icon>
+						<ele-FolderAdd />
+					</el-icon>
+					新增密钥
+				</el-button>
+			</div>
             <el-row :gutter="20">
-                <el-col :span="24">
-                    <el-row :gutter="20">
-                        <el-col :span="4" v-for="(item, index) in state.tableData.data" :key="index">
-                            <el-card class="key-card">
-                                <div class="key-id">ID: {{ item.id }}</div>
-                                <div class="key-name">用户名: {{ item.name }}</div>
-                                <div class="key-value">凭证: {{ item.credentials }}</div>
-                                <div class="key-value">协议: {{ item.protocol }}</div>
-                                <div class="key-value">端口号: {{ item.port }}</div>
-                                <div class="key-status">
-                                    状态: 
-                                    <el-switch 
-                                        v-model="item.status" 
-                                        inline-prompt active-text="启" active-value="1" 
-                                        inactive-text="禁" inactive-value="0" 
-                                        @click="onStatusChange(item)">
-                                    </el-switch>
-                                </div>
-                                <div class="key-created">创建时间: {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
-                            </el-card>
-                        </el-col>
-                    </el-row>
-                </el-col>
-            </el-row>
-            <el-row :gutter="20" class="mt20">
-                <el-col :span="24">
-                    <el-pagination
-                        @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange"
-                        :current-page="state.tableData.param.pageNum"
-                        :page-sizes="[6, 12, 18, 24]"
-                        :page-size="state.tableData.param.pageSize"
-                        layout="total, sizes, prev, pager, next, jumper"
-                        :total="state.tableData.total"
-                    />
-                </el-col>
+                    <el-col :span="4" v-for="(item, index) in state.tableData.data" :key="index">
+                        <el-card class="key-card">
+                            <div class="key-id">ID: {{ item.id }}</div>
+                            <div class="key-name">名称: {{ item.name }}</div>
+                            <div class="key-name">用户名: {{ item.user }}</div>
+                            <div class="key-value">凭证: {{ item.credentials }}</div>
+                            <div class="key-value">协议: {{ item.protocol }}</div>
+                            <div class="key-value">端口号: {{ item.port }}</div>
+                            <div class="key-status">
+                                状态: 
+                                <el-switch 
+                                    v-model="item.status" 
+                                    inline-prompt active-text="启" active-value="1" 
+                                    inactive-text="禁" inactive-value="0" 
+                                    @click="onStatusChange(item)">
+                                </el-switch>
+                            </div>
+                            <div class="key-created">创建时间: {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
+                        </el-card>
+                    </el-col>
             </el-row>
         </el-card>
+        <el-row :gutter="20" class="mt20">
+            <el-col :span="24">
+                <el-pagination
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="state.tableData.param.pageNum"
+                    :page-sizes="[6, 12, 18, 24]"
+                    :page-size="state.tableData.param.pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="state.tableData.total"
+                />
+            </el-col>
+        </el-row>
     </div>
 </template>
 
@@ -58,17 +79,20 @@ const state = reactive<KeyState>({
         loading: false,
         param: {
             pageNum: 1,
-            pageSize: 10,
+            pageSize: 6, // 每页显示6条数据
         },
     },
 });
 
 // 获取密钥分页列表
 const getTableData = async () => {
-    const res = await keyApi.getKeyPage(state.tableData.param);
+    const params = {
+        ...state.tableData.param,
+    };
+    const res = await keyApi.getKeyPage(params);
     if (res && res.code === 200) {
         let data = res.data;
-        state.tableData.data = data.list;
+        state.tableData.data = data.data;
         state.tableData.total = data.total;
     }
 };
@@ -83,6 +107,11 @@ const onStatusChange = async (row: RowKeyType) => {
         ElMessage.success(res.msg);
         getTableData();
     }
+};
+
+const onOpenAddKey = (type: string) => {
+    // 打开新增密钥的弹窗
+    console.log('打开新增密钥的弹窗');
 };
 
 // 分页大小变化
@@ -113,6 +142,11 @@ onMounted(() => {
     margin-bottom: 20px;
     .key-id, .key-name, .key-value, .key-status, .key-created {
         margin-bottom: 10px;
+    }
+}
+.demo-form-inline {
+    .el-form-item {
+        margin-right: 20px;
     }
 }
 </style>
