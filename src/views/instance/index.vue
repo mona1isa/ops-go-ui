@@ -47,7 +47,6 @@
                 </el-table-column>
             </el-table>
 
-
             <el-pagination
 				@size-change="onHandleSizeChange"
 				@current-change="onHandleCurrentChange"

@@ -368,7 +368,7 @@ declare type TableDemoState = {
 };
 
 // instance
-declare type RowInstanceType = {
+declare type RowInstanceType <T = any> = {
 	id: number;
 	name: string;
 	deptId: number;
@@ -381,10 +381,10 @@ declare type RowInstanceType = {
 	os: string;
 	ip: string;
 	port: string;
-	createAt?: string;
-	updateAt?: string;
-	createBy?: string;
-	updateBy?: string;
+	createAt: string;
+	updateAt: string;
+	createBy: string;
+	updateBy: string;
 	remark: string;
 };
 
