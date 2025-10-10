@@ -401,3 +401,32 @@ declare interface InstanceState {
 	tableData: InstanceTableType;
 };
 
+// keys
+declare type RowKeyType = {
+	id: number;
+	name: string;
+	user: string;
+	credentials: string;
+	protocol: string;
+	port: number;
+	type: string;
+	status: string;
+	createAt: string;
+	updateAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+};
+
+declare type KeyStatusItem = {
+	id: number;
+	status: string;
+};
+
+declare interface KeyTableType extends TableType {
+	data: RowKeyType[];
+};
+
+declare interface KeyState {
+	tableData: KeyTableType;
+};

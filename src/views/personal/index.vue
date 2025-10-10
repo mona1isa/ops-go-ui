@@ -132,6 +132,7 @@ import { useUserInfo } from '/@/stores/userInfo';
 import { useUserInfoApi } from '/@/api/user';
 import { ElMessage } from 'element-plus';
 import { encrypt } from '/@/utils/cryptoUtil';
+import { PersonalState } from '/@/types/views';
 
 // 用户接口
 const userApi = useUserInfoApi();
