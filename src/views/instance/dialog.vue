@@ -30,7 +30,16 @@
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 						<el-form-item label="端口号" prop="port">
-							<el-input-number v-model="state.ruleForm.port" controls-position="right" :min="1" :max="65535" />
+							<el-input-number v-model="state.ruleForm.port" controls-position="right" class="w100" :min="1" :max="65535" />
+						</el-form-item>
+					</el-col>
+					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
+						<el-form-item label="系统类型" prop="os">
+							<el-select v-model="state.ruleForm.os" placeholder="请选择" clearable class="w100">
+								<el-option label="Linux" :value="'Linux'" />
+								<el-option label="Windows" :value="'Windows'" />
+								<el-option label="MacOS" :value="'MacOS'"/>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
@@ -91,7 +100,8 @@ const rules = reactive({
 	port: [
 		{ required: true, message: '请输入端口号', trigger: 'blur' },
 	],
-	status: [
+	os: [
+		{ required: true, message: "请选择系统", trigger: 'blur' }, 
 	],
 });
 
