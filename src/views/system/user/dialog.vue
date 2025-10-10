@@ -168,7 +168,7 @@ const findDeptPath = (tree: DeptTreeType[], deptId: number): number[] => {
 };
 
 const initState = {
-	deptIds: [] as number[], // 部门ID路劲
+	deptIds: [] as number[], // 部门ID路径（初始为空）
 	userName: '', // 账户名称
 	nickname: '', // 用户昵称
 	roleIds: [] as number[], // 关联角色ID（初始为空）

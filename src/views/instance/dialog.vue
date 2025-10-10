@@ -14,13 +14,13 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="内存大小(MB)" prop="mem">
-							<el-input-number v-model="state.ruleForm.mem" controls-position="right" class="w100" />
+						<el-form-item label="内存大小(MB)" prop="memMb">
+							<el-input-number v-model="state.ruleForm.memMb" controls-position="right" class="w100" />
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="磁盘大小(GB)" prop="disk">
-							<el-input-number v-model="state.ruleForm.disk" controls-position="right" class="w100" />
+						<el-form-item label="磁盘大小(GB)" prop="diskGb">
+							<el-input-number v-model="state.ruleForm.diskGb" controls-position="right" class="w100" />
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
@@ -113,8 +113,8 @@ const openDialog = (type: string, row: RowInstanceType) => {
 const initState = {
 	name: '',
 	cpu: 1,
-	mem: 1024,
-	disk: 10,
+	memMb: 1024,
+	diskGb: 10,
 	status: '1',
 	os: '',
 	ip: '',

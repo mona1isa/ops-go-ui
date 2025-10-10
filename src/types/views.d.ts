@@ -374,8 +374,8 @@ declare type RowInstanceType <T = any> = {
 	deptId: number;
 	deptName: string;
 	cpu: number;
-	mem: number;
-	disk: number;
+	memMb: number;
+	diskGb: number;
 	spec: string;
 	status: string;
 	os: string;
