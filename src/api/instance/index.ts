@@ -57,5 +57,13 @@ export function useInstanceApi() {
                 data,
             });
         },  
+
+        testConnect: (data: object) => {
+            return request({
+                url: '/api/instance/keys/testConnect',
+                method: 'post',
+                data,
+            });
+        }
     }
 }

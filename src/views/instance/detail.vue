@@ -38,7 +38,13 @@ const openDrawer = (data: any) => {
 const getbindingKeys = (bindingKeys: any) => {
     if (!bindingKeys || bindingKeys.length === 0) return '未绑定任何凭证';
     return bindingKeys.map((item: any) => {
-        return `${item.name} (类型: ${item.type || '未知'})`;
+        let type = '';
+        if (item.type === 1) {
+            type = '密码';
+        } else if (item.type === 2) {
+            type = '密钥';
+        }
+        return `${item.name} (类型: ${type || '未知'})`;
     }).join('; ');
 };
 

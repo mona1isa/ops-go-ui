@@ -9,8 +9,9 @@
                     {{ scope.row.type === 1 ? '密码' : '密钥' }}
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column label="操作" width="180">
                 <template #default="scope">
+                    <el-button size="small" type="warning" @click="onTestConnectivity(scope.row)">测试连通性</el-button>
                     <el-button size="small" type="primary" @click="onBindKey(scope.row)">绑定</el-button>
                 </template>
             </el-table-column>
@@ -64,7 +65,22 @@ const onBindKey = async (row: any) => {
     });
     if (res && res.code === 200) {
         ElMessage.success('绑定成功');
+        getTableData(currentInstanceId.value);
         emit('refresh');
+    }
+};
+
+// 测试连通性
+const onTestConnectivity = async (row: any) => {
+    let params = {
+        instanceId: currentInstanceId.value,
+        keyId: row.id,
+    };
+    const res = await instanceApi.testConnect(params);
+    if (res && res.code === 200) {
+        ElMessage.success('测试成功：凭证连通性正常');
+    } else {
+        ElMessage.error('测试失败：凭证无法连通');
     }
 };
 

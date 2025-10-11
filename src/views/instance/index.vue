@@ -185,7 +185,7 @@ const onOpenDetail = (row: RowInstanceType) => {
 const getbindingKeys = (bindingKeys: any) => {
     if (!bindingKeys || bindingKeys.length === 0) return '未绑定任何凭证';
     return bindingKeys.map((item: any) => {
-        return `${item.name} (类型: ${item.type || '未知'})`;
+        return `${item.name}`;
     }).join('; ');
 };
 
