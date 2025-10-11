@@ -28,11 +28,6 @@
 							<el-input v-model="state.ruleForm.ip" placeholder="请输入IP地址" maxlength="15" class="w100"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="端口号" prop="port">
-							<el-input-number v-model="state.ruleForm.port" controls-position="right" class="w100" :min="1" :max="65535" />
-						</el-form-item>
-					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
 						<el-form-item label="系统类型" prop="os">
 							<el-select v-model="state.ruleForm.os" placeholder="请选择" clearable class="w100">
@@ -97,9 +92,6 @@ const rules = reactive({
 		{ required: true, message: '请输入IP地址', trigger: 'blur' },
 		{ pattern: /^(\d{1,3}\.){3}\d{1,3}$/, message: '请输入有效的IP地址', trigger: 'blur' },
 	],
-	port: [
-		{ required: true, message: '请输入端口号', trigger: 'blur' },
-	],
 	os: [
 		{ required: true, message: "请选择系统", trigger: 'blur' }, 
 	],
@@ -128,7 +120,6 @@ const initState = {
 	status: '1',
 	os: '',
 	ip: '',
-	port: '22',
 	remark: '',
 };
 const state = reactive({

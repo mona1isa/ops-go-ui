@@ -380,7 +380,6 @@ declare type RowInstanceType <T = any> = {
 	status: string;
 	os: string;
 	ip: string;
-	port: string;
 	createAt: string;
 	updateAt: string;
 	createBy: string;

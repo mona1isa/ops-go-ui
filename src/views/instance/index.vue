@@ -20,10 +20,13 @@
             </div>
             <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                 <el-table-column prop="id" label="ID" width="60" />
-                <el-table-column prop="name" label="主机名称" show-overflow-tooltip></el-table-column>
+                <el-table-column prop="name" label="主机名称" show-overflow-tooltip>
+                    <template #default="scope">
+                        <el-link type="primary" @click="onOpenDetail(scope.row)">{{ scope.row.name }}</el-link>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="spec" label="规格" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="ip" label="主机IP" show-overflow-tooltip></el-table-column>
-                <el-table-column prop="port" label="端口" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="username" label="用户名" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="status" label="主机状态" show-overflow-tooltip>
                     <template #default="scope">
@@ -41,8 +44,17 @@
                 </el-table-column>
                 <el-table-column label="操作" width="100">
                     <template #default="scope">
-                        <el-button size="small" text type="primary" @click="onOpenEditInstance('edit', scope.row)">修改</el-button>
-                        <el-button size="small" text type="primary" @click="onRowDel(scope.row)">删除</el-button>
+                        <el-dropdown>
+                            <el-button size="small" text type="primary">
+                                操作<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                            </el-button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="onOpenEditInstance('edit', scope.row)">修改</el-dropdown-item>
+                                    <el-dropdown-item @click="onRowDel(scope.row)">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                     </template>
                 </el-table-column>
             </el-table>
@@ -62,11 +74,13 @@
 			</el-pagination>
         </el-card>
         <InstanceDialog ref="instanceDialogRef" @refresh="getTableData()" />
+        <DetailDrawer ref="detailDrawerRef" />
     </div>
 </template>
 
 <script setup lang="ts" name="instanceIndex">
 import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -75,11 +89,18 @@ import { dayjs } from 'element-plus';
 // 引入组件
 const InstanceDialog = defineAsyncComponent(() => import('/@/views/instance/dialog.vue'));
 
+// 引入抽屉组件
+const DetailDrawer = defineAsyncComponent(() => import('/@/views/instance/detail.vue'));
+
 // 定义接口
 const instanceApi = useInstanceApi();
 
+const router = useRouter();
+
 // 定义变量
 const instanceDialogRef = ref();
+const detailDrawerRef = ref();
+
 const state = reactive<InstanceState>({
 	tableData: {
 		data: [],
@@ -138,6 +159,11 @@ const onOpenEditInstance = (type: string, row: RowInstanceType) => {
 // 打开新增窗口
 const onOpenAddInstance = (type: string) => {
     instanceDialogRef.value.openDialog(type);
+};
+
+// 主机详情
+const onOpenDetail = (row: RowInstanceType) => {
+    detailDrawerRef.value.openDrawer(row);
 };
 
 const onRowDel = (row: RowInstanceType) => {
