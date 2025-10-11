@@ -27,7 +27,11 @@
                 </el-table-column>
                 <el-table-column prop="spec" label="规格" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="ip" label="主机IP" show-overflow-tooltip></el-table-column>
-                <el-table-column prop="username" label="用户名" show-overflow-tooltip></el-table-column>
+                <el-table-column prop="bindingKeys" label="登录凭证" show-overflow-tooltip>
+                    <template #default="scope">
+                        {{ getbindingKeys(scope.row.bindingKeys) }}
+                    </template>
+                </el-table-column>
                 <el-table-column prop="status" label="主机状态" show-overflow-tooltip>
                     <template #default="scope">
                         <el-switch 
@@ -52,6 +56,7 @@
                                 <el-dropdown-menu>
                                     <el-dropdown-item @click="onOpenEditInstance('edit', scope.row)">修改</el-dropdown-item>
                                     <el-dropdown-item @click="onRowDel(scope.row)">删除</el-dropdown-item>
+                                    <el-dropdown-item @click="onOpenBindKey(scope.row)">绑定凭证</el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>
                         </el-dropdown>
@@ -75,6 +80,7 @@
         </el-card>
         <InstanceDialog ref="instanceDialogRef" @refresh="getTableData()" />
         <DetailDrawer ref="detailDrawerRef" />
+        <BindKeyDialog ref="bindKeyDialogRef" @refresh="getKeysData()" />
     </div>
 </template>
 
@@ -85,6 +91,7 @@ import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
+import { useKeyApi } from '/@/api/keys';
 
 // 引入组件
 const InstanceDialog = defineAsyncComponent(() => import('/@/views/instance/dialog.vue'));
@@ -92,14 +99,22 @@ const InstanceDialog = defineAsyncComponent(() => import('/@/views/instance/dial
 // 引入抽屉组件
 const DetailDrawer = defineAsyncComponent(() => import('/@/views/instance/detail.vue'));
 
+// 引入绑定凭证对话框
+const BindKeyDialog = defineAsyncComponent(() => import('/@/views/instance/bingkey.vue'));
+
 // 定义接口
 const instanceApi = useInstanceApi();
 
+// 凭证接口
+const keyApi = useKeyApi();
+
+// 自定义路由
 const router = useRouter();
 
 // 定义变量
 const instanceDialogRef = ref();
 const detailDrawerRef = ref();
+const bindKeyDialogRef = ref();
 
 const state = reactive<InstanceState>({
 	tableData: {
@@ -166,6 +181,32 @@ const onOpenDetail = (row: RowInstanceType) => {
     detailDrawerRef.value.openDrawer(row);
 };
 
+// 获取绑定凭证
+const getbindingKeys = (bindingKeys: any) => {
+    if (!bindingKeys || bindingKeys.length === 0) return '未绑定任何凭证';
+    return bindingKeys.map((item: any) => {
+        return `${item.name} (类型: ${item.type || '未知'})`;
+    }).join('; ');
+};
+
+// 获取可绑定的凭证列表
+const getBindingKeysList = async (instanceId: string | number) => {
+    const res = await keyApi.getAvailableKeyList(Number(instanceId));
+    if (res.code === 0) {
+        return res.data;
+    }
+    return [];
+};
+
+// 打开绑定凭证对话框
+const onOpenBindKey = (row: RowInstanceType) => {
+    console.log('row', row);
+
+    console.log('bindKeyDialogRef', bindKeyDialogRef.value);
+    bindKeyDialogRef.value.openDialog(row.id);
+};
+
+// 删除操作
 const onRowDel = (row: RowInstanceType) => {
     ElMessageBox.confirm(`此操作将永久删除主机名称：“${row.name}”，是否继续?`, '提示', {
         confirmButtonText: '确认',

@@ -49,5 +49,13 @@ export function useInstanceApi() {
                 method: 'delete',
             });
         },
+
+        instanceBindingKey: (data: object) => {
+            return request({
+                url: '/api/instance/keys/binding',
+                method: 'post',
+                data,
+            });
+        },  
     }
 }

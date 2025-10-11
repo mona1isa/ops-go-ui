@@ -43,5 +43,12 @@ export function useKeyApi() {
                 method: 'delete',
             });
         },
+
+        getAvailableKeyList: (instanceId: number) => {
+            return request({
+                url: '/api/keys/available/list/' + instanceId,
+                method: 'get',
+            });
+        },
     }
 }

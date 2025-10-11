@@ -4,7 +4,9 @@
             <el-descriptions-item label="主机名称">{{ detailData.name }}</el-descriptions-item>
             <el-descriptions-item label="规格">{{ detailData.spec }}</el-descriptions-item>
             <el-descriptions-item label="主机IP">{{ detailData.ip }}</el-descriptions-item>
-            <el-descriptions-item label="用户名">{{ detailData.username }}</el-descriptions-item>
+            <el-descriptions-item label="登录凭证">
+                {{ getbindingKeys(detailData.bindingKeys) }}
+            </el-descriptions-item>
             <el-descriptions-item label="主机状态">
                 <el-tag :type="detailData.status === '1' ? 'success' : 'danger'">
                     {{ detailData.status === '1' ? '启用' : '禁用' }}
@@ -30,6 +32,14 @@ const handleClose = (done: () => void) => {
 const openDrawer = (data: any) => {
     detailData.value = data;
     drawerVisible.value = true;
+};
+
+// 获取绑定凭证
+const getbindingKeys = (bindingKeys: any) => {
+    if (!bindingKeys || bindingKeys.length === 0) return '未绑定任何凭证';
+    return bindingKeys.map((item: any) => {
+        return `${item.name} (类型: ${item.type || '未知'})`;
+    }).join('; ');
 };
 
 defineExpose({
