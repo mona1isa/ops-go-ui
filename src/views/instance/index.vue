@@ -1,5 +1,5 @@
 <template>
-    <div class="app-container">
+    <div class="layout-padding">
         <el-card shadow="hover" class="layout-padding-auto">
             <div class="app-search mb15">
                 <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>

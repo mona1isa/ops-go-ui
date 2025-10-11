@@ -1,7 +1,7 @@
 <template>
     <div class="keys-index">
         <el-card shadow="hover" class="layout-padding-auto">
-            <div class="system-user-search mb15 demo-form-inline">
+            <div class="keys-search mb20">
 				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入密钥名称" style="max-width: 180px; margin-right: 20px;" clearable> </el-input>
 				<el-select v-model="state.tableData.param.protocol" size="default" placeholder="请选择协议" style="max-width: 180px; margin-right: 20px;" clearable>
                     <el-option label="SSH" value="ssh"></el-option>
@@ -22,30 +22,30 @@
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>
-					新增密钥
+					新增凭证
 				</el-button>
 			</div>
             <el-row :gutter="20">
-                    <el-col :span="4" v-for="(item, index) in state.tableData.data" :key="index">
-                        <el-card class="key-card">
-                            <div class="key-id">ID: {{ item.id }}</div>
-                            <div class="key-name">名称: {{ item.name }}</div>
-                            <div class="key-name">用户名: {{ item.user }}</div>
-                            <div class="key-value">凭证: {{ item.credentials }}</div>
-                            <div class="key-value">协议: {{ item.protocol }}</div>
-                            <div class="key-value">端口号: {{ item.port }}</div>
-                            <div class="key-status">
-                                状态: 
-                                <el-switch 
-                                    v-model="item.status" 
-                                    inline-prompt active-text="启" active-value="1" 
-                                    inactive-text="禁" inactive-value="0" 
-                                    @click="onStatusChange(item)">
-                                </el-switch>
-                            </div>
-                            <div class="key-created">创建时间: {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
-                        </el-card>
-                    </el-col>
+                <el-col :span="4" v-for="(item, index) in state.tableData.data" :key="index">
+                    <el-card class="key-card">
+                        <div class="key-id">ID: {{ item.id }}</div>
+                        <div class="key-name">名称: {{ item.name }}</div>
+                        <div class="key-name">用户名: {{ item.user }}</div>
+                        <div class="key-name">类型: {{ item.type === 1 ? '密码' : '密钥'}}</div>
+                        <div class="key-value">协议: {{ item.protocol }}</div>
+                        <div class="key-value">端口号: {{ item.port }}</div>
+                        <div class="key-status">
+                            状态: 
+                            <el-switch 
+                                v-model="item.status" 
+                                inline-prompt active-text="启" active-value="1" 
+                                inactive-text="禁" inactive-value="0" 
+                                @click="onStatusChange(item)">
+                            </el-switch>
+                        </div>
+                        <div class="key-created">创建时间: {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
+                    </el-card>
+                </el-col>
             </el-row>
         </el-card>
         <el-row :gutter="20" class="mt20">
@@ -61,17 +61,25 @@
                 />
             </el-col>
         </el-row>
+        <KeyDialog ref="keysDialogRef" @refresh="getTableData()"/>
     </div>
 </template>
 
 <script setup lang="ts" name="keys">
-import { reactive, onMounted } from 'vue';
+import { reactive, onMounted, defineAsyncComponent, ref } from 'vue';
 import { useKeyApi } from '/@/api/keys';
 import { dayjs, ElMessage } from 'element-plus';
 import { KeyState, RowKeyType } from '/@/types/views';
 
-// 定义变量内容
+// 定义组件
+const KeyDialog = defineAsyncComponent(() => import('/@/views/keys/dialog.vue'));
+
+// 定义接口
 const keyApi = useKeyApi();
+
+// 定义变量内容
+const keysDialogRef = ref();
+
 const state = reactive<KeyState>({
     tableData: {
         data: [],
@@ -101,17 +109,17 @@ const getTableData = async () => {
 const onStatusChange = async (row: RowKeyType) => {
     const res = await keyApi.updateKeyStatus({
         id: row.id,
-        status: row.status === "1" ? "0" : "1",
+        status: row.status,
     });
-    if (res.code === 0) {
+    if (res.code === 200) {
         ElMessage.success(res.msg);
         getTableData();
     }
 };
 
+// 打开新增密钥弹窗
 const onOpenAddKey = (type: string) => {
-    // 打开新增密钥的弹窗
-    console.log('打开新增密钥的弹窗');
+    keysDialogRef.value.openDialog(type);
 };
 
 // 分页大小变化
@@ -139,7 +147,9 @@ onMounted(() => {
     margin-top: 20px;
 }
 .key-card {
+    margin-right: 20px;
     margin-bottom: 20px;
+    padding: auto;
     .key-id, .key-name, .key-value, .key-status, .key-created {
         margin-bottom: 10px;
     }

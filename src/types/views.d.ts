@@ -402,14 +402,14 @@ declare interface InstanceState {
 };
 
 // keys
-declare type RowKeyType = {
+declare type RowKeyType <T = any> = {
 	id: number;
 	name: string;
 	user: string;
 	credentials: string;
 	protocol: string;
 	port: number;
-	type: string;
+	type: number;
 	status: string;
 	createdAt: string;
 	updatedAt: string;
