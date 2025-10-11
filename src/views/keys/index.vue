@@ -28,22 +28,40 @@
             <el-row :gutter="20">
                 <el-col :span="4" v-for="(item, index) in state.tableData.data" :key="index">
                     <el-card class="key-card">
-                        <div class="key-id">ID: {{ item.id }}</div>
-                        <div class="key-name">名称: {{ item.name }}</div>
-                        <div class="key-name">用户名: {{ item.user }}</div>
-                        <div class="key-name">类型: {{ item.type === 1 ? '密码' : '密钥'}}</div>
-                        <div class="key-value">协议: {{ item.protocol }}</div>
-                        <div class="key-value">端口号: {{ item.port }}</div>
-                        <div class="key-status">
-                            状态: 
-                            <el-switch 
-                                v-model="item.status" 
-                                inline-prompt active-text="启" active-value="1" 
-                                inactive-text="禁" inactive-value="0" 
-                                @click="onStatusChange(item)">
-                            </el-switch>
+                        <div class="key-card-header">
+                            <el-dropdown trigger="hover" placement="bottom-end" class="key-actions-dropdown">
+                                <el-icon class="key-actions">
+                                    <ele-MoreFilled />
+                                </el-icon>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item v-if="item.status === '0'" @click="onStatusChange(item, '1')">启用</el-dropdown-item>
+                                        <el-dropdown-item v-if="item.status === '1'" @click="onStatusChange(item, '0')">禁用</el-dropdown-item>
+                                        <el-dropdown-item @click="onOpenEditKey('edit', item)">修改</el-dropdown-item>
+                                        <el-dropdown-item @click="onDeleteKey(item)">删除</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
                         </div>
-                        <div class="key-created">创建时间: {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
+                        <div class="key-id"><span class="key-label">ID:</span> {{ item.id }}</div>
+                        <div class="key-name"><span class="key-label">名称:</span> {{ item.name }}</div>
+                        <div class="key-name"><span class="key-label">用户名:</span> {{ item.user }}</div>
+                        <div class="key-name"><span class="key-label">类型:</span> {{ item.type === 1 ? '密码' : '密钥'}}</div>
+                        <div class="key-value"><span class="key-label">协议:</span> {{ item.protocol }}</div>
+                        <div class="key-value"><span class="key-label">端口号:</span> {{ item.port }}</div>
+                        <div class="key-status">
+                            <span class="key-label">状态:</span>
+                            <el-tag :type="item.status === '1' ? 'success' : 'danger'">
+                                {{ item.status === '1' ? '启用' : '禁用' }}
+                            </el-tag>
+                        </div>
+                        <div class="key-name"><span class="key-label">备注:</span>
+                            <el-tooltip v-if="item.remark && item.remark.length > 15" :content="item.remark" placement="top">
+                                <span>{{ item.remark.substring(0, 15) + '...' }}</span>
+                            </el-tooltip>
+                            <span v-else>{{ item.remark }}</span>
+                        </div>
+                        <div class="key-created"><span class="key-label">创建时间:</span> {{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</div>
                     </el-card>
                 </el-col>
             </el-row>
@@ -68,7 +86,7 @@
 <script setup lang="ts" name="keys">
 import { reactive, onMounted, defineAsyncComponent, ref } from 'vue';
 import { useKeyApi } from '/@/api/keys';
-import { dayjs, ElMessage } from 'element-plus';
+import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
 import { KeyState, RowKeyType } from '/@/types/views';
 
 // 定义组件
@@ -106,13 +124,13 @@ const getTableData = async () => {
 };
 
 // 修改密钥状态
-const onStatusChange = async (row: RowKeyType) => {
+const onStatusChange = async (row: RowKeyType, status: string) => {
     const res = await keyApi.updateKeyStatus({
         id: row.id,
-        status: row.status,
+        status: status,
     });
     if (res.code === 200) {
-        ElMessage.success(res.msg);
+        ElMessage.success("修改成功");
         getTableData();
     }
 };
@@ -120,6 +138,29 @@ const onStatusChange = async (row: RowKeyType) => {
 // 打开新增密钥弹窗
 const onOpenAddKey = (type: string) => {
     keysDialogRef.value.openDialog(type);
+};
+
+// 修改密钥
+const onOpenEditKey = (type: string, row: RowKeyType) => {
+    keysDialogRef.value.openDialog(type, row);
+};
+
+// 删除密钥
+const onDeleteKey = (row: RowKeyType) => {
+    ElMessageBox.confirm('确定删除该密钥吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+    }).then(() => {
+        keyApi.deleteKey(row.id).then((res) => {
+            if (res && res.code === 200) {
+                ElMessage.success('删除成功');
+                getTableData();
+            }
+        });
+    }).catch(() => {
+        ElMessage.info('已取消删除');
+    });
 };
 
 // 分页大小变化
@@ -147,11 +188,34 @@ onMounted(() => {
     margin-top: 20px;
 }
 .key-card {
-    margin-right: 20px;
     margin-bottom: 20px;
-    padding: auto;
-    .key-id, .key-name, .key-value, .key-status, .key-created {
+    padding: 10px;
+    position: relative;
+    .key-id, .key-name, .key-value, .key-status {
         margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        .key-label {
+            min-width: 60px;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+    }
+    .key-created {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        .key-label {
+            min-width: 60px;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+    }
+    .key-actions-dropdown {
+        position: absolute;
+        top: 10px;
+        right: 10px;
     }
 }
 .demo-form-inline {
