@@ -11,7 +11,18 @@
         :props="treeProps"
         @node-click="handleNodeClick"
         highlight-current
-      />
+        default-expand-all
+      >
+        <template #default="{ node, data }">
+          <span class="custom-tree-node">
+            <span>{{ node.label }}</span>
+            <span class="tree-actions" v-if="data.id">
+              <el-button type="text" size="small" @click.stop="editGroup(data)">编辑</el-button>
+              <el-button type="text" size="small" @click.stop="deleteGroup(data)">删除</el-button>
+            </span>
+          </span>
+        </template>
+      </el-tree>
     </div>
 
     <!-- 右侧主机分页列表 -->
@@ -63,7 +74,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createDialogVisible = false">取消</el-button>
+        <el-button @click="onGroupCancel">取消</el-button>
         <el-button type="primary" @click="createGroup">确定</el-button>
       </template>
     </el-dialog>
@@ -168,6 +179,13 @@ const showCreateDialog = () => {
   createDialogVisible.value = true;
 };
 
+// 创建分组对话框按钮取消
+const onGroupCancel = () => {
+    createDialogVisible.value = false;
+    createForm.name = '';
+    parentIds.value = [];
+};
+
 // 创建分组
 const createGroup = async () => {
     let parentId = parentIds.value[parentIds.value.length - 1];
@@ -176,6 +194,39 @@ const createGroup = async () => {
     if (res && res.code === 200) {
         createDialogVisible.value = false;
         fetchGroupList();
+    }
+};
+
+// 编辑分组
+const editGroup = async (data: any) => {
+    let parentId = parentIds.value[parentIds.value.length - 1];
+    createForm.parentId = String(parentId);
+    const res = await groupApi.editGroup(createForm);
+    if (res && res.code === 200) {
+        createDialogVisible.value = false;
+        fetchGroupList();
+    }
+};
+
+// 删除分组
+const deleteGroup = async (data: any) => {
+    try {
+        await ElMessageBox.confirm('确认删除该分组吗？', '提示', {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+        });
+        const res = await groupApi.deleteGroup(data.id);
+        if (res && res.code === 200) {
+            ElMessage.success('删除成功');
+            if (currentGroupId.value === data.id) {
+                currentGroupId.value = '';
+                hostList.value = [];
+            }
+            fetchGroupList();
+        }
+    } catch (error) {
+        // 用户取消操作
     }
 };
 
@@ -279,6 +330,23 @@ onMounted(() => {
   fetchGroupList();
 });
 </script>
+
+<style scoped>
+.custom-tree-node {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tree-actions {
+  display: none;
+  gap: 10px;
+}
+
+.custom-tree-node:hover .tree-actions {
+  display: flex;
+}
+</style>
 
 <style scoped>
 .group-container {
