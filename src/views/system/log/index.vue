@@ -52,7 +52,7 @@
 
 <script setup lang="ts" name="systemLog">
 import { reactive, onMounted, ref } from 'vue';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { SysLogState } from '/@/types/views';
 import { dayjs } from 'element-plus';
 import { useLogApi } from '/@/api/log/index';
 

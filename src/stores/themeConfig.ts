@@ -139,7 +139,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 网站主标题（菜单导航、浏览器当前网页标题）
 			globalTitle: 'Ops-Go',
 			// 网站副标题（登录页顶部文字）
-			globalViceTitle: 'Ops',
+			globalViceTitle: 'Ops-Go',
 			// 网站副标题（登录页顶部文字）
 			globalViceTitleMsg: '一站式运维解决方案',
 			// 默认初始语言，可选值"<zh-cn|en|zh-tw>"，默认 zh-cn
