@@ -24,12 +24,21 @@ export function useCaptchaApi() {
  */
 export function useLoginApi() {
 	return {
-		signIn: (data: object) => {
-			return request({
-				url: '/api/user/login',
-				method: 'post',
-				data,
-			});
+		signIn: async (data: object) => {
+			try {
+				const res = await request({
+					url: '/api/user/login',
+					method: 'post',
+					data,
+				});
+				return res;
+			} catch (error) {
+				// 统一处理错误信息
+				if ((error as any)?.response?.data?.message) {
+					throw new Error((error as any).response.data.message);
+				}
+				throw new Error('登录失败，请重试');
+			}
 		},
 		signOut: () => {
 			return request({
