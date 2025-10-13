@@ -11,7 +11,7 @@
             </el-table-column>
             <el-table-column label="操作" width="180">
                 <template #default="scope">
-                    <el-button size="small" type="warning" @click="onTestConnectivity(scope.row)">测试连通性</el-button>
+                    <el-button size="small" type="success" @click="onTestConnectivity(scope.row)">测试连通性</el-button>
                     <el-button size="small" type="primary" @click="onBindKey(scope.row)">绑定</el-button>
                 </template>
             </el-table-column>
