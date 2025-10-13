@@ -4,7 +4,7 @@
     <div class="group-left">
       <div class="group-header">
         <span>主机分组</span>
-        <el-button type="primary" size="small" plain class="dashed-button" @click="showCreateDialog">+</el-button>
+        <el-button type="text" size="small" @click="showCreateDialog" :icon="Plus" />
       </div>
       <el-tree
         :data="groupList"
@@ -17,8 +17,8 @@
           <span class="custom-tree-node">
             <span>{{ node.label }}</span>
             <span class="tree-actions" v-if="data.id">
-              <el-button type="text" size="small" @click.stop="editGroup(data)">编辑</el-button>
-              <el-button type="text" size="small" @click.stop="deleteGroup(data)">删除</el-button>
+              <el-button type="text" size="small" @click.stop="editGroup(data)" :icon="Edit" />
+              <el-button type="text" size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
             </span>
           </span>
         </template>
@@ -109,6 +109,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useGroupApi } from '/@/api/group';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Plus, Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 
 const groupApi = useGroupApi();
 
@@ -345,10 +346,10 @@ onMounted(() => {
 
 .custom-tree-node:hover .tree-actions {
   display: flex;
+  justify-content: space-between;
+  gap: 20px;
 }
-</style>
 
-<style scoped>
 .group-container {
   display: flex;
   height: 100%;
