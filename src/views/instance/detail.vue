@@ -1,19 +1,19 @@
 <template>
     <el-drawer v-model="drawerVisible" title="主机详情" size="30%" :before-close="handleClose">
-        <el-descriptions :column="1" border>
-            <el-descriptions-item label="主机名称">{{ detailData.name }}</el-descriptions-item>
-            <el-descriptions-item label="规格">{{ detailData.spec }}</el-descriptions-item>
-            <el-descriptions-item label="主机IP">{{ detailData.ip }}</el-descriptions-item>
-            <el-descriptions-item label="登录凭证">
+        <el-descriptions class="description" :column="1">
+            <el-descriptions-item label="主机名称:">{{ detailData.name }}</el-descriptions-item>
+            <el-descriptions-item label="规格:">{{ detailData.spec }}</el-descriptions-item>
+            <el-descriptions-item label="主机IP:">{{ detailData.ip }}</el-descriptions-item>
+            <el-descriptions-item label="登录凭证:">
                 {{ getbindingKeys(detailData.bindingKeys) }}
             </el-descriptions-item>
-            <el-descriptions-item label="主机状态">
+            <el-descriptions-item label="主机状态:">
                 <el-tag :type="detailData.status === '1' ? 'success' : 'danger'">
                     {{ detailData.status === '1' ? '启用' : '禁用' }}
                 </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="主机描述">{{ detailData.remark }}</el-descriptions-item>
-            <el-descriptions-item label="创建时间">{{ dayjs(detailData.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</el-descriptions-item>
+            <el-descriptions-item label="主机描述:">{{ detailData.remark }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间:">{{ dayjs(detailData.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</el-descriptions-item>
         </el-descriptions>
     </el-drawer>
 </template>
@@ -54,4 +54,13 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.description {
+    margin-top: 20px;
+    margin-left: 20px;
+    :deep(.el-descriptions-item__label) {
+        width: 120px; /* 统一设置标签宽度 */
+        text-align: right;
+        margin-right: 20px;
+    }
+}
 </style>
