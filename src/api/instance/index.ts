@@ -58,6 +58,14 @@ export function useInstanceApi() {
             });
         },  
 
+        instanceUnbindingKey: (data: object) => {
+            return request({
+                url: '/api/instance/keys/unbinding',
+                method: 'post',
+                data,
+            });
+        },  
+
         testConnect: (data: object) => {
             return request({
                 url: '/api/instance/keys/testConnect',

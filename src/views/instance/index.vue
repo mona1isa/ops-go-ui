@@ -29,7 +29,7 @@
                 <el-table-column prop="ip" label="主机IP" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="bindingKeys" label="登录凭证" show-overflow-tooltip>
                     <template #default="scope">
-                        {{ getbindingKeys(scope.row.bindingKeys) }}
+                        <el-link v-if="scope.row.bindingKeys.length > 0" type="primary" @click="onOpenUnbindKey(scope.row)">{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
                     </template>
                 </el-table-column>
                 <el-table-column prop="status" label="主机状态" show-overflow-tooltip>
@@ -80,7 +80,8 @@
         </el-card>
         <InstanceDialog ref="instanceDialogRef" @refresh="getTableData()" />
         <DetailDrawer ref="detailDrawerRef" />
-        <BindKeyDialog ref="bindKeyDialogRef" @refresh="getKeysData()" />
+        <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
+        <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
     </div>
 </template>
 
@@ -91,6 +92,7 @@ import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
+import { ArrowDown } from '@element-plus/icons-vue';
 import { useKeyApi } from '/@/api/keys';
 
 // 引入组件
@@ -101,6 +103,9 @@ const DetailDrawer = defineAsyncComponent(() => import('/@/views/instance/detail
 
 // 引入绑定凭证对话框
 const BindKeyDialog = defineAsyncComponent(() => import('/@/views/instance/bingkey.vue'));
+
+// 引入解绑凭证对话框
+const UnbindingKeyDialog = defineAsyncComponent(() => import('/@/views/instance/unbindingkey.vue'));
 
 // 定义接口
 const instanceApi = useInstanceApi();
@@ -115,6 +120,7 @@ const router = useRouter();
 const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
+const unbindingKeyDialogRef = ref();
 
 const state = reactive<InstanceState>({
 	tableData: {
@@ -189,21 +195,16 @@ const getbindingKeys = (bindingKeys: any) => {
     }).join('; ');
 };
 
-// 获取可绑定的凭证列表
-const getBindingKeysList = async (instanceId: string | number) => {
-    const res = await keyApi.getAvailableKeyList(Number(instanceId));
-    if (res.code === 0) {
-        return res.data;
-    }
-    return [];
-};
-
 // 打开绑定凭证对话框
 const onOpenBindKey = (row: RowInstanceType) => {
-    console.log('row', row);
-
-    console.log('bindKeyDialogRef', bindKeyDialogRef.value);
     bindKeyDialogRef.value.openDialog(row.id);
+};
+
+// 打开解绑凭证对话框
+const onOpenUnbindKey = (row: RowInstanceType) => {
+    if (row.bindingKeys && row.bindingKeys.length > 0) {
+        unbindingKeyDialogRef.value.openDialog(row.id, row.bindingKeys);
+    }
 };
 
 // 删除操作

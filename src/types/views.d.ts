@@ -385,6 +385,7 @@ declare type RowInstanceType <T = any> = {
 	createBy: string;
 	updateBy: string;
 	remark: string;
+	bindingKeys: T[];
 };
 
 declare type InstanceStatusItem = {

@@ -93,6 +93,7 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="主机ID" />
         <el-table-column prop="name" label="主机名称" />
+        <el-table-column prop="spec" label="主机规格" />
         <el-table-column prop="ip" label="IP地址" />
       </el-table>
       <el-pagination

@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { useKeyApi } from '/@/api/keys';
 import { useInstanceApi } from '/@/api/instance';
 import { ElMessage } from 'element-plus';
@@ -31,6 +31,13 @@ const emit = defineEmits(['refresh']);
 const dialogVisible = ref(false);
 const keyApi = useKeyApi();
 const instanceApi = useInstanceApi();
+
+// 监听关闭对话框，刷新实例列表
+watch(dialogVisible, (newVal) => {
+    if (!newVal) {
+        emit('refresh');
+    }
+});
 
 // 存储当前实例ID，用于绑定凭证时使用
 const currentInstanceId = ref<number>(0);
