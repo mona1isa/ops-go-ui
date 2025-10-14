@@ -87,7 +87,6 @@
 
 <script setup lang="ts" name="instanceIndex">
 import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -112,9 +111,6 @@ const instanceApi = useInstanceApi();
 
 // 凭证接口
 const keyApi = useKeyApi();
-
-// 自定义路由
-const router = useRouter();
 
 // 定义变量
 const instanceDialogRef = ref();

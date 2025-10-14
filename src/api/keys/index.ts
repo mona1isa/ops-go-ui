@@ -50,5 +50,13 @@ export function useKeyApi() {
                 method: 'get',
             });
         },
+
+        getAvailableKeysByOsType: (data: object) => {
+            return request({
+                url: '/api/keys/available/listBy/osType',
+                method: 'post',
+                data,
+            });
+        }
     }
 }

@@ -30,7 +30,7 @@
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">	
 						<el-form-item label="系统类型" prop="os">
-							<el-select v-model="state.ruleForm.os" placeholder="请选择" clearable class="w100">
+							<el-select v-model="state.ruleForm.os" placeholder="请选择" clearable class="w100" @change="initKeyList">
 								<el-option label="Linux" :value="'Linux'" />
 								<el-option label="Windows" :value="'Windows'" />
 								<el-option label="MacOS" :value="'MacOS'"/>
@@ -38,8 +38,20 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="实例状态" prop="status">
-							<el-switch v-model="state.ruleForm.status" inline-prompt active-text="启" active-value="1" inactive-text="禁" inactive-value="0"></el-switch>
+						<el-form-item label="实例状态" prop="status" class="switch-container">
+							<el-switch v-model="state.ruleForm.status" inline-prompt active-text="启" active-value="1" inactive-text="禁" inactive-value="0" class="custom-switch"></el-switch>
+						</el-form-item>
+					</el-col>
+					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+						<el-form-item label="登录凭证" prop="bindingKeys">
+							<el-select v-model="state.ruleForm.bindingKeys" multiple placeholder="请选择登录凭证" clearable class="w100">
+								<el-option
+									v-for="item in state.keyData"
+									:key="item.id"
+									:label="item.name"
+									:value="item.id"
+								/>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
@@ -61,13 +73,17 @@
 </template>
 
 <script setup lang="ts" name="instanceDialog">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted} from 'vue';
 import { ElMessage } from 'element-plus';
 import { useInstanceApi } from '/@/api/instance';
+import { useKeyApi } from '/@/api/keys';
 import { RowInstanceType } from '/@/types/views';
 
 // 定义接口
 const instanceApi = useInstanceApi();
+
+// 凭证接口
+const keyApi = useKeyApi();
 
 // 定义子组件向父组件传值/事件
 const emit = defineEmits(['refresh']);
@@ -100,7 +116,6 @@ const rules = reactive({
 // 定义变量
 const instanceDialogFormRef = ref();
 const openDialog = (type: string, row: RowInstanceType) => {
-	
 	if (type === 'edit') {
 	    state.ruleForm = row;
 		state.dialog.title = "编辑实例";
@@ -112,18 +127,33 @@ const openDialog = (type: string, row: RowInstanceType) => {
 	state.dialog.type = type;
 };
 
+// 初始化凭证列表
+const initKeyList = async (osType?: string) => {
+	try {
+		let data = {
+			osType: osType || "",
+		};
+		const res = await keyApi.getAvailableKeysByOsType(data);
+        state.keyData = res.data;
+	} catch (error) {
+		console.error("获取凭证列表失败:", error);
+	}
+};
+
 const initState = {
 	name: '',
 	cpu: 1,
 	memMb: 1024,
 	diskGb: 10,
 	status: '1',
+	bindingKeys: [] as number[],
 	os: '',
 	ip: '',
 	remark: '',
 };
 const state = reactive({
 	ruleForm: {...initState},
+	keyData: [] as any[], // 凭证数据
 	dialog: {
 		visible: false,
 		title: '',
@@ -141,7 +171,6 @@ const onCancel = () => {
 const onSubmit = () => {
 	instanceDialogFormRef.value.validate((valid: boolean) => {
 		if (valid) {
-			console.log("valid:", valid, "type is ", state.dialog.type)
 			if (state.dialog.type === 'add') {
 				instanceApi.addInstance(state.ruleForm).then(() => {
 					ElMessage.success('添加成功');
@@ -159,8 +188,22 @@ const onSubmit = () => {
 	});
 };
 
+onMounted(() => {
+	initKeyList();
+});
+
 // 暴露变量
 defineExpose({
 	openDialog,
 });
 </script>
+
+<style scoped lang="scss">
+.switch-container {
+    pointer-events: none;
+}
+
+.custom-switch {
+    pointer-events: auto;
+}
+</style>
