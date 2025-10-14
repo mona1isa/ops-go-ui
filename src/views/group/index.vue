@@ -15,9 +15,17 @@
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node">
-            <span>{{ node.label }}</span>
-            <span class="tree-actions" v-if="data.id">
-              <el-button type="text" size="small" @click.stop="editGroup(data)" :icon="Edit" />
+            <span v-if="editingId !== data.id">{{ node.label }}</span>
+            <el-input
+              v-else
+              v-model="editName"
+              size="small"
+              @blur="submitEdit(data)"
+              @keyup.enter="submitEdit(data)"
+              autofocus
+            />
+            <span class="tree-actions" v-if="data.id && editingId !== data.id">
+              <el-button type="text" size="small" @click.stop="startEdit(data)" :icon="Edit" />
               <el-button type="text" size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
             </span>
           </span>
@@ -109,7 +117,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useGroupApi } from '/@/api/group';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit, } from '@element-plus/icons-vue'
 
 const groupApi = useGroupApi();
 
@@ -196,17 +204,37 @@ const createGroup = async () => {
         createDialogVisible.value = false;
         fetchGroupList();
     }
+    createForm.name = '';
+    parentIds.value = [];
 };
 
-// 编辑分组
-const editGroup = async (data: any) => {
-    let parentId = parentIds.value[parentIds.value.length - 1];
-    createForm.parentId = String(parentId);
-    const res = await groupApi.editGroup(createForm);
-    if (res && res.code === 200) {
-        createDialogVisible.value = false;
-        fetchGroupList();
-    }
+// 开始编辑分组
+const editingId = ref('');
+const editName = ref('');
+
+const startEdit = (data: any) => {
+  editingId.value = data.id;
+  editName.value = data.name;
+};
+
+// 提交编辑分组
+const submitEdit = async (data: any) => {
+  if (!editName.value || editName.value === data.name) {
+    editingId.value = '';
+    return;
+  }
+
+  console.log("type of data.id:", typeof data.id);
+
+  const res = await groupApi.editGroup({
+    id: data.id,
+    name: editName.value,
+  });
+  if (res && res.code === 200) {
+    ElMessage.success('编辑成功');
+    editingId.value = '';
+    fetchGroupList();
+  }
 };
 
 // 删除分组
