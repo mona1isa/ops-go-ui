@@ -37,8 +37,8 @@
     <div class="group-right">
       <div class="host-header">
         <span>主机列表</span>
-        <el-button type="danger" size="small" plain @click="removeHostFromGroup" :disabled="!currentGroupId || selectedRemoveHostIds.length === 0">移除</el-button>
-        <el-button type="primary" size="small" plain @click="showAddHostDialog" :disabled="!currentGroupId">添加</el-button>
+        <el-button type="danger" size="small" link @click="removeHostFromGroup" :disabled="!currentGroupId || selectedRemoveHostIds.length === 0">移除</el-button>
+        <el-button type="primary" size="small" link @click="showAddHostDialog" :disabled="!currentGroupId">添加</el-button>
       </div>
       <el-table :data="hostList" style="width: 100%" v-loading="loading" @selection-change="handleRemoveSelectionChange">
         <el-table-column type="selection" width="55" />

@@ -106,7 +106,11 @@ const rules = reactive({
 	],
 	ip: [
 		{ required: true, message: '请输入IP地址', trigger: 'blur' },
-		{ pattern: /^(\d{1,3}\.){3}\d{1,3}$/, message: '请输入有效的IP地址', trigger: 'blur' },
+		{ 
+			pattern: /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+			message: '请输入有效的IP地址（如：192.168.1.1）',
+			trigger: 'blur'
+		},
 	],
 	os: [
 		{ required: true, message: "请选择系统", trigger: 'blur' }, 
@@ -169,7 +173,7 @@ const onCancel = () => {
 
 // 提交数据
 const onSubmit = () => {
-	instanceDialogFormRef.value.validate((valid: boolean) => {
+	instanceDialogFormRef.value?.validate((valid: boolean) => {
 		if (valid) {
 			if (state.dialog.type === 'add') {
 				instanceApi.addInstance(state.ruleForm).then(() => {

@@ -12,7 +12,7 @@
       </el-table-column>
       <el-table-column label="操作" width="120">
         <template #default="scope">
-          <el-button type="link" size="small" @click="unbindSingle(scope.row)">解绑</el-button>
+          <el-button type="primary" link size="small" @click="unbindSingle(scope.row)">解绑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -108,7 +108,6 @@ const getInstanceDetail = async (instanceId: number) => {
     tableData.loading = true;
     const res = await instanceApi.getInstanceInfo(instanceId);
     if (res && res.code === 200) {
-      console.log("1111111111111",res.data);
       bindingKeys.value = res.data.bindingKeys;
     }
   } catch (error) {
