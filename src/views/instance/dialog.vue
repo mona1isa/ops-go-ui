@@ -1,7 +1,7 @@
 <template>
     <div class="instance-dialog-container">
         <el-dialog :title="state.dialog.title" v-model="state.dialog.visible" width="769px">
-			<el-form ref="instanceDialogFormRef" :rule="rules" :model="state.ruleForm" label-width="120px">
+			<el-form ref="instanceDialogFormRef" :rules="rules" :model="state.ruleForm" label-width="120px">
 				<el-row :gutter="35">
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
 						<el-form-item label="实例名称" prop="name">
@@ -43,7 +43,7 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-						<el-form-item label="登录凭证" prop="bindingKeys">
+						<el-form-item v-if="state.dialog.type === 'add'" label="登录凭证" prop="bindingKeys">
 							<el-select v-model="state.ruleForm.bindingKeys" multiple placeholder="请选择登录凭证" clearable class="w100">
 								<el-option
 									v-for="item in state.keyData"
@@ -88,6 +88,8 @@ const keyApi = useKeyApi();
 // 定义子组件向父组件传值/事件
 const emit = defineEmits(['refresh']);
 
+// 定义变量
+const instanceDialogFormRef = ref();
 const rules = reactive({
 	name: [
 		{ required: true, message: '请输入实例名称', trigger: 'blur' },
@@ -96,11 +98,11 @@ const rules = reactive({
 		{ required: true, message: '请输入CPU数量', trigger: 'blur' },
 		{ type: 'number', min: 1, message: 'CPU数量不能小于1', trigger: 'blur' },
 	],
-	mem: [
+	memMb: [
 		{ required: true, message: '请输入内存大小', trigger: 'blur' },
 		{ type: 'number', min: 1, message: '内存大小不能小于1', trigger: 'blur' },
 	],
-	disk: [
+	diskGb: [
 		{ required: true, message: '请输入磁盘大小', trigger: 'blur' },
 		{ type: 'number', min: 1, message: '磁盘大小不能小于1', trigger: 'blur' },
 	],
@@ -117,8 +119,6 @@ const rules = reactive({
 	],
 });
 
-// 定义变量
-const instanceDialogFormRef = ref();
 const openDialog = (type: string, row: RowInstanceType) => {
 	if (type === 'edit') {
 	    state.ruleForm = row;
@@ -172,24 +172,22 @@ const onCancel = () => {
 };
 
 // 提交数据
-const onSubmit = () => {
-	instanceDialogFormRef.value?.validate((valid: boolean) => {
-		if (valid) {
-			if (state.dialog.type === 'add') {
-				instanceApi.addInstance(state.ruleForm).then(() => {
-					ElMessage.success('添加成功');
-					state.dialog.visible = false;
-					emit('refresh');
-				});
-			} else {
-				instanceApi.updateInstance(state.ruleForm).then(() => {
-					ElMessage.success('修改成功');
-					state.dialog.visible = false;
-					emit('refresh');
-				});
-			}
-		}
-	});
+const onSubmit = async () => {
+    try {
+        await instanceDialogFormRef.value?.validate();
+        if (state.dialog.type === 'add') {
+            await instanceApi.addInstance(state.ruleForm);
+            ElMessage.success('添加成功');
+        } else {
+            state.ruleForm.bindingKeys = [];
+            await instanceApi.updateInstance(state.ruleForm);
+            ElMessage.success('修改成功');
+        }
+        state.dialog.visible = false;
+        emit('refresh');
+    } catch (error) {
+        console.error('请填写完整信息');
+    }
 };
 
 onMounted(() => {

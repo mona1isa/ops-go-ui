@@ -4,7 +4,7 @@
     <div class="group-left">
       <div class="group-header">
         <span>主机分组</span>
-        <el-button type="text" size="small" @click="showCreateDialog" :icon="Plus" />
+        <el-button link size="small" @click="showCreateDialog" :icon="Plus" />
       </div>
       <el-tree
         :data="groupList"
@@ -25,8 +25,8 @@
               autofocus
             />
             <span class="tree-actions" v-if="data.id && editingId !== data.id">
-              <el-button type="text" size="small" @click.stop="startEdit(data)" :icon="Edit" />
-              <el-button type="text" size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
+              <el-button link size="small" @click.stop="startEdit(data)" :icon="Edit" color="green"/>
+              <el-button link size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
             </span>
           </span>
         </template>
@@ -35,28 +35,30 @@
 
     <!-- 右侧主机分页列表 -->
     <div class="group-right">
-      <div class="host-header">
-        <span>主机列表</span>
-        <el-button type="danger" size="small" link @click="removeHostFromGroup" :disabled="!currentGroupId || selectedRemoveHostIds.length === 0">移除</el-button>
-        <el-button type="primary" size="small" link @click="showAddHostDialog" :disabled="!currentGroupId">添加</el-button>
-      </div>
-      <el-table :data="hostList" style="width: 100%" v-loading="loading" @selection-change="handleRemoveSelectionChange">
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="主机ID" />
-        <el-table-column prop="name" label="主机名称" />
-        <el-table-column prop="spec" label="主机规格" />
-        <el-table-column prop="ip" label="IP地址" />
-      </el-table>
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="currentPage"
-        :page-sizes="[10, 20, 30]"
-        :page-size="pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        style="margin-top: 10px;"
-      />
+      <el-card>
+        <div class="host-header">
+          <span>主机列表</span>
+          <el-button type="danger" size="small" link @click="removeHostFromGroup" :disabled="!currentGroupId || selectedRemoveHostIds.length === 0" :icon="Delete">移除</el-button>
+          <el-button type="primary" size="small" link @click="showAddHostDialog" :disabled="!currentGroupId" :icon="Plus">添加</el-button>
+        </div>
+        <el-table :data="hostList" style="width: 100%" v-loading="loading" @selection-change="handleRemoveSelectionChange">
+          <el-table-column type="selection" width="55" />
+          <el-table-column prop="id" label="主机ID" />
+          <el-table-column prop="name" label="主机名称" />
+          <el-table-column prop="spec" label="主机规格" />
+          <el-table-column prop="ip" label="IP地址" />
+        </el-table>
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="[10, 20, 30]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          style="margin-top: 10px;"
+        />
+    </el-card>
     </div>
 
     <!-- 创建分组对话框 -->
@@ -220,7 +222,12 @@ const startEdit = (data: any) => {
 
 // 提交编辑分组
 const submitEdit = async (data: any) => {
-  if (!editName.value || editName.value === data.name) {
+  if (!editName.value) {
+    ElMessage.warning('分组名称不能为空');
+    return;
+  }
+  if (editName.value === data.name) {
+    ElMessage.warning('分组名称未发生变化');
     editingId.value = '';
     return;
   }
@@ -240,6 +247,10 @@ const submitEdit = async (data: any) => {
 
 // 删除分组
 const deleteGroup = async (data: any) => {
+    if (!data.id) {
+        ElMessage.warning('无效的分组ID');
+        return;
+    }
     try {
         await ElMessageBox.confirm('确认删除该分组吗？', '提示', {
             confirmButtonText: '确认',
@@ -262,7 +273,10 @@ const deleteGroup = async (data: any) => {
 
 // 显示添加主机对话框
 const showAddHostDialog = async () => {
-    if (!currentGroupId.value) return;
+    if (!currentGroupId.value) {
+        ElMessage.warning('请先选择分组');
+        return;
+    }
     loadingAvailableHosts.value = true;
     const res = await groupApi.pageAvailableGroupInstance({
         groupId: currentGroupId.value,
@@ -293,7 +307,10 @@ const selectedHostIds = ref<number[]>([]);
 
 // 处理复选框选中事件
 const handleSelectionChange = (selection: any[]) => {
-  selectedHostIds.value = selection.map(item => item.id);
+  selectedHostIds.value = selection.reduce((ids, item) => {
+    if (item.id) ids.push(item.id);
+    return ids;
+  }, []);
 };
 
 // 添加主机到分组
