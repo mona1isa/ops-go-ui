@@ -84,8 +84,8 @@ onBeforeMount(() => {
 		}
 	});
 	nextTick(() => {
-		state.refreshRouterViewKey = fullPath;
-		state.iframeRefreshKey = fullPath;
+		state.refreshRouterViewKey = route.fullPath;
+		state.iframeRefreshKey = route.fullPath;
 		state.keepAliveNameList = keepAliveNames.value;
 	});
 });

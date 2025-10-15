@@ -60,7 +60,7 @@
           :total="total"
           style="margin-top: 10px;"
         />
-    </el-card>
+      </el-card>
     </div>
 
     <!-- 创建分组对话框 -->
