@@ -1,8 +1,8 @@
 <template>
   <div class="user-list">
-    <h5>用户列表</h5>
+    <h3>用户列表</h3>
     <div class="table-container">
-      <el-table :data="userList" style="width: 100%" @row-click="handleRowClick">
+      <el-table :data="userList" @row-click="handleRowClick" >
         <el-table-column prop="userName" label="用户名" />
         <el-table-column prop="nickname" label="用户昵称" />
       </el-table>
@@ -38,6 +38,8 @@ const handleRowClick = async (row) => {
     const res = await userInstanceAuthApi.pageUserInstances(data);
     if (res && res.code == 200) {
         hostList.value = res.data.instances;
+        // 通过事件总线或 Vuex 传递数据
+        emit('update-instances', res.data.instances);
     }
 };
 
@@ -51,7 +53,7 @@ onMounted(() => {
   height: 100%;
 }
 .table-container {
-  max-height: 400px;
+  max-height: 700px;
   overflow-y: auto;
 }
 </style>

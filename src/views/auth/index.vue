@@ -41,7 +41,7 @@ const activeTab = ref('instanceInfo');
 .user-list-card {
     margin-left: 10px;
     margin-top: 20px;
-    height: 100%;
+    height: calc(100vh - 20px);
 }
 
 .auth-right {
