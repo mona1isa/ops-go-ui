@@ -120,6 +120,7 @@ const isActive = (v: RouteItem) => {
 };
 // 存储 tagsViewList 到浏览器临时缓存中，页面刷新时，保留记录
 const addBrowserSetSession = (tagsViewList: Array<object>) => {
+	console.log('Setting tagsViewList:', tagsViewList);
 	Session.set('tagsViewList', tagsViewList);
 };
 // 获取 pinia 中的 tagsViewRoutes 列表
@@ -252,14 +253,20 @@ const closeCurrentTagsView = (path: string) => {
 				setTimeout(() => {
 					if (state.tagsViewList.length === k && getThemeConfig.value.isShareTagsView ? state.routePath === path : state.routeActive === path) {
 						// 最后一个且高亮时
-						if (arr[arr.length - 1].meta.isDynamic) {
-							// 动态路由（xxx/:id/:name"）
-							if (k !== arr.length) router.push({ name: arr[k].name, params: arr[k].params });
-							else router.push({ name: arr[arr.length - 1].name, params: arr[arr.length - 1].params });
+						const lastItem = arr[arr.length - 1];
+						if (lastItem && lastItem.meta) {
+							if (lastItem.meta.isDynamic) {
+								// 动态路由（xxx/:id/:name"）
+								if (k !== arr.length) router.push({ name: arr[k].name, params: arr[k].params });
+								else router.push({ name: lastItem.name, params: lastItem.params });
+							} else {
+								// 普通路由
+								if (k !== arr.length) router.push({ path: arr[k].path, query: arr[k].query });
+								else router.push({ path: lastItem.path, query: lastItem.query });
+							}
 						} else {
-							// 普通路由
-							if (k !== arr.length) router.push({ path: arr[k].path, query: arr[k].query });
-							else router.push({ path: arr[arr.length - 1].path, query: arr[arr.length - 1].query });
+							// 如果最后一个项不存在或没有 meta 属性，跳转到首页
+							router.push('/');
 						}
 					} else {
 						// 非最后一个且高亮时，跳转到下一个

@@ -10,6 +10,8 @@
         :data="groupList"
         :props="treeProps"
         @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
         highlight-current
         default-expand-all
       >
@@ -25,7 +27,7 @@
               autofocus
             />
             <span class="tree-actions" v-if="data.id && editingId !== data.id">
-              <el-button link size="small" @click.stop="startEdit(data)" :icon="Edit" color="green"/>
+              <el-button link size="small" @click.stop="startEdit(data)" :icon="Edit" />
               <el-button link size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
             </span>
           </span>
@@ -41,7 +43,7 @@
           <el-button type="danger" size="small" link @click="removeHostFromGroup" :disabled="!currentGroupId || selectedRemoveHostIds.length === 0" :icon="Delete">移除</el-button>
           <el-button type="primary" size="small" link @click="showAddHostDialog" :disabled="!currentGroupId" :icon="Plus">添加</el-button>
         </div>
-        <el-table :data="hostList" style="width: 100%" v-loading="loading" @selection-change="handleRemoveSelectionChange">
+        <el-table :data="hostList" style="width: 90%" v-loading="loading" @selection-change="handleRemoveSelectionChange">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="主机ID" />
           <el-table-column prop="name" label="主机名称" />
@@ -181,9 +183,20 @@ const fetchHostList = async () => {
 };
 
 // 点击分组节点
-const handleNodeClick = (data: any) => {
+const handleNodeClick = (data: any, node: any) => {
+  if (!node.isLeaf) {
+    node.expanded = !node.expanded;
+  }
   currentGroupId.value = data.id;
   fetchHostList();
+};
+
+const handleNodeExpand = (data: any, node: any) => {
+  node.expanded = true;
+};
+
+const handleNodeCollapse = (data: any, node: any) => {
+  node.expanded = false;
 };
 
 // 显示创建分组对话框
@@ -227,12 +240,11 @@ const submitEdit = async (data: any) => {
     return;
   }
   if (editName.value === data.name) {
-    ElMessage.warning('分组名称未发生变化');
     editingId.value = '';
+    editName.value = '';
+    fetchGroupList();
     return;
   }
-
-  console.log("type of data.id:", typeof data.id);
 
   const res = await groupApi.editGroup({
     id: data.id,
