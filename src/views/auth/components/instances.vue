@@ -1,8 +1,6 @@
 <template>
   <div class="instance-list">
-    <h5>已授权主机列表</h5>
-    <div class="table-container">
-      <el-table :data="currentHostList" style="width: 100%">
+    <el-table :data="currentHostList" style="width: 100%">
         <el-table-column prop="name" label="主机名" />
         <el-table-column prop="ip" label="IP地址" />
         <el-table-column prop="status" label="状态" />
@@ -16,11 +14,10 @@
         layout="total, sizes, prev, pager, next"
         :total="hostList.length"
       />
-    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts" name="authInstances">
 import { ref, computed } from 'vue';
 
 const props = defineProps({
@@ -39,11 +36,11 @@ const currentHostList = computed(() => {
   return props.hostList.slice(start, end);
 });
 
-const handleSizeChange = (val) => {
+const handleSizeChange = (val: number) => {
   pageSize.value = val;
 };
 
-const handleCurrentChange = (val) => {
+const handleCurrentChange = (val: number) => {
   currentPage.value = val;
 };
 </script>
@@ -51,9 +48,6 @@ const handleCurrentChange = (val) => {
 <style scoped>
 .instance-list {
   margin-top: 20px;
-}
-.table-container {
-  max-height: 400px;
   overflow-y: auto;
 }
 </style>

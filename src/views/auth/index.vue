@@ -26,10 +26,8 @@
     </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup name="authIndex">
 import { ref } from 'vue';
-import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
-import { useUserInfoApi } from '/@/api/user';
 import UserList from '/@/views/auth/components/users.vue';
 import InstanceInfo from '/@/views/auth/components/instances.vue';
 import GroupInfo from '/@/views/auth/components/groups.vue';
@@ -41,7 +39,7 @@ const activeTab = ref('instanceInfo');
 .user-list-card {
     margin-left: 10px;
     margin-top: 20px;
-    height: calc(100vh - 20px);
+    height: 600px;
 }
 
 .auth-right {

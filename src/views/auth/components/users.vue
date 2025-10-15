@@ -10,8 +10,8 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue';
+<script setup lang="ts" name="authUsers">
+import { ref, onMounted} from 'vue';
 import { useUserInfoApi } from '/@/api/user';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 
@@ -22,6 +22,8 @@ const userInstanceAuthApi = useUserInstanceAuthApi();
 const userList = ref([]);
 const hostList = ref([]);
 
+const emit = defineEmits(['update-instances']);
+
 const fetchUserList = async () => {
     const res = await userApi.getUserPage({ pageNum: 1, pageSize: 1000 });
     if (res && res.code == 200) {
@@ -30,11 +32,11 @@ const fetchUserList = async () => {
 };
 
 const handleRowClick = async (row) => {
-  let data = {
-    userId: row.id,
-    pageNum: 1,
-    pageSize: 1000
-  };
+    let data = {
+      userId: row.id,
+      pageNum: 1,
+      pageSize: 1000
+    };
     const res = await userInstanceAuthApi.pageUserInstances(data);
     if (res && res.code == 200) {
         hostList.value = res.data.instances;
@@ -50,10 +52,10 @@ onMounted(() => {
 
 <style scoped>
 .user-list {
-  height: 100%;
+  height: 90%;
 }
 .table-container {
-  max-height: 700px;
+  max-height: 520px;
   overflow-y: auto;
 }
 </style>
