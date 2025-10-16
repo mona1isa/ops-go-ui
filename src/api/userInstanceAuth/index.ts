@@ -40,6 +40,14 @@ export function useUserInstanceAuthApi() {
                 method: 'POST',
                 data
             });
-        }
+        },
+
+        pageUserGroups: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/pageUserGroups',
+                method: 'POST',
+                data
+            });
+        },
     }
 }

@@ -30,7 +30,6 @@ const fetchUserList = async () => {
 };
 
 const handleRowClick = async (row: UserInfos) => {
-  console.log('选中用户:', row);
     currentRowKey.value = row.id;
     // 发射用户切换事件，传递用户ID
     emit('user-change', row.id);

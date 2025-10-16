@@ -430,3 +430,17 @@ declare interface KeyTableType extends TableType {
 declare interface KeyState {
 	tableData: KeyTableType;
 };
+
+// Groups
+declare type RowGroupType <T = any> = {
+	id: number;	
+	name: string;
+	parentId: number;
+};
+declare interface GroupTableType extends TableType {
+	data: RowGroupType[];
+}
+
+declare interface GroupState {
+	tableData: GroupTableType;
+}

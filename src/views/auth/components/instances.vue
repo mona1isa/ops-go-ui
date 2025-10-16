@@ -61,7 +61,6 @@ const loadUserInstance = (userId: number) => {
 };
 
 const getTableData = () => {
-  console.log('获取主机列表，当前用户ID:', currentUserId.value);
   if (!currentUserId.value) {
     state.tableData.data = [];
     state.tableData.total = 0;

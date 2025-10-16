@@ -16,7 +16,7 @@
                             <InstanceInfo ref="instanceRef" :user-id="currentUserId"/>
                         </el-tab-pane>
                         <el-tab-pane label="主机分组" name="groupInfo">
-                            <GroupInfo ref="groupRef"/>
+                            <GroupInfo ref="groupRef" :user-id="currentUserId"/>
                         </el-tab-pane>
                     </el-tabs>
                    </el-card>
@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup name="authIndex">
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, watch } from 'vue';
 
 // 引入组件
 const UserList = defineAsyncComponent(() => import('/@/views/auth/components/users.vue'));
@@ -46,13 +46,32 @@ const groupRef = ref();
 
 // 处理用户切换
 const handleUserChange = (userId: number) => {
+    console.log('用户切换1:', instanceRef.value);
+    console.log('用户切换2:', groupRef.value);
     currentUserId.value = userId;
     // 刷新主机信息和分组信息
     if (instanceRef.value) {
-        console.log('index.vue用户切换，用户ID:', userId);
         instanceRef.value.loadUserInstance(userId);
+        
     }
+    // 切换到主机信息 tab
+    if (groupRef.value && activeTab.value === 'groupInfo') {
+        groupRef.value.loadUserGroup(userId);
+    }
+    
 };
+
+// 监听 activeTab 变化
+watch(activeTab, (newTab) => {
+    if (!currentUserId.value) {
+        return;
+    }
+    if (newTab === 'groupInfo' && groupRef.value && currentUserId.value) {
+        groupRef.value.loadUserGroup(currentUserId.value);
+    } else if (newTab === 'instanceInfo' && instanceRef.value && currentUserId.value) {
+        instanceRef.value.loadUserInstance(currentUserId.value);
+    }
+});
 
 </script>
 
