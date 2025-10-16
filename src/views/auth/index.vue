@@ -3,7 +3,7 @@
         <el-row :gutter="20">
             <el-col :span="6">
                 <el-card class="user-list-card">
-                    <UserList />
+                    <UserList ref="userListRef" @user-change="handleUserChange"/>
                 </el-card>
             </el-col>
 
@@ -12,11 +12,11 @@
                 <div class="auth-right">
                    <el-card class="host-info-card">
                     <el-tabs v-model="activeTab">
-                        <el-tab-pane label="主机信息" name="instance">
-                            <InstanceInfo />
+                        <el-tab-pane label="主机信息" name="instanceInfo">
+                            <InstanceInfo ref="instanceRef" :user-id="currentUserId"/>
                         </el-tab-pane>
-                        <el-tab-pane label="主机分组" name="group">
-                            <GroupInfo />
+                        <el-tab-pane label="主机分组" name="groupInfo">
+                            <GroupInfo ref="groupRef"/>
                         </el-tab-pane>
                     </el-tabs>
                    </el-card>
@@ -27,12 +27,33 @@
 </template>
 
 <script lang="ts" setup name="authIndex">
-import { ref } from 'vue';
-import UserList from '/@/views/auth/components/users.vue';
-import InstanceInfo from '/@/views/auth/components/instances.vue';
-import GroupInfo from '/@/views/auth/components/groups.vue';
+import { defineAsyncComponent, ref } from 'vue';
 
+// 引入组件
+const UserList = defineAsyncComponent(() => import('/@/views/auth/components/users.vue'));
+const InstanceInfo = defineAsyncComponent(() => import('/@/views/auth/components/instances.vue'));
+const GroupInfo = defineAsyncComponent(() => import('/@/views/auth/components/groups.vue'));
+
+// 默认激活主机信息 tab
 const activeTab = ref('instanceInfo');
+
+// 当前选中的用户ID
+const currentUserId = ref<number | null>(null);
+
+const userListRef = ref();
+const instanceRef = ref();
+const groupRef = ref();
+
+// 处理用户切换
+const handleUserChange = (userId: number) => {
+    currentUserId.value = userId;
+    // 刷新主机信息和分组信息
+    if (instanceRef.value) {
+        console.log('index.vue用户切换，用户ID:', userId);
+        instanceRef.value.loadUserInstance(userId);
+    }
+};
+
 </script>
 
 <style scoped lang="scss">

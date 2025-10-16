@@ -62,6 +62,7 @@ import { dayjs } from 'element-plus';
 import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useRoleApi } from '/@/api/role';
+import { SysRoleState, RowRoleType } from '/@/types/views';
 
 // 角色接口
 const roleApi = useRoleApi();

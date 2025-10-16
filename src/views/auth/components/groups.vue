@@ -26,7 +26,7 @@ const fetchHostGroupList = async () => {
 };
 
 onMounted(() => {
-  fetchHostGroupList();
+
 });
 </script>
 
