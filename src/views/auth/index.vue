@@ -11,14 +11,14 @@
                 <!-- 右侧主机信息和分组 -->
                 <div class="auth-right">
                    <el-card class="host-info-card">
-                    <el-tabs v-model="activeTab">
-                        <el-tab-pane label="主机信息" name="instanceInfo">
-                            <InstanceInfo ref="instanceRef" :user-id="currentUserId"/>
-                        </el-tab-pane>
-                        <el-tab-pane label="主机分组" name="groupInfo">
-                            <GroupInfo ref="groupRef" :user-id="currentUserId"/>
-                        </el-tab-pane>
-                    </el-tabs>
+                        <el-tabs v-model="activeTab">
+                            <el-tab-pane label="主机信息" name="instanceInfo">
+                                <InstanceInfo ref="instanceRef" :user-id="currentUserId"/>
+                            </el-tab-pane>
+                            <el-tab-pane label="主机分组" name="groupInfo">
+                                <GroupInfo ref="groupRef" :user-id="currentUserId"/>
+                            </el-tab-pane>
+                        </el-tabs>
                    </el-card>
                 </div>
             </el-col>
@@ -46,8 +46,6 @@ const groupRef = ref();
 
 // 处理用户切换
 const handleUserChange = (userId: number) => {
-    console.log('用户切换1:', instanceRef.value);
-    console.log('用户切换2:', groupRef.value);
     currentUserId.value = userId;
     // 刷新主机信息和分组信息
     if (instanceRef.value) {

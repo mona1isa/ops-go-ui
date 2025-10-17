@@ -1,5 +1,8 @@
 <template>
   <div class="instance-list">
+    <div class="auth-header">
+      <el-button link type="primary" size="mini" @click="onAuthInstance">主机授权</el-button>
+    </div>
     <div v-if="!currentUserId" class="empty-tip">
       <el-empty description="请选择用户查看主机信息" />
     </div>
@@ -27,17 +30,21 @@
       />
     </div>
     
+    <InstanceAuth ref="instanceAuthRef" />
   </div>
 </template>
 
 <script setup lang="ts" name="authInstances">
-import { ref, watch, reactive } from 'vue';
+import { ref, watch, reactive, defineAsyncComponent } from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { InstanceState } from '/@/types/views';
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
 
+const InstanceAuth = defineAsyncComponent(() => import('/@/views/auth/components/instanceAuth.vue'));
+
+const instanceAuthRef = ref();
 const state = reactive<InstanceState>({
   tableData: {
     data: [],
@@ -49,6 +56,11 @@ const state = reactive<InstanceState>({
     loading: false
   }
 });
+
+// 打开授权对话框
+const onAuthInstance = () => {
+  instanceAuthRef.value?.openDialog();
+};
 
 // 当前用户ID
 const currentUserId = ref<number | null>(null);
@@ -110,5 +122,10 @@ watch(currentUserId, () => {
 .instance-list {
   margin-top: 20px;
   overflow-y: auto;
+}
+.auth-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
 </style>
