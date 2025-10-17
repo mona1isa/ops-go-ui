@@ -1,8 +1,5 @@
 <template>
   <div class="instance-list">
-    <div class="auth-header">
-      <el-button link type="primary" size="mini" @click="onAuthInstance">主机授权</el-button>
-    </div>
     <div v-if="!currentUserId" class="empty-tip">
       <el-empty description="请选择用户查看主机信息" />
     </div>
@@ -14,6 +11,11 @@
           <template #default="scope">
             <el-tag type="success" v-if="scope.row.status === '1'">启用</el-tag>
             <el-tag type="info" v-else>禁用</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+              <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -29,8 +31,6 @@
         :total="state.tableData.total"
       />
     </div>
-    
-    <InstanceAuth ref="instanceAuthRef" />
   </div>
 </template>
 
@@ -38,13 +38,12 @@
 import { ref, watch, reactive, defineAsyncComponent } from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { InstanceState } from '/@/types/views';
+import { ElMessage } from 'element-plus';
+import { Promotion } from '@element-plus/icons-vue'
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
 
-const InstanceAuth = defineAsyncComponent(() => import('/@/views/auth/components/instanceAuth.vue'));
-
-const instanceAuthRef = ref();
 const state = reactive<InstanceState>({
   tableData: {
     data: [],
@@ -56,11 +55,6 @@ const state = reactive<InstanceState>({
     loading: false
   }
 });
-
-// 打开授权对话框
-const onAuthInstance = () => {
-  instanceAuthRef.value?.openDialog();
-};
 
 // 当前用户ID
 const currentUserId = ref<number | null>(null);
@@ -105,6 +99,21 @@ const handleCurrentChange = (val: number) => {
   getTableData();
 };
 
+// 解除授权
+const handleRemoveAuth = (row: any) => {
+  let data = {
+    userId: currentUserId.value,
+    instanceIds: [row.id],
+    authType: 1 // 解除主机授权
+  };
+  instanceAuthApi.deleteUserInstanceAuth(data).then(res => {
+    if (res && res.code === 200) {
+      ElMessage.success('解除授权成功');
+      getTableData();
+    }
+  });
+};
+
 defineExpose({
   loadUserInstance
 });
@@ -120,12 +129,6 @@ watch(currentUserId, () => {
 
 <style scoped lang="scss">
 .instance-list {
-  margin-top: 20px;
   overflow-y: auto;
-}
-.auth-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
 }
 </style>

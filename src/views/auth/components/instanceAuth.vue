@@ -1,11 +1,20 @@
 <template>
     <div class="instance-auth">
-        <el-dialog :title="state.dialog.title" v-model="state.dialog.isShow" width="state.dialog.width">
-            <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%" @selection-change="onSelectionChange">
+        <div v-if="!currentUserId" class="empty-tip">
+            <el-empty description="请选择用户进行主机授权" />
+        </div>
+        <div v-else>
+            <el-table :data="state.tableData.data" style="width: 100%" @selection-change="onSelectionChange">
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="id" label="ID"/>
                 <el-table-column prop="name" label="主机名"/>
+                <el-table-column prop="ip" label="IP地址"/>
                 <el-table-column prop="spec" label="规格"/>
+                <el-table-column label="操作">
+                    <template #default="scope">
+                        <el-button plain type="primary" size="small" @click="handleAuth(scope.row)" :icon="Connection">授权</el-button>
+                    </template>
+                </el-table-column>
             </el-table>
 
             <el-pagination
@@ -18,31 +27,22 @@
                 layout="total, sizes, prev, pager, next, jumper"
                 :total="state.tableData.total">
             </el-pagination>
-
-            <template #footer>
-                <el-button type="info" size="mini" @click="onClose">关闭</el-button>
-                <el-button type="primary" size="mini" @click="submitData">确定</el-button>
-            </template>
-        </el-dialog>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup name="instanceAuth">
-import { reactive, onMounted} from 'vue';
+import { reactive, onMounted, ref} from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
+import { Connection } from '@element-plus/icons-vue';
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
 
 const state = reactive({
-    dialog: {
-        title: '主机授权',
-        isShow: false
-    },
     tableData: {
         selection: [] as any[],
         data: [],
-        loading: false,
         total: 0,
         param: {
             pageNum: 1,
@@ -55,24 +55,28 @@ const onSelectionChange = (selection: any) => {
     state.tableData.selection = selection;
 };
 
-// 打开对话框
-const openDialog = () => {
-    state.dialog.isShow = true;
+const currentUserId = ref<number | null>(null);
+// 接收从父组件传递的用户ID
+const loadInstance = (userId: number) => {
+    currentUserId.value = userId;
     getTableData();
 };
 
 // 初始化表格数据
 const getTableData = async () => {
-    state.tableData.loading = true;
-    const res = await instanceAuthApi.availableInstances(state.tableData.param);
+    if (!currentUserId) {
+        return;
+    }
+    let data = {
+        ...state.tableData.param,
+        userId: currentUserId.value
+    };
+    const res = await instanceAuthApi.availableInstances(data);
     if (res && res.code == 200) {
         let data = res.data;
         state.tableData.data = data.instances;
         state.tableData.total = data.total;
-
-        console.log("获取实例数据成功", data);
     }
-    state.tableData.loading = false;
 };
 
 
@@ -87,12 +91,17 @@ const onHandleSizeChange = (val: number) => {
     getTableData();
 };
 
-const onClose = () => {
-    state.dialog.isShow = false;
-};
-
-const submitData = () => {
-
+// 主机授权
+const handleAuth = async (row: any) => {
+    let data = {
+        userId: currentUserId.value,
+        instanceIds: [row.id],
+        authType: 1 // 主机授权
+    };
+    const res = await instanceAuthApi.addUserInstanceAuth(data);
+    if (res && res.code === 200) {
+        getTableData();
+    }
 };
 
 onMounted(() => {
@@ -100,7 +109,7 @@ onMounted(() => {
 });
 
 defineExpose({
-    openDialog,
+    loadInstance,
 });
 </script>
 <style lang="scss" scoped>

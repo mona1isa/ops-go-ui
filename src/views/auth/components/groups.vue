@@ -6,7 +6,11 @@
     <div v-else>
       <el-table :data="state.tableData.data" style="width: 100%">
         <el-table-column prop="name" label="分组名称" />
-        <el-table-column prop="count" label="主机数量" />
+        <el-table-column prop="count" label="操作" >
+          <template #default="scope">
+            <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <el-pagination
         @size-change="handleSizeChange"
@@ -27,6 +31,8 @@
 import {  watch, ref, onMounted, reactive } from 'vue';
 import { GroupState } from '/@/types/views';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
+import { ElMessage } from 'element-plus';
+import { Promotion } from '@element-plus/icons-vue'
 
 // 定义接口
 const userInstanceAuthApi = useUserInstanceAuthApi();
@@ -54,6 +60,11 @@ const loadUserGroup = (userId: number) => {
 };
 
 const getTableData = async () => {
+  if (!currentUserId.value) {
+    state.tableData.data = [];
+    state.tableData.total = 0;
+    return;
+  }
  let data = {
     userId: currentUserId.value,
     pageNum: state.tableData.param.pageNum,
@@ -67,7 +78,7 @@ const getTableData = async () => {
 };
 
 onMounted(() => {
-
+  getTableData();
 });
 
 // 每页条数改变
@@ -81,6 +92,20 @@ const handleSizeChange = (val: number) => {
 const handleCurrentChange = (val: number) => {
   state.tableData.param.pageNum = val;
   getTableData();
+};
+
+// 解除分组授权
+const handleRemoveAuth = async (row: any) => {
+  let data = {
+    userId: currentUserId.value,
+    groupIds: [row.id],
+    authType: 2 // 解除分组授权
+  };
+  const res = await userInstanceAuthApi.deleteUserInstanceAuth(data);
+  if (res && res.code === 200) {
+    ElMessage.success('解除授权成功');
+    getTableData();
+  }
 };
 
 // 监听用户ID变化，刷新主机列表

@@ -9,10 +9,10 @@
                     {{ scope.row.type === 1 ? '密码' : '密钥' }}
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="180">
+            <el-table-column label="操作" width="280">
                 <template #default="scope">
-                    <el-button size="small" type="success" @click="onTestConnectivity(scope.row)">测试连通性</el-button>
-                    <el-button size="small" type="primary" @click="onBindKey(scope.row)">绑定</el-button>
+                    <el-button size="small" plain type="success" @click="onTestConnectivity(scope.row)" :icon="Link">测试连通性</el-button>
+                    <el-button size="small" plain type="primary" @click="onBindKey(scope.row)" :icon="Connection">绑定</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -25,6 +25,7 @@ import { ref, reactive, watch } from 'vue';
 import { useKeyApi } from '/@/api/keys';
 import { useInstanceApi } from '/@/api/instance';
 import { ElMessage } from 'element-plus';
+import { Connection, Link } from '@element-plus/icons-vue';
 
 const emit = defineEmits(['refresh']);
 
