@@ -4,7 +4,7 @@
             <el-empty description="请选择用户进行分组授权" />
         </div>
         <div v-else>
-            <el-table :data="state.tableData.data">
+            <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                 <el-table-column prop="name" label="名称"></el-table-column>
                 <el-table-column label="操作">
                     <template #default="scope">
@@ -40,6 +40,7 @@ const currentUserId = ref<number | null>(null);
 
 const state = reactive({
   tableData: {
+    loading: false,
     data: [],
     total: 0,
     param: {
@@ -56,38 +57,43 @@ const loadGroup = (userId: number) => {
 };
 
 const handleAuth = async (row: any) => {
-  let data = {
-    userId: currentUserId.value,
-    groupIds: [row.id],
-    authType: 2 // 分组授权
-  };
-  const res = await instanceAuthApi.addUserInstanceAuth(data);
-  if (res && res.code == 200) {
-    ElMessage.success('授权成功');
-    getTableData();
-  } else {
-    ElMessage.error('授权失败');
-  }
+    if (!currentUserId) {
+        return;
+    }
+    state.tableData.loading = true;
+    let data = {
+        userId: currentUserId.value,
+        groupIds: [row.id],
+        authType: 2 // 分组授权
+    };
+    const res = await instanceAuthApi.addUserInstanceAuth(data);
+    if (res && res.code == 200) {
+        ElMessage.success('授权成功');
+        getTableData();
+    } else {
+        ElMessage.error('授权失败');
+    }
+    state.tableData.loading = false;
 };
 
 const getTableData = async () => {
     if (!currentUserId) {
         return;
     }
-  try {
-    let data = {
-        ...state.tableData.param,
-        userId: currentUserId.value
-    };
-    const res  = await instanceAuthApi.availableGroups(data);
-    if (res && res.code == 200) {
-        let data = res.data;
-        state.tableData.data = data.groups;
-        state.tableData.total = data.total;
+    try {
+        let data = {
+            ...state.tableData.param,
+            userId: currentUserId.value
+        };
+        const res  = await instanceAuthApi.availableGroups(data);
+        if (res && res.code == 200) {
+            let data = res.data;
+            state.tableData.data = data.groups;
+            state.tableData.total = data.total;
+        }
+    } catch (error) {
+        ElMessage.error('获取数据失败');
     }
-  } catch (error) {
-    ElMessage.error('获取数据失败');
-  }
 };
 
 const onHandleSizeChange = (pageSize: number) => {

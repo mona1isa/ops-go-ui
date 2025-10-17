@@ -4,7 +4,7 @@
             <el-empty description="请选择用户进行主机授权" />
         </div>
         <div v-else>
-            <el-table :data="state.tableData.data" style="width: 100%" @selection-change="onSelectionChange">
+            <el-table :data="state.tableData.data" style="width: 100%" v-loading="state.tableData.loading" @selection-change="onSelectionChange">
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="id" label="ID"/>
                 <el-table-column prop="name" label="主机名"/>
@@ -35,12 +35,14 @@
 import { reactive, onMounted, ref} from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { Connection } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
 
 const state = reactive({
     tableData: {
+        loading: false,
         selection: [] as any[],
         data: [],
         total: 0,
@@ -93,15 +95,23 @@ const onHandleSizeChange = (val: number) => {
 
 // 主机授权
 const handleAuth = async (row: any) => {
+    if (!currentUserId) {
+        return;
+    }
+    state.tableData.loading = true;
     let data = {
         userId: currentUserId.value,
         instanceIds: [row.id],
         authType: 1 // 主机授权
     };
     const res = await instanceAuthApi.addUserInstanceAuth(data);
-    if (res && res.code === 200) {
+    if (res && res.code == 200) {
+        ElMessage.success('授权成功');
         getTableData();
+    } else {
+        ElMessage.error('授权失败');
     }
+    state.tableData.loading = false;
 };
 
 onMounted(() => {

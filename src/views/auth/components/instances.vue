@@ -101,17 +101,21 @@ const handleCurrentChange = (val: number) => {
 
 // 解除授权
 const handleRemoveAuth = (row: any) => {
-  let data = {
-    userId: currentUserId.value,
-    instanceIds: [row.id],
-    authType: 1 // 解除主机授权
-  };
-  instanceAuthApi.deleteUserInstanceAuth(data).then(res => {
-    if (res && res.code === 200) {
-      ElMessage.success('解除授权成功');
-      getTableData();
-    }
-  });
+    let data = {
+      userId: currentUserId.value,
+      instanceIds: [row.id],
+      authType: 1 // 解除主机授权
+    };
+    state.tableData.loading = true;
+    instanceAuthApi.deleteUserInstanceAuth(data).then(res => {
+      if (res && res.code === 200) {
+        ElMessage.success('解除授权成功');
+        getTableData();
+      } else {
+        ElMessage.error('解除授权失败');
+      }
+    });
+    state.tableData.loading = false;
 };
 
 defineExpose({

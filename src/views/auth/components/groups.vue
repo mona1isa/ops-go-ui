@@ -96,17 +96,28 @@ const handleCurrentChange = (val: number) => {
 
 // 解除分组授权
 const handleRemoveAuth = async (row: any) => {
-  let data = {
-    userId: currentUserId.value,
-    groupIds: [row.id],
-    authType: 2 // 解除分组授权
-  };
-  const res = await userInstanceAuthApi.deleteUserInstanceAuth(data);
-  if (res && res.code === 200) {
-    ElMessage.success('解除授权成功');
-    getTableData();
-  }
+    if (!currentUserId.value) {
+      return;
+    }
+    state.tableData.loading = true;
+    let data = {
+        userId: currentUserId.value,
+        groupIds: [row.id],
+        authType: 2 // 解除分组授权
+    };
+    const res = await userInstanceAuthApi.deleteUserInstanceAuth(data);
+    if (res && res.code === 200) {
+        ElMessage.success('解除授权成功');
+        getTableData();
+    } else {
+        ElMessage.error('解除授权失败');
+    }
+    state.tableData.loading = false;
 };
+
+
+
+// 监听用户ID变化，刷新主机列表
 
 // 监听用户ID变化，刷新主机列表
 watch(currentUserId, () => {
