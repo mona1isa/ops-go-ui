@@ -7,6 +7,7 @@
       <el-table :data="state.tableData.data" style="width: 100%">
         <el-table-column prop="name" label="主机名" />
         <el-table-column prop="ip" label="IP地址" />
+        <el-table-column prop="spec" label="规格" />
         <el-table-column prop="status" label="状态" >
           <template #default="scope">
             <el-tag type="success" v-if="scope.row.status === '1'">启用</el-tag>
