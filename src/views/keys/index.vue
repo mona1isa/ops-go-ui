@@ -12,13 +12,13 @@
                     <el-option label="启用" value="1"></el-option>
                     <el-option label="禁用" value="0"></el-option>
                 </el-select>
-                <el-button size="default" type="primary" class="ml10" @click="getTableData()">
+                <el-button size="default" plain type="primary" class="ml10" @click="getTableData()">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddKey('add')" >
+				<el-button size="default" plain type="success" class="ml10" @click="onOpenAddKey('add')" >
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>

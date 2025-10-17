@@ -4,14 +4,14 @@
             <div class="app-search mb15">
                 <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>
                 
-                <el-button size="default" type="primary" class="ml10" @click="getTableData()">
+                <el-button size="default" plain type="primary" class="ml10" @click="getTableData()">
                     <el-icon>
                         <ele-Search />
                     </el-icon>
                     查询
                 </el-button>
                 
-                <el-button size="default" type="success" class="ml10" @click="onOpenAddInstance('add')">
+                <el-button size="default" plain type="success" class="ml10" @click="onOpenAddInstance('add')">
                     <el-icon>
                         <ele-FolderAdd />
                     </el-icon>

@@ -1,73 +1,117 @@
 <template>
-  <div class="group-auth">
-    <el-table
-      :data="state.tableData.data"
-      style="width: 100%"
-      v-loading="state.tableData.loading"
-      element-loading-text="拼命加载中..."
-      element-loading-spinner="el-icon-loading"
-      element-loading-background="rgba(0, 0, 0, 0.3)"
-    >
-      <el-table-column prop="name" label="分组名称" />
-      <el-table-column prop="count" label="主机数量" />
-    </el-table>
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      class="mt15"
-      v-model:current-page="state.tableData.param.pageNum"
-      :page-sizes="[10, 20, 30, 50]"
-      background
-      v-model:page-size="state.tableData.param.pageSize"
-      layout="total, sizes, prev, pager, next"
-      :total="state.tableData.total"
-    />
-    
-  </div>
+    <div class="group-auth-container">
+        <div v-if="!currentUserId" class="empty-tip">
+            <el-empty description="请选择用户进行分组授权" />
+        </div>
+        <div v-else>
+            <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
+                <el-table-column prop="name" label="名称"></el-table-column>
+                <el-table-column label="操作">
+                    <template #default="scope">
+                        <el-button plain type="primary" size="small" @click="handleAuth(scope.row)" :icon="Connection">授权</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <el-pagination
+                @size-change="onHandleSizeChange"
+                @current-change="onHandleCurrentChange"
+                class="mt15"
+                :current-page="state.tableData.param.pageNum"
+                :page-sizes="[10, 20, 30, 40]"
+                :page-size="state.tableData.param.pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="state.tableData.total" >
+            </el-pagination>
+        </div>
+    </div>
 </template>
 
-<script setup lang="ts" name="groupAuth">
-import { reactive, ref } from 'vue';
+<script setup lang="ts" name="authInstances">
+import { onMounted, reactive, ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
+import { Connection } from '@element-plus/icons-vue';
+
+// 定义接口
+const instanceAuthApi = useUserInstanceAuthApi();
+
+const currentUserId = ref<number | null>(null);
 
 const state = reactive({
   tableData: {
-    data: [],
     loading: false,
+    data: [],
     total: 0,
     param: {
       pageNum: 1,
-      pageSize: 10
-    }
-  }
+      pageSize: 10,
+    },
+  },
 });
 
-const handleSizeChange = (pageSize: number) => {
-  state.tableData.param.pageSize = pageSize;
-  fetchTableData();
+const loadGroup = (userId: number) => {
+  currentUserId.value = userId;
+  state.tableData.param.pageNum = 1;
+  getTableData();
 };
 
-const handleCurrentChange = (pageNum: number) => {
-  state.tableData.param.pageNum = pageNum;
-  fetchTableData();
-};
-
-const fetchTableData = async () => {
-  state.tableData.loading = true;
-  try {
-    // TODO: 实现获取分组数据的逻辑
-    // 例如：const response = await fetchGroupData(state.tableData.param);
-    // state.tableData.data = response.data;
-    // state.tableData.total = response.total;
-  } catch (error) {
-    console.error('获取分组数据失败', error);
-  } finally {
+const handleAuth = async (row: any) => {
+    if (!currentUserId) {
+        return;
+    }
+    state.tableData.loading = true;
+    let data = {
+        userId: currentUserId.value,
+        groupIds: [row.id],
+        authType: 2 // 分组授权
+    };
+    const res = await instanceAuthApi.addUserInstanceAuth(data);
+    if (res && res.code == 200) {
+        ElMessage.success('授权成功');
+        getTableData();
+    } else {
+        ElMessage.error('授权失败');
+    }
     state.tableData.loading = false;
-  }
 };
 
-fetchTableData();
+const getTableData = async () => {
+    if (!currentUserId) {
+        return;
+    }
+    try {
+        let data = {
+            ...state.tableData.param,
+            userId: currentUserId.value
+        };
+        const res  = await instanceAuthApi.availableGroups(data);
+        if (res && res.code == 200) {
+            let data = res.data;
+            state.tableData.data = data.groups;
+            state.tableData.total = data.total;
+        }
+    } catch (error) {
+        ElMessage.error('获取数据失败');
+    }
+};
 
+const onHandleSizeChange = (pageSize: number) => {
+  state.tableData.param.pageSize = pageSize;
+  getTableData();
+};
+
+const onHandleCurrentChange = (pageNum: number) => {
+  state.tableData.param.pageNum = pageNum;
+  getTableData();
+};
+
+onMounted(() => {
+  getTableData();
+});
+defineExpose({
+    loadGroup
+});
 </script>
-<style scoped lang="scss">  
 
-</style>
+<style scoped lang="scss"></style>

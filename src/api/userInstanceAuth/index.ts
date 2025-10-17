@@ -49,5 +49,21 @@ export function useUserInstanceAuthApi() {
                 data
             });
         },
+
+        availableInstances: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/available/instances',
+                method: 'POST',
+                data
+            });
+        },
+
+        availableGroups: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/available/groups',
+                method: 'POST',
+                data
+            });
+        },
     }
 }

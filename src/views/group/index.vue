@@ -27,8 +27,8 @@
               autofocus
             />
             <span class="tree-actions" v-if="data.id && editingId !== data.id">
-              <el-button link size="small" @click.stop="startEdit(data)" :icon="Edit" />
-              <el-button link size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
+              <el-button link type="success" size="small" @click.stop="startEdit(data)" :icon="Edit" />
+              <el-button link type="danger" size="small" @click.stop="deleteGroup(data)" :icon="Delete" />
             </span>
           </span>
         </template>
@@ -111,8 +111,8 @@
         style="margin-top: 10px;"
       />
       <template #footer>
-        <el-button @click="addHostDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="addHostsToGroup">确定</el-button>
+        <el-button plain @click="addHostDialogVisible = false">取消</el-button>
+        <el-button plain type="primary" @click="addHostsToGroup">确定</el-button>
       </template>
     </el-dialog>
   </div>

@@ -7,10 +7,16 @@
       <el-table :data="state.tableData.data" style="width: 100%">
         <el-table-column prop="name" label="主机名" />
         <el-table-column prop="ip" label="IP地址" />
+        <el-table-column prop="spec" label="规格" />
         <el-table-column prop="status" label="状态" >
           <template #default="scope">
             <el-tag type="success" v-if="scope.row.status === '1'">启用</el-tag>
             <el-tag type="info" v-else>禁用</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+              <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -26,14 +32,15 @@
         :total="state.tableData.total"
       />
     </div>
-    
   </div>
 </template>
 
 <script setup lang="ts" name="authInstances">
-import { ref, watch, reactive } from 'vue';
+import { ref, watch, reactive, defineAsyncComponent } from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { InstanceState } from '/@/types/views';
+import { ElMessage } from 'element-plus';
+import { Promotion } from '@element-plus/icons-vue'
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
@@ -93,6 +100,25 @@ const handleCurrentChange = (val: number) => {
   getTableData();
 };
 
+// 解除授权
+const handleRemoveAuth = (row: any) => {
+    let data = {
+      userId: currentUserId.value,
+      instanceIds: [row.id],
+      authType: 1 // 解除主机授权
+    };
+    state.tableData.loading = true;
+    instanceAuthApi.deleteUserInstanceAuth(data).then(res => {
+      if (res && res.code === 200) {
+        ElMessage.success('解除授权成功');
+        getTableData();
+      } else {
+        ElMessage.error('解除授权失败');
+      }
+    });
+    state.tableData.loading = false;
+};
+
 defineExpose({
   loadUserInstance
 });
@@ -108,7 +134,6 @@ watch(currentUserId, () => {
 
 <style scoped lang="scss">
 .instance-list {
-  margin-top: 20px;
   overflow-y: auto;
 }
 </style>
