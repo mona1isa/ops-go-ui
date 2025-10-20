@@ -78,7 +78,11 @@ const unbindSingle = async (key: any) => {
         userId: currentUserId.value,
         instanceId: currentInstanceId.value,
       }
-      userIsntanceAuthApi.userInstanceKeyAuthList(data);
+      userIsntanceAuthApi.userInstanceKeyAuthList(data).then(res => {
+        if (res && res.code === 200) {
+          bindingKeys.value = res.data;
+        }
+      });
     }
   } catch (error) {
     ElMessage.error('解绑失败');
