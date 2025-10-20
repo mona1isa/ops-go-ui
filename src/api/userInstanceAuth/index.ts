@@ -88,6 +88,13 @@ export function useUserInstanceAuthApi() {
                 method: 'POST',
                 data
             });
-        }
+        },
+        userInstanceKeyAuthList: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/instance/key/list',
+                method: 'POST',
+                data
+            });
+        },
     }   
 }

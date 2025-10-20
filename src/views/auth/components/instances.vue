@@ -44,7 +44,7 @@ import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { InstanceState } from '/@/types/views';
 import { ElMessage } from 'element-plus';
 import { Promotion, Connection } from '@element-plus/icons-vue'
-import { RowInstanceType, RowKeyType } from '/@/types/views';
+import { RowInstanceType } from '/@/types/views';
 
 // 引入绑定凭证对话框
 const KeyAuthDialog = defineAsyncComponent(() => import('/@/views/auth/components/keyAuth.vue'));
@@ -119,7 +119,7 @@ const onOpenKeyAuth = (row: RowInstanceType) => {
 };
 
 // 打开解绑凭证对话框
-const onOpenKeyAuthCancel = (row: RowKeyType) => {
+const onOpenKeyAuthCancel = (row: RowInstanceType) => {
     if (row.bindingKeys && row.bindingKeys.length > 0) {
         keyAuthCancelDialogRef.value.openDialog(row.id, currentUserId.value,  row.bindingKeys);
     }

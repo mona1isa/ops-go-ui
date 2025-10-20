@@ -12,7 +12,7 @@
       </el-table-column>
       <el-table-column label="操作" width="120">
         <template #default="scope">
-          <el-button type="primary" link size="small" @click="unbindSingle(scope.row)">取消</el-button>
+          <el-button type="primary" link size="small" @click="unbindSingle(scope.row)">取消授权</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -27,7 +27,6 @@
 import { ref, reactive} from 'vue';
 import { ElMessage } from 'element-plus';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
-import { table } from 'console';
 
 const emit = defineEmits(['refresh']);
 
@@ -77,10 +76,9 @@ const unbindSingle = async (key: any) => {
       // 刷新凭证列表
       let data = {
         userId: currentUserId.value,
-        pageNum: 1,
-        pageSize: 1000
+        instanceId: currentInstanceId.value,
       }
-      userIsntanceAuthApi.pageUserInstances(data);
+      userIsntanceAuthApi.userInstanceKeyAuthList(data);
     }
   } catch (error) {
     ElMessage.error('解绑失败');
