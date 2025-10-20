@@ -109,6 +109,7 @@ const onHandleCurrentChange = (pageNum: number) => {
 onMounted(() => {
   getTableData();
 });
+
 defineExpose({
     loadGroup
 });

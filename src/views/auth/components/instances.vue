@@ -8,15 +8,15 @@
         <el-table-column prop="name" label="主机名" />
         <el-table-column prop="ip" label="IP地址" />
         <el-table-column prop="spec" label="规格" />
-        <el-table-column prop="status" label="状态" >
+        <el-table-column prop="bindingKeys" label="登录凭证" >
           <template #default="scope">
-            <el-tag type="success" v-if="scope.row.status === '1'">启用</el-tag>
-            <el-tag type="info" v-else>禁用</el-tag>
+              <el-link v-if="scope.row.bindingKeys !==null && scope.row.bindingKeys.length > 0" type="primary" @click="onOpenKeyAuthCancel(scope.row)">{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
           </template>
         </el-table-column>
         <el-table-column label="操作">
           <template #default="scope">
               <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
+              <el-button plain type="primary" size="small" @click="onOpenKeyAuth(scope.row)" :icon="Connection">凭证授权</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -32,6 +32,9 @@
         :total="state.tableData.total"
       />
     </div>
+
+    <KeyAuthDialog ref="keyAuthDialogRef" @refresh="getTableData()"/>
+    <KeyAuthCancelDialog ref="keyAuthCancelDialogRef" @refresh="getTableData()"/>
   </div>
 </template>
 
@@ -40,7 +43,14 @@ import { ref, watch, reactive, defineAsyncComponent } from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { InstanceState } from '/@/types/views';
 import { ElMessage } from 'element-plus';
-import { Promotion } from '@element-plus/icons-vue'
+import { Promotion, Connection } from '@element-plus/icons-vue'
+import { RowInstanceType, RowKeyType } from '/@/types/views';
+
+// 引入绑定凭证对话框
+const KeyAuthDialog = defineAsyncComponent(() => import('/@/views/auth/components/keyAuth.vue'));
+
+// 引入解绑凭证对话框
+const KeyAuthCancelDialog = defineAsyncComponent(() => import('/@/views/auth/components/keyAuthCancel.vue'));
 
 // 定义接口
 const instanceAuthApi = useUserInstanceAuthApi();
@@ -56,6 +66,9 @@ const state = reactive<InstanceState>({
     loading: false
   }
 });
+
+const keyAuthDialogRef = ref();
+const keyAuthCancelDialogRef = ref();
 
 // 当前用户ID
 const currentUserId = ref<number | null>(null);
@@ -98,6 +111,26 @@ const handleSizeChange = (val: number) => {
 const handleCurrentChange = (val: number) => {
   state.tableData.param.pageNum = val;
   getTableData();
+};
+
+// 打开授权凭证对话框
+const onOpenKeyAuth = (row: RowInstanceType) => {
+    keyAuthDialogRef.value.openDialog(row.id, currentUserId.value);
+};
+
+// 打开解绑凭证对话框
+const onOpenKeyAuthCancel = (row: RowKeyType) => {
+    if (row.bindingKeys && row.bindingKeys.length > 0) {
+        keyAuthCancelDialogRef.value.openDialog(row.id, currentUserId.value,  row.bindingKeys);
+    }
+};
+
+// 获取绑定凭证
+const getbindingKeys = (bindingKeys: any) => {
+    if (!bindingKeys || bindingKeys.length === 0) return '未授权任何凭证';
+    return bindingKeys.map((item: any) => {
+        return `${item.name}`;
+    }).join('; ');
 };
 
 // 解除授权

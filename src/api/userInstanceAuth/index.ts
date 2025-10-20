@@ -65,5 +65,29 @@ export function useUserInstanceAuthApi() {
                 data
             });
         },
-    }
+
+        availableKeysForInstance: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/available/keys',
+                method: 'POST',
+                data
+            });
+        },
+
+        userInstanceKeyAuthAdd: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/instance/key/auth',
+                method: 'POST',
+                data
+            });
+        },
+
+        userInstanceKeyAuthDelete: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/instance/key/rm',
+                method: 'POST',
+                data
+            });
+        }
+    }   
 }
