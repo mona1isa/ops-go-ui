@@ -3,13 +3,13 @@
 		<el-card shadow="hover" class="layout-padding-auto">
 			<div class="system-dept-search mb15">
 				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入部门名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:dept:list']">
+				<el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:dept:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddDept('add')" v-auths="['sys:dept:add']">
+				<el-button plain size="default" type="success" class="ml10" @click="onOpenAddDept('add')" v-auths="['sys:dept:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>

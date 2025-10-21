@@ -74,7 +74,7 @@
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
 									<el-form-item>
-										<el-button type="primary" @click="handleUpdateInfo" v-waves>
+										<el-button plain type="primary" @click="handleUpdateInfo" v-waves>
 											<el-icon>
 												<ele-Position />
 											</el-icon>
@@ -104,7 +104,7 @@
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
 									<el-form-item>
-										<el-button type="primary" @click="handleUpdatePassword" v-waves>
+										<el-button plain type="primary" @click="handleUpdatePassword" v-waves>
 											<el-icon>
 												<ele-Position />
 											</el-icon>

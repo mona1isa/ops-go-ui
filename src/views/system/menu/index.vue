@@ -3,13 +3,13 @@
 		<el-card shadow="hover">
 			<div class="system-menu-search mb15">
 				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px" clearable> </el-input>
-				<el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:menu:list']">
+				<el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:menu:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">
+				<el-button plain size="default" type="success" class="ml10" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>

@@ -3,13 +3,13 @@
 		<div class="system-role-padding layout-padding-auto layout-padding-view">
 			<div class="system-user-search mb15">
 				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入角色名称" style="max-width: 180px" clearable> </el-input>
-				<el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['system:role:list']">
+				<el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['system:role:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddRole('add')" v-auths="['system:role:add']">
+				<el-button plain size="default" type="success" class="ml10" @click="onOpenAddRole('add')" v-auths="['system:role:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>

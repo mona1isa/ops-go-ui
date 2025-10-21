@@ -6,13 +6,13 @@
                 <el-input v-model="state.tableData.param.requestUri" size="default" placeholder="请输入请求地址" style="max-width: 180px" clearable> </el-input>
                 <el-input v-model="state.tableData.param.method" size="default" placeholder="请输入请求方法" style="max-width: 180px" clearable> </el-input>
                 <el-input v-model="state.tableData.param.statusCode" size="default" placeholder="请输入状态码" style="max-width: 180px" clearable> </el-input>
-                <el-button size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:log:page']">
+                <el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:log:page']">
                     <el-icon>
                         <ele-Search />
                     </el-icon>
                     查询
                 </el-button>
-                <el-button size="default" type="info" class="ml10" @click="resetInput()">
+                <el-button plain size="default" type="info" class="ml10" @click="resetInput()">
                     <el-icon>
                         <ele-Refresh />
                     </el-icon>
