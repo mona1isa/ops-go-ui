@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
+import { useInstanceApi } from '/@/api/instance';
 import { ElMessage } from 'element-plus';
 import { Connection, Link } from '@element-plus/icons-vue';
 
@@ -30,6 +31,7 @@ const emit = defineEmits(['refresh']);
 
 const dialogVisible = ref(false);
 const instanceAuthApi = useUserInstanceAuthApi();
+const instanceApi = useInstanceApi();
 
 // 监听关闭对话框，刷新实例列表
 watch(dialogVisible, (newVal) => {
