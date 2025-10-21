@@ -103,5 +103,41 @@ export function useUserInstanceAuthApi() {
                 data
             });
         },
+
+        groupAvailableKeys: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/group/available/keys',
+                method: 'POST',
+                data
+            });
+        },
+        groupAuthKey: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/group/auth/key',
+                method: 'POST',
+                data
+            });
+        },
+        groupAuthKeyCancel: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/group/auth/key/cancel',
+                method: 'POST',
+                data
+            });
+        },
+        groupAuthKeyCancelMulti: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/group/auth/key/cancel/multi',
+                method: 'POST',
+                data
+            });
+        },
+        groupAuthKeyList: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/group/auth/key/list',
+                method: 'POST',
+                data
+            });
+        },
     }   
 }

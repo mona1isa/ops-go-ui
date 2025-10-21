@@ -156,12 +156,6 @@ defineExpose({
   loadUserInstance
 });
 
-// 监听用户ID变化，刷新主机列表
-watch(currentUserId, () => {
-  state.tableData.param.pageNum = 1;
-  getTableData();
-});
-
 </script>
 
 

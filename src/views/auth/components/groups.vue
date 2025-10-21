@@ -6,9 +6,15 @@
     <div v-else>
       <el-table :data="state.tableData.data" style="width: 100%">
         <el-table-column prop="name" label="分组名称" />
+        <el-table-column prop="bindingKeys" label="登录凭证" >
+          <template #default="scope">
+              <el-link v-if="scope.row.bindingKeys !==null && scope.row.bindingKeys.length > 0" type="primary" @click="onOpenKeyAuthCancel(scope.row)">{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="count" label="操作" >
           <template #default="scope">
             <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
+            <el-button plain type="primary" size="small" @click="onOpenKeyAuth(scope.row)" :icon="Connection">凭证授权</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -24,18 +30,26 @@
         :total="state.tableData.total"
       />
     </div>
+    <GroupKeyAuthDialog ref="groupKeyAuthDialogRef" @refresh="getTableData()"/>
+    <GroupKeyAuthCancelDialog ref="groupKeyAuthCancelDialogRef" @refresh="getTableData()"/>
   </div>
 </template>
 
 <script setup lang="ts" name="authGroups">
-import {  watch, ref, onMounted, reactive } from 'vue';
+import {  watch, ref, onMounted, reactive, defineAsyncComponent } from 'vue';
 import { GroupState } from '/@/types/views';
 import { useUserInstanceAuthApi } from '/@/api/userInstanceAuth';
 import { ElMessage } from 'element-plus';
-import { Promotion } from '@element-plus/icons-vue'
+import { Promotion, Connection } from '@element-plus/icons-vue'
 
 // 定义接口
 const userInstanceAuthApi = useUserInstanceAuthApi();
+
+const GroupKeyAuthDialog = defineAsyncComponent(() => import('/@/views/auth/components/groupKeyAuth.vue'));
+const GroupKeyAuthCancelDialog = defineAsyncComponent(() => import('/@/views/auth/components/groupKeyAuthCancel.vue'));
+
+const groupKeyAuthDialogRef = ref();
+const groupKeyAuthCancelDialogRef = ref();
 
 const state = reactive<GroupState>({
   tableData: {
@@ -115,11 +129,26 @@ const handleRemoveAuth = async (row: any) => {
     state.tableData.loading = false;
 };
 
-// 监听用户ID变化，刷新主机列表
-watch(currentUserId, () => {
-  state.tableData.param.pageNum = 1;
-  getTableData();
-});
+// 打开凭证授权对话框
+const onOpenKeyAuth = (row: any) => {
+  // 触发父组件的方法打开凭证授权对话框
+  groupKeyAuthDialogRef.value.openDialog(row.id, currentUserId.value);
+};
+
+// 获取绑定凭证
+const getbindingKeys = (bindingKeys: any) => {
+    if (!bindingKeys || bindingKeys.length === 0) return '未授权任何凭证';
+    return bindingKeys.map((item: any) => {
+        return `${item.name}`;
+    }).join('; ');
+};
+
+// 打开解除授权对话框
+const onOpenKeyAuthCancel = (row: any) => {
+  if (row.bindingKeys && row.bindingKeys.length > 0) {
+    groupKeyAuthCancelDialogRef.value.openDialog(row.id, currentUserId.value, row.bindingKeys);
+  }
+};
 
 defineExpose({
   loadUserGroup
