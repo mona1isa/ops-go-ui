@@ -78,11 +78,10 @@ const unbindSingle = async (key: any) => {
         userId: currentUserId.value,
         instanceId: currentInstanceId.value,
       }
-      userIsntanceAuthApi.userInstanceKeyAuthList(data).then(res => {
-        if (res && res.code === 200) {
+      const res = await userIsntanceAuthApi.userInstanceKeyAuthList(data);
+      if (res && res.code === 200) {
           bindingKeys.value = res.data;
-        }
-      });
+      }
     }
   } catch (error) {
     ElMessage.error('解绑失败');
@@ -97,36 +96,25 @@ const handleSelectionChange = (selection: any[]) => {
 
 // 批量解绑
 const confirmUnbind = async () => {
-  try {
-    // 调用批量解绑接口
-    let data = {
-      instanceId: currentInstanceId.value,
-      keyIds: selectedKeys.value,
-    }
-    const res = await instanceApi.instanceUnbindingKey(data);
-    if (res && res.code === 200) {
-      emit('refresh');
-      ElMessage.success('解绑成功');
-      selectedKeys.value = [];
-    }
-    dialogVisible.value = false;
-  } catch (error) {
-    ElMessage.error('解绑失败');
-  }
-};
-
-// 查询主机详情，获取已绑定凭证
-const getInstanceDetail = async (instanceId: number) => {
-  try {
     tableData.loading = true;
-    const res = await instanceApi.getInstanceInfo(instanceId);
-    if (res && res.code === 200) {
-      bindingKeys.value = res.data.bindingKeys;
+    try {
+      // 调用批量解绑接口
+      let data = {
+        userId: currentUserId.value,
+        instanceId: currentInstanceId.value,
+        keyIds: selectedKeys.value,
+      }
+      const res = await userIsntanceAuthApi.userInstanceKeyAuthDeleteBatch(data);
+      if (res && res.code === 200) {
+        emit('refresh');
+        ElMessage.success('解绑成功');
+        selectedKeys.value = [];
+      }
+      dialogVisible.value = false;
+    } catch (error) {
+      ElMessage.error('解绑失败');
     }
-  } catch (error) {
-    ElMessage.error('获取主机详情失败');
-  }
-  tableData.loading = false;
+    tableData.loading = false;
 };
 
 // 向外暴露方法

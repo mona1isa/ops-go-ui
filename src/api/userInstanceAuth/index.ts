@@ -96,5 +96,12 @@ export function useUserInstanceAuthApi() {
                 data
             });
         },
+        userInstanceKeyAuthDeleteBatch: (data: object) => {
+            return request({
+                url: '/api/user/instance/auth/instance/key/rm/multi',
+                method: 'POST',
+                data
+            });
+        },
     }   
 }
