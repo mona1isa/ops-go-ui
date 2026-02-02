@@ -14,8 +14,8 @@
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-						<el-form-item label="内存大小(MB)" prop="memMb">
-							<el-input-number v-model="state.ruleForm.memMb" controls-position="right" class="w100" />
+						<el-form-item label="内存大小(GB)" prop="memGb">
+							<el-input-number v-model="state.ruleForm.memGb" controls-position="right" class="w100" />
 						</el-form-item>
 					</el-col>
 					<el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
@@ -98,7 +98,7 @@ const rules = reactive({
 		{ required: true, message: '请输入CPU数量', trigger: 'blur' },
 		{ type: 'number', min: 1, message: 'CPU数量不能小于1', trigger: 'blur' },
 	],
-	memMb: [
+	memGb: [
 		{ required: true, message: '请输入内存大小', trigger: 'blur' },
 		{ type: 'number', min: 1, message: '内存大小不能小于1', trigger: 'blur' },
 	],
@@ -121,7 +121,10 @@ const rules = reactive({
 
 const openDialog = (type: string, row: RowInstanceType) => {
 	if (type === 'edit') {
-	    state.ruleForm = row;
+	    state.ruleForm = {
+	        ...row,
+	        memGb: row.memMb ? Math.round(row.memMb / 1024) : 1
+	    };
 		state.dialog.title = "编辑实例";
 	} else {
 		state.ruleForm = {...initState};
@@ -147,7 +150,7 @@ const initKeyList = async (osType?: string) => {
 const initState = {
 	name: '',
 	cpu: 1,
-	memMb: 1024,
+	memGb: 1,
 	diskGb: 10,
 	status: '1',
 	bindingKeys: [] as number[],
@@ -175,12 +178,17 @@ const onCancel = () => {
 const onSubmit = async () => {
     try {
         await instanceDialogFormRef.value?.validate();
+        // 将GB转换为MB
+        const submitData = {
+            ...state.ruleForm,
+            memMb: state.ruleForm.memGb * 1024
+        };
         if (state.dialog.type === 'add') {
-            await instanceApi.addInstance(state.ruleForm);
+            await instanceApi.addInstance(submitData);
             ElMessage.success('添加成功');
         } else {
-            state.ruleForm.bindingKeys = [];
-            await instanceApi.updateInstance(state.ruleForm);
+            submitData.bindingKeys = [];
+            await instanceApi.updateInstance(submitData);
             ElMessage.success('修改成功');
         }
         state.dialog.visible = false;

@@ -32,7 +32,7 @@
                 <el-table-column prop="ip" label="主机IP" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="bindingKeys" label="登录凭证" show-overflow-tooltip>
                     <template #default="scope">
-                        <el-link v-if="scope.row.bindingKeys && scope.row.bindingKeys.length > 0" type="primary" >{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
+                        <span v-if="scope.row.bindingKeys && scope.row.bindingKeys.length > 0">{{ getbindingKeys(scope.row.bindingKeys) }}</span>
                     </template>
                 </el-table-column>
                 
