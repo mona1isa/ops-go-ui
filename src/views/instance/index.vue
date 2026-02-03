@@ -1,6 +1,7 @@
 <template>
     <div class="layout-padding">
-        <el-card shadow="hover" class="layout-padding-auto">
+        <div class="layout-padding-view layout-padding-auto">
+            <el-card shadow="hover">
             <div class="app-search mb15">
                 <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>
                 
@@ -22,7 +23,7 @@
                 <el-table-column prop="id" label="ID" width="60" />
                 <el-table-column prop="name" label="主机名称" show-overflow-tooltip>
                     <template #default="scope">
-                        <el-link type="primary" @click="onOpenSSHPage(scope.row)">{{ scope.row.name }}</el-link>
+                        <el-link type="primary" @click="onOpenSSH(scope.row)">{{ scope.row.name }}</el-link>
                     </template>
                 </el-table-column>
                 <el-table-column prop="spec" label="规格" show-overflow-tooltip></el-table-column>
@@ -85,6 +86,7 @@
         <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
         <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
         <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
+        </div>
     </div>
 </template>
 
@@ -96,6 +98,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
 import { ArrowDown } from '@element-plus/icons-vue';
 import { useKeyApi } from '/@/api/keys';
+import { Session } from '/@/utils/storage';
 
 // 引入组件
 const InstanceDialog = defineAsyncComponent(() => import('/@/views/instance/dialog.vue'));
@@ -215,15 +218,6 @@ const onOpenSSH = (row: RowInstanceType) => {
     terminalDialogRef.value.openDialog(row.id);
 };
 
-// 打开 SSH 终端页面
-const onOpenSSHPage = (row: RowInstanceType) => {
-    // 获取 token 并通过 URL 参数传递
-    const { Session } = require('/@/utils/storage');
-    const token = Session.get('token') || '';
-    // 在新标签页中打开终端
-    window.open(`/terminal/${row.id}?token=${encodeURIComponent(token)}`, '_blank');
-};
-
 // SSH 终端关闭回调
 const handleTerminalClose = () => {
     // 可以在这里处理终端关闭后的逻辑
@@ -250,5 +244,20 @@ const onRowDel = (row: RowInstanceType) => {
 </script>
 
 <style scoped lang="scss">
+.layout-padding-view {
+	overflow-y: auto;
+}
 
+:deep(.el-card) {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+:deep(.el-card__body) {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
 </style>

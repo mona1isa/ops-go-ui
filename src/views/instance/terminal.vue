@@ -12,30 +12,54 @@
             <el-dialog
                 v-model="state.showKeySelector"
                 title="选择登录凭证"
-                width="500px"
+                width="600px"
                 :close-on-click-modal="false"
+                class="key-selector-dialog"
             >
-                <el-radio-group v-model="state.selectedKeyId">
-                    <el-space direction="vertical" :size="10" style="width: 100%">
-                        <el-radio
-                            v-for="key in state.availableKeys"
-                            :key="key.id"
-                            :label="key.id"
-                            style="width: 100%"
-                        >
-                            <div class="key-item">
-                                <div class="key-name">{{ key.name }}</div>
-                                <div class="key-info" v-if="key.user">用户名: {{ key.user }}</div>
-                                <div class="key-info">协议: {{ key.protocol }}</div>
-                                <div class="key-info">类型: {{ key.type === 1 ? '密码' : '密钥' }}</div>
-                                <div class="key-info">端口: {{ key.port || 22 }}</div>
+                <div class="key-list">
+                    <div
+                        v-for="key in state.availableKeys"
+                        :key="key.id"
+                        class="key-card"
+                        :class="{ active: state.selectedKeyId === key.id }"
+                        @click="state.selectedKeyId = key.id"
+                    >
+                        <div class="key-header">
+                            <div class="key-icon">
+                                <el-icon size="24">
+                                    <component :is="key.type === 1 ? 'ele-Lock' : 'ele-Unlock'" />
+                                </el-icon>
                             </div>
-                        </el-radio>
-                    </el-space>
-                </el-radio-group>
+                            <div class="key-title">{{ key.name }}</div>
+                            <div class="key-radio">
+                                <el-radio :model-value="state.selectedKeyId" :value="key.id" />
+                            </div>
+                        </div>
+                        <div class="key-details">
+                            <div class="detail-item">
+                                <span class="detail-label">用户名</span>
+                                <span class="detail-value">{{ key.user || '-' }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">协议</span>
+                                <span class="detail-value">{{ key.protocol || 'SSH' }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">认证方式</span>
+                                <el-tag :type="key.type === 1 ? 'warning' : 'success'" size="small">
+                                    {{ key.type === 1 ? '密码' : '密钥' }}
+                                </el-tag>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">端口</span>
+                                <span class="detail-value">{{ key.port || 22 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <template #footer>
-                    <el-button @click="state.showKeySelector = false">取消</el-button>
-                    <el-button type="primary" @click="connectSSH" :loading="state.connecting">
+                    <el-button size="large" @click="state.showKeySelector = false">取消</el-button>
+                    <el-button type="primary" size="large" @click="connectSSH" :loading="state.connecting">
                         连接
                     </el-button>
                 </template>
@@ -103,7 +127,6 @@ const openDialog = async (instanceId: number) => {
         await nextTick();
         // 直接建立 WebSocket 连接
         const wsUrl = getWebSocketUrl(instanceId);
-        console.log("连接URL: ", wsUrl)
         await initTerminal(wsUrl);
     } catch (error: any) {
         state.status = `连接失败: ${error.message || '未知错误'}`;
@@ -306,7 +329,6 @@ const handleClose = () => {
             state.terminal.dispose();
         } catch (e) {
             // 已经销毁过
-            console.log('终端已销毁，忽略错误:', e);
         }
         state.terminal = null;
     }
@@ -360,35 +382,147 @@ defineExpose({
     z-index: 100;
 }
 
-.key-item {
-    width: 100%;
-
-    .key-name {
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .key-info {
-        font-size: 12px;
-        color: #909399;
-        margin-top: 4px;
+// 凭证选择对话框样式
+:deep(.key-selector-dialog) {
+    .el-dialog__body {
+        padding: 20px;
     }
 }
 
-:deep(.el-radio) {
+.key-list {
+    max-height: 400px;
+    overflow-y: auto;
     display: flex;
-    align-items: flex-start;
-    padding: 8px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.key-card {
+    border: 2px solid #e4e7ed;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #ffffff;
 
     &:hover {
         border-color: #409eff;
+        background: #f0f9ff;
+        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+        transform: translateY(-2px);
     }
 
-    .el-radio__label {
+    &.active {
+        border-color: #409eff;
+        background: #ecf5ff;
+        box-shadow: 0 2px 12px rgba(64, 158, 255, 0.25);
+    }
+
+    .key-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 12px;
+    }
+
+    .key-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+
+        .el-icon {
+            font-size: 24px;
+            color: #909399;
+        }
+    }
+
+    &.active .key-icon .el-icon {
+        color: #409eff;
+    }
+
+    .key-title {
         flex: 1;
+        font-size: 16px;
+        font-weight: 600;
+        color: #303133;
+        line-height: 1.4;
+    }
+
+    .key-radio {
+        flex-shrink: 0;
+
+        :deep(.el-radio) {
+            .el-radio__input {
+                width: 20px;
+                height: 20px;
+            }
+
+            .el-radio__inner {
+                width: 20px;
+                height: 20px;
+
+                &::after {
+                    width: 8px;
+                    height: 8px;
+                }
+            }
+        }
+    }
+
+    .key-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        background: #f5f7fa;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: #e6e9ef;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #909399;
+            white-space: nowrap;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            color: #303133;
+            font-weight: 500;
+        }
+    }
+}
+
+// 滚动条美化
+:deep(.key-list)::-webkit-scrollbar {
+    width: 6px;
+}
+
+:deep(.key-list)::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+:deep(.key-list)::-webkit-scrollbar-thumb {
+    background: #c0c4cc;
+    border-radius: 3px;
+
+    &:hover {
+        background: #909399;
     }
 }
 </style>

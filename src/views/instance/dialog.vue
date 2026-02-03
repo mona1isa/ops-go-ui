@@ -143,7 +143,7 @@ const initKeyList = async (osType?: string) => {
 		const res = await keyApi.getAvailableKeysByOsType(data);
         state.keyData = res.data;
 	} catch (error) {
-		console.error("获取凭证列表失败:", error);
+		// 获取凭证列表失败
 	}
 };
 
@@ -194,7 +194,7 @@ const onSubmit = async () => {
         state.dialog.visible = false;
         emit('refresh');
     } catch (error) {
-        console.error('请填写完整信息');
+        // 请填写完整信息
     }
 };
 
