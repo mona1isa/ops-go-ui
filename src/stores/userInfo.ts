@@ -31,15 +31,24 @@ export const useUserInfo = defineStore('userInfo', {
 			if (Session.get('userInfo')) {
 				this.userInfos = Session.get('userInfo');
 			} else {
-				const userInfos = <UserInfos>await this.getOpsUserInfo();
-				this.userInfos = userInfos;
+				try {
+					const userInfos = <UserInfos>await this.getOpsUserInfo();
+					this.userInfos = userInfos;
+				} catch (error) {
+					console.error('获取用户信息失败:', error);
+					throw error;
+				}
 			}
 		},
 		
 		async getOpsUserInfo() {
 			// 真实接口请求用户信息
-			return new Promise((resolve) => {
-				userInfoApiInstance.getOpsUserInfo().then((res) => { 
+			return new Promise((resolve, reject) => {
+				userInfoApiInstance.getOpsUserInfo().then((res) => {
+					if (!res) {
+						reject(new Error('响应数据为空'));
+						return;
+					}
 					if (res && res.code === 200) {
 						const userInfos = {
 							id: res.data.id,
@@ -54,7 +63,11 @@ export const useUserInfo = defineStore('userInfo', {
 						};
 						Session.set('userInfo', userInfos);
 						resolve(userInfos);
+					} else {
+						reject(new Error(res.msg || '获取用户信息失败'));
 					}
+				}).catch((error) => {
+					reject(error);
 				});
 			});
 		},

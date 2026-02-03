@@ -36,6 +36,7 @@ service.interceptors.response.use(
 	(response) => {
 		// 对响应数据做点什么
 		const res = response.data;
+		console.log('API Response:', res); // 调试日志
 		if (!res) {
 			ElMessage.error('响应数据格式异常');
 			return Promise.reject(new Error('Invalid API response format'));
@@ -56,6 +57,8 @@ service.interceptors.response.use(
 		}
 	},
 	(error) => {
+		console.error('API Error:', error); // 调试日志
+		console.error('Error Response:', error.response); // 调试日志
 		// 对响应错误做点什么
 		if (error.response?.status === 400) {
 			const msg = error.response.data?.msg || '请求参数错误';

@@ -13,7 +13,11 @@
             </div>
             <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                 <el-table-column prop="id" label="ID" width="60" />
-                <el-table-column prop="name" label="主机名称" show-overflow-tooltip />
+                <el-table-column prop="name" label="主机名称" show-overflow-tooltip>
+                    <template #default="scope">
+                        <el-link type="primary" @click="onOpenSSH(scope.row)">{{ scope.row.name }}</el-link>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="cpu" label="CPU" >
                     <template #default="scope">
                         {{ scope.row.cpu }}核
@@ -35,7 +39,20 @@
                         <span v-if="scope.row.bindingKeys && scope.row.bindingKeys.length > 0">{{ getbindingKeys(scope.row.bindingKeys) }}</span>
                     </template>
                 </el-table-column>
-                
+                <el-table-column label="操作" width="100">
+                    <template #default="scope">
+                        <el-dropdown>
+                            <el-button size="small" text type="primary">
+                                操作<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                            </el-button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="onOpenSSH(scope.row)">SSH 连接</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </template>
+                </el-table-column>
             </el-table>
 
             <el-pagination
@@ -52,17 +69,22 @@
 			>
 			</el-pagination>
         </el-card>
+        <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
 import { useMyInstanceApi } from '/@/api/myinstance'
 import { InstanceState } from '/@/types/views';
+import { ArrowDown } from '@element-plus/icons-vue';
 
+// 引入 SSH 终端对话框
+const TerminalDialog = defineAsyncComponent(() => import('/@/views/instance/terminal.vue'));
 
 // 定义接口
 const myInstanceApi = useMyInstanceApi();
+const terminalDialogRef = ref();
 
 const state = reactive<InstanceState>({
     tableData: {
@@ -102,7 +124,6 @@ const onHandleCurrentChange = (pageNum: number) => {
 
 // 获取内存信息
 const getMemory = (memory: number) => {
-    console.log('memory', memory);
     if (memory === null || memory === undefined) {
         return '';
     }
@@ -136,7 +157,15 @@ const getbindingKeys = (bindingKeys: any) => {
     }).join('; ');
 };
 
+// 打开 SSH 终端
+const onOpenSSH = (row: any) => {
+    terminalDialogRef.value.openDialog(row.id);
+};
 
+// SSH 终端关闭回调
+const handleTerminalClose = () => {
+    // 可以在这里处理终端关闭后的逻辑
+};
 
 // 打开页面时
 onMounted(() => {

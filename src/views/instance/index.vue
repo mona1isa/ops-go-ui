@@ -22,7 +22,7 @@
                 <el-table-column prop="id" label="ID" width="60" />
                 <el-table-column prop="name" label="主机名称" show-overflow-tooltip>
                     <template #default="scope">
-                        <el-link type="primary" @click="onOpenDetail(scope.row)">{{ scope.row.name }}</el-link>
+                        <el-link type="primary" @click="onOpenSSHPage(scope.row)">{{ scope.row.name }}</el-link>
                     </template>
                 </el-table-column>
                 <el-table-column prop="spec" label="规格" show-overflow-tooltip></el-table-column>
@@ -54,6 +54,8 @@
                             </el-button>
                             <template #dropdown>
                                 <el-dropdown-menu>
+                                    <el-dropdown-item @click="onOpenSSH(scope.row)">SSH 连接</el-dropdown-item>
+                                    <el-dropdown-item @click="onOpenDetail(scope.row)">查看详情</el-dropdown-item>
                                     <el-dropdown-item @click="onOpenEditInstance('edit', scope.row)">修改</el-dropdown-item>
                                     <el-dropdown-item @click="onRowDel(scope.row)">删除</el-dropdown-item>
                                     <el-dropdown-item @click="onOpenBindKey(scope.row)">绑定凭证</el-dropdown-item>
@@ -82,6 +84,7 @@
         <DetailDrawer ref="detailDrawerRef" />
         <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
         <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
+        <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
     </div>
 </template>
 
@@ -106,6 +109,9 @@ const BindKeyDialog = defineAsyncComponent(() => import('/@/views/instance/bingk
 // 引入解绑凭证对话框
 const UnbindingKeyDialog = defineAsyncComponent(() => import('/@/views/instance/unbindingkey.vue'));
 
+// 引入 SSH 终端对话框
+const TerminalDialog = defineAsyncComponent(() => import('/@/views/instance/terminal.vue'));
+
 // 定义接口
 const instanceApi = useInstanceApi();
 
@@ -117,6 +123,7 @@ const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
 const unbindingKeyDialogRef = ref();
+const terminalDialogRef = ref();
 
 const state = reactive<InstanceState>({
 	tableData: {
@@ -201,6 +208,25 @@ const onOpenUnbindKey = (row: RowInstanceType) => {
     if (row.bindingKeys && row.bindingKeys.length > 0) {
         unbindingKeyDialogRef.value.openDialog(row.id, row.bindingKeys);
     }
+};
+
+// 打开 SSH 终端对话框（保留原有功能）
+const onOpenSSH = (row: RowInstanceType) => {
+    terminalDialogRef.value.openDialog(row.id);
+};
+
+// 打开 SSH 终端页面
+const onOpenSSHPage = (row: RowInstanceType) => {
+    // 获取 token 并通过 URL 参数传递
+    const { Session } = require('/@/utils/storage');
+    const token = Session.get('token') || '';
+    // 在新标签页中打开终端
+    window.open(`/terminal/${row.id}?token=${encodeURIComponent(token)}`, '_blank');
+};
+
+// SSH 终端关闭回调
+const handleTerminalClose = () => {
+    // 可以在这里处理终端关闭后的逻辑
 };
 
 // 删除操作

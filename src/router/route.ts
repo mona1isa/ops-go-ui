@@ -1095,6 +1095,18 @@ export const staticRoutes: Array<RouteRecordRaw> = [
 		},
 	},
 	/**
+	 * 独立终端页面（全屏显示，不包含 layout）
+	 */
+	{
+		path: '/terminal/:id?',
+		name: 'terminal',
+		component: () => import('/@/views/terminal/index.vue'),
+		meta: {
+			title: 'SSH 终端',
+			isHide: true,
+		},
+	},
+	/**
 	 * 提示：写在这里的为全屏界面，不建议写在这里
 	 * 请写在 `dynamicRoutes` 路由数组中
 	 */
