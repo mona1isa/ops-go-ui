@@ -31,9 +31,6 @@
                                 </el-icon>
                             </div>
                             <div class="key-title">{{ key.name }}</div>
-                            <div class="key-radio">
-                                <el-radio :model-value="state.selectedKeyId" :value="key.id" />
-                            </div>
                         </div>
                         <div class="key-details">
                             <div class="detail-item">
@@ -392,9 +389,9 @@ defineExpose({
 .key-list {
     max-height: 400px;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
 }
 
 .key-card {
@@ -404,18 +401,19 @@ defineExpose({
     cursor: pointer;
     transition: all 0.3s ease;
     background: #ffffff;
+    position: relative;
 
     &:hover {
         border-color: #409eff;
         background: #f0f9ff;
-        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+        box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
         transform: translateY(-2px);
     }
 
     &.active {
         border-color: #409eff;
         background: #ecf5ff;
-        box-shadow: 0 2px 12px rgba(64, 158, 255, 0.25);
+        box-shadow: 0 4px 16px rgba(64, 158, 255, 0.25);
     }
 
     .key-header {
@@ -426,52 +424,36 @@ defineExpose({
     }
 
     .key-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
         transition: all 0.3s ease;
+        background: #f5f7fa;
 
         .el-icon {
-            font-size: 24px;
+            font-size: 20px;
             color: #909399;
         }
     }
 
-    &.active .key-icon .el-icon {
-        color: #409eff;
+    &.active .key-icon {
+        background: #e6f7ff;
+
+        .el-icon {
+            color: #409eff;
+        }
     }
 
     .key-title {
         flex: 1;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         color: #303133;
         line-height: 1.4;
-    }
-
-    .key-radio {
-        flex-shrink: 0;
-
-        :deep(.el-radio) {
-            .el-radio__input {
-                width: 20px;
-                height: 20px;
-            }
-
-            .el-radio__inner {
-                width: 20px;
-                height: 20px;
-
-                &::after {
-                    width: 8px;
-                    height: 8px;
-                }
-            }
-        }
     }
 
     .key-details {
@@ -483,8 +465,8 @@ defineExpose({
     .detail-item {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
+        gap: 6px;
+        padding: 6px 10px;
         background: #f5f7fa;
         border-radius: 4px;
         transition: background 0.3s ease;
@@ -497,12 +479,14 @@ defineExpose({
             font-size: 12px;
             color: #909399;
             white-space: nowrap;
+            min-width: 50px;
         }
 
         .detail-value {
             font-size: 13px;
             color: #303133;
             font-weight: 500;
+            flex: 1;
         }
     }
 }
