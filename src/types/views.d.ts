@@ -433,7 +433,7 @@ declare interface KeyState {
 
 // Groups
 declare type RowGroupType <T = any> = {
-	id: number;	
+	id: number;
 	name: string;
 	parentId: number;
 };
@@ -443,4 +443,35 @@ declare interface GroupTableType extends TableType {
 
 declare interface GroupState {
 	tableData: GroupTableType;
+}
+
+// Terminal Record
+declare type RowRecordType = {
+	id: number;
+	instanceId: number;
+	instanceName: string;
+	instanceIp: string;
+	keyId: number;
+	username: string;
+	startTime: string;
+	endTime: string;
+	duration: number;
+	filePath: string;
+	fileSize: number;
+	createdAt: string;
+	createdBy: string;
+	remark: string;
+};
+
+declare type TerminalRecordFrame = {
+	time: number;
+	data: string;
+};
+
+declare interface RecordTableType extends TableType {
+	data: RowRecordType[];
+}
+
+declare interface RecordState {
+	tableData: RecordTableType;
 }
