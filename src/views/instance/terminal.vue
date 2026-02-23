@@ -242,6 +242,18 @@ const initTerminal = async (wsUrl: string) => {
                     state.terminal?.write(msg.data);
                     break;
 
+                case 'terminated':
+                    // 会话被管理员终止
+                    state.status = '会话已终止';
+                    state.statusType = 'danger';
+                    state.terminal?.writeln('\x1b[31m' + msg.data + '\x1b[0m');
+                    // 禁用终端输入，但不关闭 socket
+                    // 延迟关闭对话框
+                    setTimeout(() => {
+                        handleClose();
+                    }, 2000);
+                    break;
+
                 case 'error':
                     // 错误信息
                     state.status = '错误';

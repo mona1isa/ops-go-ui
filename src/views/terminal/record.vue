@@ -146,6 +146,16 @@
                                 <el-icon><ele-Download /></el-icon>
                                 下载
                             </el-button>
+                            <el-button
+                                v-if="record.status === 1"
+                                type="warning"
+                                size="small"
+                                text
+                                @click="handleTerminate(record)"
+                            >
+                                <el-icon><ele-Close /></el-icon>
+                                终止
+                            </el-button>
                             <el-button type="danger" size="small" text @click="handleDelete(record)">
                                 <el-icon><ele-Delete /></el-icon>
                                 删除
@@ -306,6 +316,48 @@ const handleDelete = (row: any) => {
             }
         } catch (error) {
             ElMessage.error('删除失败');
+        }
+    }).catch(() => {});
+};
+
+// 终止会话
+const handleTerminate = (row: any) => {
+    const duration = formatDuration(row.duration);
+    ElMessageBox.confirm(
+        `确定要终止会话吗？\n\n主机: ${row.instanceName}\nIP: ${row.instanceIp}\n用户: ${row.keyUser}\n时长: ${duration}`,
+        '终止会话',
+        {
+            confirmButtonText: '确定终止',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    ).then(async () => {
+        try {
+            ElMessage.info('正在终止会话...');
+            const res = await recordApi.terminateSession(row.sessionId);
+            if (res && res.code === 200) {
+                ElMessage.success('会话已终止');
+                handleQuery();
+                getStatistics();
+            } else {
+                // 显示具体的错误信息
+                const errorMsg = res?.message || res?.data?.message || '终止会话失败';
+                ElMessage.error(errorMsg);
+            }
+        } catch (error: any) {
+            // 处理错误响应
+            let errorMsg = '终止会话失败';
+            if (error.response) {
+                const data = error.response.data;
+                if (data && data.message) {
+                    errorMsg = data.message;
+                } else if (data && data.msg) {
+                    errorMsg = data.msg;
+                }
+            } else if (error.message) {
+                errorMsg = error.message;
+            }
+            ElMessage.error(errorMsg);
         }
     }).catch(() => {});
 };

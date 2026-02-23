@@ -50,7 +50,7 @@ service.interceptors.response.use(
 					.then(() => {})
 					.catch(() => {});
 			}
-			const msg = res.msg || 'Error' || `Business error with code: ${res.code}`;
+			const msg = res.msg || res.message || 'Error' || `Business error with code: ${res.code}`;
 			return Promise.reject(new Error(msg));
 		} else {
 			return res;
@@ -61,7 +61,11 @@ service.interceptors.response.use(
 		console.error('Error Response:', error.response); // 调试日志
 		// 对响应错误做点什么
 		if (error.response?.status === 400) {
-			const msg = error.response.data?.msg || '请求参数错误';
+			const msg = error.response.data?.msg || error.response.data?.message || '请求参数错误';
+			ElMessage.error(msg);
+		} else if (error.response?.status === 403) {
+			// 403 Forbidden 权限不足，不跳转登录页，只显示错误
+			const msg = error.response.data?.msg || error.response.data?.message || '权限不足';
 			ElMessage.error(msg);
 		} else if (error.message.indexOf('timeout') != -1) {
 			ElMessage.error('网络超时');
@@ -70,7 +74,7 @@ service.interceptors.response.use(
 		} else if (error.message.indexOf('Request failed with status code 401') != -1) {
 			Session.clear(); // 清除浏览器全部临时缓存
 			router.push('/login'); // 去登录页
-		} else if (error.response?.status === 500 || error.response?.data.code === 500) {
+		} else if (error.response?.status === 500 || error.response?.data?.code === 500) {
 			ElMessage.error(error.response?.data.msg || '服务器错误');
 		} else {
 			ElMessage.error(error.response?.statusText || '接口路径找不到');

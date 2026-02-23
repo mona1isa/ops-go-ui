@@ -72,5 +72,29 @@ export function useTerminalRecordApi() {
                 params: userId ? { userId } : {},
             });
         },
+
+        // 终止会话
+        terminateSession: (sessionId: string) => {
+            return request({
+                url: '/api/session-record/terminate/' + sessionId,
+                method: 'post',
+            });
+        },
+
+        // 获取活跃会话列表 (仅 Admin)
+        getActiveSessions: () => {
+            return request({
+                url: '/api/active-sessions',
+                method: 'get',
+            });
+        },
+
+        // 终止活跃会话 (仅 Admin)
+        terminateActiveSession: (sessionId: string) => {
+            return request({
+                url: '/api/active-sessions/terminate/' + sessionId,
+                method: 'post',
+            });
+        },
     };
 }
