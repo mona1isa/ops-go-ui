@@ -12,19 +12,40 @@ import request from '/@/utils/request';
  */
 export function useMenuApi() {
 	return {
-		getAdminMenu: (params?: object) => {
+		getRoutes: () => {
 			return request({
-				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json',
+				url: '/api/menu/getRoutes',
 				method: 'get',
-				params,
 			});
 		},
-		getTestMenu: (params?: object) => {
+		getMenuList: (data: object) => {
 			return request({
-				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json',
-				method: 'get',
-				params,
+				url: '/api/menu/list',
+				method: 'post',
+				data,
 			});
 		},
+
+		addMenu: (data: object) => {
+			return request({
+				url: '/api/menu/add',
+				method: 'post',
+				data,
+			});
+		},
+		editMenu: (data: object) => {
+			return request({
+				url: '/api/menu/edit',
+				method: 'post',
+				data,
+			});
+		},
+
+		delMenu: (id: string | number) => {
+			return request({
+				url: '/api/menu/' + id,
+				method: 'delete',
+			});
+		}
 	};
 }

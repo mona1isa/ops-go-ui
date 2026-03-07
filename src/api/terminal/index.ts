@@ -1,0 +1,1 @@
+export { useTerminalRecordApi } from './record';

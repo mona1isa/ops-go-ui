@@ -21,6 +21,8 @@ export function authDirective(app: App) {
 		mounted(el, binding) {
 			let flag = false;
 			const stores = useUserInfo();
+			// 跳过admin 用户权限验证
+			if(stores.userInfos.username === 'admin') return;
 			stores.userInfos.authBtnList.map((val: string) => {
 				binding.value.map((v: string) => {
 					if (val === v) flag = true;

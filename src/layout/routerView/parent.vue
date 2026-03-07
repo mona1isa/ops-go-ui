@@ -68,11 +68,25 @@ onBeforeMount(() => {
 		state.keepAliveNameList = keepAliveNames.value.filter((name: string) => route.name !== name);
 		state.refreshRouterViewKey = '';
 		state.iframeRefreshKey = '';
-		nextTick(() => {
-			state.refreshRouterViewKey = fullPath;
-			state.iframeRefreshKey = fullPath;
-			state.keepAliveNameList = keepAliveNames.value;
-		});
+	});
+
+	// 监听关闭 tagsView 事件
+	mittBus.on('onCurrentContextmenuClick', (data: any) => {
+		if (data.contextMenuClickId === 1 || data.contextMenuClickId === 3) {
+			setTimeout(() => {
+				const tagsViewList = Session.get('tagsViewList') || [];
+				console.log('tagsViewList:', tagsViewList);
+				if (tagsViewList.length === 0) {
+					router.push('/');
+				}
+			}, 100);
+			
+		}
+	});
+	nextTick(() => {
+		state.refreshRouterViewKey = route.fullPath;
+		state.iframeRefreshKey = route.fullPath;
+		state.keepAliveNameList = keepAliveNames.value;
 	});
 });
 // 页面加载时

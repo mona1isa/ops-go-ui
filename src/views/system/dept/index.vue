@@ -2,14 +2,14 @@
 	<div class="system-dept-container layout-padding">
 		<el-card shadow="hover" class="layout-padding-auto">
 			<div class="system-dept-search mb15">
-				<el-input size="default" placeholder="请输入部门名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10">
+				<el-input v-model="state.tableData.param.name" size="default" placeholder="请输入部门名称" style="max-width: 180px"> </el-input>
+				<el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:dept:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddDept('add')">
+				<el-button plain size="default" type="success" class="ml10" @click="onOpenAddDept('add')" v-auths="['sys:dept:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>
@@ -24,25 +24,21 @@
 				default-expand-all
 				:tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
 			>
-				<el-table-column prop="deptName" label="部门名称" show-overflow-tooltip> </el-table-column>
-				<el-table-column label="排序" show-overflow-tooltip width="80">
-					<template #default="scope">
-						{{ scope.$index }}
-					</template>
-				</el-table-column>
+				<el-table-column prop="name" label="部门名称" show-overflow-tooltip> </el-table-column>
 				<el-table-column prop="status" label="部门状态" show-overflow-tooltip>
 					<template #default="scope">
-						<el-tag type="success" v-if="scope.row.status">启用</el-tag>
-						<el-tag type="info" v-else>禁用</el-tag>
+						<el-switch v-model="scope.row.status" inline-prompt active-text="启" inactive-text="禁" @click="onStatusChange(scope.row)"></el-switch>
 					</template>
 				</el-table-column>
-				<el-table-column prop="describe" label="部门描述" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="createTime" label="创建时间" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="remark" label="部门描述" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="createdAt" label="创建时间" show-overflow-tooltip>
+					<template #default="scope">{{ dayjs(scope.row.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</template>
+				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
-						<el-button size="small" text type="primary" @click="onOpenAddDept('add')">新增</el-button>
-						<el-button size="small" text type="primary" @click="onOpenEditDept('edit', scope.row)">修改</el-button>
-						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)">删除</el-button>
+						<el-button size="small" text type="primary" @click="onOpenAddDept('add')" v-auths="['sys:dept:add']">新增</el-button>
+						<el-button size="small" text type="primary" @click="onOpenEditDept('edit', scope.row)" v-auths="['sys:dept:edit']">修改</el-button>
+						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)" v-auths="['sys:dept:rm']">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -54,6 +50,12 @@
 <script setup lang="ts" name="systemDept">
 import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
+import { dayjs } from 'element-plus';
+import { useDeptApi } from '/@/api/dept';
+import { SysDeptState, DeptTreeType } from '/@/types/views';
+
+// 部门接口
+const deptApi = useDeptApi(); 
 
 // 引入组件
 const DeptDialog = defineAsyncComponent(() => import('/@/views/system/dept/dialog.vue'));
@@ -75,34 +77,10 @@ const state = reactive<SysDeptState>({
 // 初始化表格数据
 const getTableData = () => {
 	state.tableData.loading = true;
-	state.tableData.data = [];
-	state.tableData.data.push({
-		deptName: 'vueNextAdmin',
-		createTime: new Date().toLocaleString(),
-		status: true,
-		sort: Math.random(),
-		describe: '顶级部门',
-		id: Math.random(),
-		children: [
-			{
-				deptName: 'IT外包服务',
-				createTime: new Date().toLocaleString(),
-				status: true,
-				sort: Math.random(),
-				describe: '总部',
-				id: Math.random(),
-			},
-			{
-				deptName: '资本控股',
-				createTime: new Date().toLocaleString(),
-				status: true,
-				sort: Math.random(),
-				describe: '分部',
-				id: Math.random(),
-			},
-		],
+	deptApi.getDeptTree().then((res) => {
+		state.tableData.data = res.data;
 	});
-	state.tableData.total = state.tableData.data.length;
+
 	setTimeout(() => {
 		state.tableData.loading = false;
 	}, 500);
@@ -117,16 +95,47 @@ const onOpenEditDept = (type: string, row: DeptTreeType) => {
 };
 // 删除当前行
 const onTabelRowDel = (row: DeptTreeType) => {
-	ElMessageBox.confirm(`此操作将永久删除部门：${row.deptName}, 是否继续?`, '提示', {
+	ElMessageBox.confirm(`此操作将永久删除部门：${row.name}, 是否继续?`, '提示', {
 		confirmButtonText: '删除',
 		cancelButtonText: '取消',
 		type: 'warning',
 	})
 		.then(() => {
-			getTableData();
-			ElMessage.success('删除成功');
+			deptApi.delDept(row.id).then((res) => {
+				// 删除成功后
+				if (res && res.code === 200) {
+					getTableData();
+					ElMessage.success('删除成功');
+				} else {
+					getTableData();
+					ElMessage.error(res.msg);
+				}
+			});
+			
 		})
 		.catch(() => {});
+};
+
+const onStatusChange = (row: DeptTreeType) => {
+	const newStatus = row.status ? 1 : 0; // 将布尔值转换为数字
+	const data = {
+		id: row.id,
+		status: row.status,
+	};
+	deptApi.updateDeptStatus(data).then((res) => {
+		if (res && res.code === 200) {
+			getTableData
+			ElMessage.success('状态更新成功');
+		} else {
+			// 如果更新失败，恢复原状态
+			row.status = !row.status;
+			ElMessage.error(res.msg);
+		}
+	}).catch(() => {
+		// 如果请求失败，恢复原状态
+		row.status = !row.status;
+		ElMessage.error('网络错误，状态更新失败');
+	});
 };
 // 页面加载时
 onMounted(() => {

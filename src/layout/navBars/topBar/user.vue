@@ -64,8 +64,9 @@
 		</div>
 		<el-dropdown :show-timeout="70" :hide-timeout="50" @command="onHandleCommandClick">
 			<span class="layout-navbars-breadcrumb-user-link">
-				<img :src="userInfos.photo" class="layout-navbars-breadcrumb-user-link-photo mr5" />
-				{{ userInfos.userName === '' ? 'common' : userInfos.userName }}
+				<!-- <img :src="userInfos.avatar" class="layout-navbars-breadcrumb-user-link-photo mr5" /> -->
+				<img :src="userInfos.avatar || defaultAvatar" class="layout-navbars-breadcrumb-user-link-photo mr5" />
+				{{ userInfos.username === '' ? 'common' : userInfos.username }}
 				<el-icon class="el-icon--right">
 					<ele-ArrowDown />
 				</el-icon>
@@ -73,10 +74,7 @@
 			<template #dropdown>
 				<el-dropdown-menu>
 					<el-dropdown-item command="/home">{{ $t('message.user.dropdown1') }}</el-dropdown-item>
-					<el-dropdown-item command="wareHouse">{{ $t('message.user.dropdown6') }}</el-dropdown-item>
 					<el-dropdown-item command="/personal">{{ $t('message.user.dropdown2') }}</el-dropdown-item>
-					<el-dropdown-item command="/404">{{ $t('message.user.dropdown3') }}</el-dropdown-item>
-					<el-dropdown-item command="/401">{{ $t('message.user.dropdown4') }}</el-dropdown-item>
 					<el-dropdown-item divided command="logOut">{{ $t('message.user.dropdown5') }}</el-dropdown-item>
 				</el-dropdown-menu>
 			</template>
@@ -97,6 +95,8 @@ import { useThemeConfig } from '/@/stores/themeConfig';
 import other from '/@/utils/other';
 import mittBus from '/@/utils/mitt';
 import { Session, Local } from '/@/utils/storage';
+import { useLoginApi } from '/@/api/login';
+import defaultAvatar from '/@/assets/default.png';
 
 // 引入组件
 const UserNews = defineAsyncComponent(() => import('/@/layout/navBars/topBar/userNews.vue'));
@@ -117,6 +117,7 @@ const state = reactive({
 	disabledI18n: 'zh-cn',
 	disabledSize: 'large',
 });
+const loginApi = useLoginApi();
 
 // 设置分割样式
 const layoutUserFlexNum = computed(() => {
@@ -175,10 +176,17 @@ const onHandleCommandClick = (path: string) => {
 			},
 		})
 			.then(async () => {
-				// 清除缓存/token等
-				Session.clear();
-				// 使用 reload 时，不需要调用 resetRoute() 重置路由
-				window.location.reload();
+				try {
+					await loginApi.signOut();
+					// 清除缓存/token等
+					Session.clear();
+					// 使用 reload 时，不需要调用 resetRoute() 重置路由
+					window.location.reload();
+				} catch(error) {
+					ElMessage.error('退出登录失败');
+					Session.clear();
+					router.push('/login')
+				}
 			})
 			.catch(() => {});
 	} else if (path === 'wareHouse') {

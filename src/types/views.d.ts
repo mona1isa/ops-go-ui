@@ -1,3 +1,5 @@
+import { de } from "element-plus/es/locale";
+
 /**
  * views personal
  */
@@ -14,15 +16,17 @@ type Recommend = {
 	iconColor: string;
 };
 declare type PersonalState = {
-	newsInfoList: NewInfo[];
-	recommendList: Recommend[];
 	personalForm: {
-		name: string;
+		id: number;
+		nickname: string;
 		email: string;
-		autograph: string;
-		occupation: string;
 		phone: string;
 		sex: string;
+	};
+	passwordForm: {
+		oldPassword: string;
+		newPassword: string;
+		confirmPassword: string;
 	};
 };
 
@@ -54,17 +58,43 @@ declare type ParamsState = {
 	tagsViewNameIsI18n: boolean;
 };
 
+declare type RowLogType = {
+	id: number;
+	method: string;
+	requestUri: string;
+	params: string;
+	resp: string;
+	ipAddr: string;
+	statusCode: string;
+	costTimeMs: number;
+	createAt: string;
+	updatedAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+};
+
+
+declare interface SysLogTableType extends TableType {
+	data: RowLogType[];
+}
+
+declare interface SysLogState {
+	tableData: SysLogTableType;
+}
+
 /**
  * views system
  */
 // role
 declare interface RowRoleType {
-	roleName: string;
-	roleSign: string;
-	describe: string;
-	sort: number;
-	status: boolean;
-	createTime: string;
+	id: number;
+	name: string;
+	status: string;
+	remark: string;
+	orderNum: number;
+	createdAt: string;
+	menuIds: number[];
 }
 
 interface SysRoleTableType extends TableType {
@@ -81,20 +111,26 @@ declare type TreeType = {
 	children?: TreeType[];
 };
 
+declare interface RoleAuthUserState {
+	tableData: SysUserTableType;
+}
+
 // user
 declare type RowUserType<T = any> = {
+	id: number;
 	userName: string;
-	userNickname: string;
-	roleSign: string;
-	department: string[];
+	nickname: string;
+	roleName: string;
+	roleIds: number[];
+	deptId: number;
 	phone: string;
 	email: string;
-	sex: string;
+	sex: number | string;
 	password: string;
-	overdueTime: T;
-	status: boolean;
-	describe: string;
-	createTime: T;
+	status: string;
+	remark: string;
+	createAt: T;
+	deptIds: number[];
 };
 
 interface SysUserTableType extends TableType {
@@ -106,21 +142,23 @@ declare interface SysUserState {
 }
 
 declare type DeptTreeType = {
-	deptName: string;
-	createTime: string;
+	id: number; // 部门ID
+	name: string;
+	parentId: number; // 父部门ID
+	orderNum: number;
+	createAt: string;
 	status: boolean;
-	sort: number;
-	describe: string;
-	id: number | string;
+	remark: string;
 	children?: DeptTreeType[];
 };
 
 // dept
 declare interface RowDeptType extends DeptTreeType {
-	deptLevel: string[];
-	person: string;
-	phone: string;
-	email: string;
+	ids: number[], // 部门ID
+	name: '', // 部门名称
+	orderNum: 0, // 排序
+	status: true, // 部门状态
+	remark: '', // 部门描述
 }
 
 interface SysDeptTableType extends TableType {
@@ -328,3 +366,112 @@ declare type TableDemoState = {
 		printName: string;
 	};
 };
+
+// instance
+declare type RowInstanceType <T = any> = {
+	id: number;
+	name: string;
+	deptId: number;
+	deptName: string;
+	cpu: number;
+	memMb: number;
+	diskGb: number;
+	spec: string;
+	status: string;
+	os: string;
+	ip: string;
+	createAt: string;
+	updateAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	bindingKeys: T[];
+};
+
+declare type InstanceStatusItem = {
+	id: number;
+	status: string;
+};
+
+declare interface InstanceTableType extends TableType {
+	data: RowInstanceType[];
+};
+
+declare interface InstanceState {
+	tableData: InstanceTableType;
+};
+
+// keys
+declare type RowKeyType <T = any> = {
+	id: number;
+	name: string;
+	user: string;
+	credentials: string;
+	protocol: string;
+	port: number;
+	type: number;
+	status: string;
+	createdAt: string;
+	updatedAt: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+};
+
+declare type KeyStatusItem = {
+	id: number;
+	status: string;
+};
+
+declare interface KeyTableType extends TableType {
+	data: RowKeyType[];
+};
+
+declare interface KeyState {
+	tableData: KeyTableType;
+};
+
+// Groups
+declare type RowGroupType <T = any> = {
+	id: number;
+	name: string;
+	parentId: number;
+};
+declare interface GroupTableType extends TableType {
+	data: RowGroupType[];
+}
+
+declare interface GroupState {
+	tableData: GroupTableType;
+}
+
+// Terminal Record
+declare type RowRecordType = {
+	id: number;
+	instanceId: number;
+	instanceName: string;
+	instanceIp: string;
+	keyId: number;
+	username: string;
+	startTime: string;
+	endTime: string;
+	duration: number;
+	filePath: string;
+	fileSize: number;
+	createdAt: string;
+	createdBy: string;
+	remark: string;
+};
+
+declare type TerminalRecordFrame = {
+	time: number;
+	data: string;
+};
+
+declare interface RecordTableType extends TableType {
+	data: RowRecordType[];
+}
+
+declare interface RecordState {
+	tableData: RecordTableType;
+}

@@ -2,14 +2,14 @@
 	<div class="system-menu-container layout-pd">
 		<el-card shadow="hover">
 			<div class="system-menu-search mb15">
-				<el-input size="default" placeholder="请输入菜单名称" style="max-width: 180px"> </el-input>
-				<el-button size="default" type="primary" class="ml10">
+				<el-input v-model="state.tableData.name" size="default" placeholder="请输入菜单名称" style="max-width: 180px" clearable> </el-input>
+				<el-button plain size="default" type="primary" class="ml10" @click="getTableData()" v-auths="['sys:menu:list']">
 					<el-icon>
 						<ele-Search />
 					</el-icon>
 					查询
 				</el-button>
-				<el-button size="default" type="success" class="ml10" @click="onOpenAddMenu">
+				<el-button plain size="default" type="success" class="ml10" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">
 					<el-icon>
 						<ele-FolderAdd />
 					</el-icon>
@@ -37,24 +37,34 @@
 				</el-table-column>
 				<el-table-column label="权限标识" show-overflow-tooltip>
 					<template #default="scope">
-						<span>{{ scope.row.meta.roles }}</span>
+						<span>{{ scope.row.perms }}</span>
 					</template>
 				</el-table-column>
 				<el-table-column label="排序" show-overflow-tooltip width="80">
 					<template #default="scope">
-						{{ scope.$index }}
+						{{ scope.row.orderNum}}
 					</template>
 				</el-table-column>
 				<el-table-column label="类型" show-overflow-tooltip width="80">
 					<template #default="scope">
-						<el-tag type="success" size="small">{{ scope.row.xx }}菜单</el-tag>
+						<el-tag type="success" size="small">{{ getTypeText(scope.row.type) }}</el-tag>
+					</template>
+				</el-table-column>
+				<el-table-column label="请求地址" width="250" show-overflow-tooltip>
+					<template #default="scope">
+						<span>{{ scope.row.requestUrl }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="请求方式" show-overflow-tooltip>
+					<template #default="scope">
+						<span>{{ scope.row.requestMethod }}</span>
 					</template>
 				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
-						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')">新增</el-button>
-						<el-button size="small" text type="primary" @click="onOpenEditMenu('edit', scope.row)">修改</el-button>
-						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)">删除</el-button>
+						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">新增</el-button>
+						<el-button size="small" text type="primary" @click="onOpenEditMenu('edit', scope.row)" v-auths="['sys:menu:edit']">修改</el-button>
+						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)" v-auths="['sys:menu:rm']">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -69,10 +79,13 @@ import { RouteRecordRaw } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import { useRoutesList } from '/@/stores/routesList';
-// import { setBackEndControlRefreshRoutes } from "/@/router/backEnd";
+import { setBackEndControlRefreshRoutes } from "/@/router/backEnd";
+import { useMenuApi } from '/@/api/menu';
 
 // 引入组件
 const MenuDialog = defineAsyncComponent(() => import('/@/views/system/menu/dialog.vue'));
+
+const menuApi = useMenuApi();
 
 // 定义变量内容
 const stores = useRoutesList();
@@ -80,6 +93,7 @@ const { routesList } = storeToRefs(stores);
 const menuDialogRef = ref();
 const state = reactive({
 	tableData: {
+		name: '',
 		data: [] as RouteRecordRaw[],
 		loading: true,
 	},
@@ -88,30 +102,48 @@ const state = reactive({
 // 获取路由数据，真实请从接口获取
 const getTableData = () => {
 	state.tableData.loading = true;
-	state.tableData.data = routesList.value;
+	const data = {"name": state.tableData.name};
+	menuApi.getMenuList(data).then((res) => {
+		state.tableData.data = res.data;
+	});
 	setTimeout(() => {
 		state.tableData.loading = false;
 	}, 500);
 };
+
+// 获取菜单类型
+const getTypeText = (type: string) => {
+	switch (type) {
+		case 'C': return '目录';
+		case 'M': return '菜单';
+		case 'F': return '按钮';
+		default: return '未知';
+	}	
+};
+
 // 打开新增菜单弹窗
 const onOpenAddMenu = (type: string) => {
 	menuDialogRef.value.openDialog(type);
 };
 // 打开编辑菜单弹窗
-const onOpenEditMenu = (type: string, row: RouteRecordRaw) => {
+const onOpenEditMenu = (type: string, row: Object) => {
 	menuDialogRef.value.openDialog(type, row);
 };
 // 删除当前行
 const onTabelRowDel = (row: RouteRecordRaw) => {
-	ElMessageBox.confirm(`此操作将永久删除路由：${row.path}, 是否继续?`, '提示', {
+	ElMessageBox.confirm(`此操作将永久删除菜单：${String(row.name)}, 是否继续?`, '提示', {
 		confirmButtonText: '删除',
 		cancelButtonText: '取消',
 		type: 'warning',
 	})
 		.then(() => {
-			ElMessage.success('删除成功');
-			getTableData();
-			//await setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+			menuApi.delMenu(row.id).then(() => {
+				ElMessage.success('删除成功');
+				getTableData();
+				setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+			})
+
+			.catch(() => {});
 		})
 		.catch(() => {});
 };

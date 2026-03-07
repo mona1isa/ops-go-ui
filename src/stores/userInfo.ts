@@ -1,7 +1,11 @@
 import { defineStore } from 'pinia';
 import Cookies from 'js-cookie';
 import { Session } from '/@/utils/storage';
+import { userInfoApi } from '/@/api/login/index';
+import { id } from 'element-plus/es/locale';
+import { nextTick } from 'process';
 
+const userInfoApiInstance = userInfoApi();
 /**
  * 用户信息
  * @methods setUserInfos 设置用户信息
@@ -9,10 +13,15 @@ import { Session } from '/@/utils/storage';
 export const useUserInfo = defineStore('userInfo', {
 	state: (): UserInfosState => ({
 		userInfos: {
-			userName: '',
+			id: 0,
+			nickname: '',
+			username: '',
 			photo: '',
 			time: 0,
-			roles: [],
+			role: '',
+			ipAddr: '',
+			loginDate: '',
+			roleNames: '',
 			authBtnList: [],
 		},
 	}),
@@ -22,50 +31,44 @@ export const useUserInfo = defineStore('userInfo', {
 			if (Session.get('userInfo')) {
 				this.userInfos = Session.get('userInfo');
 			} else {
-				const userInfos = <UserInfos>await this.getApiUserInfo();
-				this.userInfos = userInfos;
+				try {
+					const userInfos = <UserInfos>await this.getOpsUserInfo();
+					this.userInfos = userInfos;
+				} catch (error) {
+					console.error('获取用户信息失败:', error);
+					throw error;
+				}
 			}
 		},
-		// 模拟接口数据
-		// https://gitee.com/lyt-top/vue-next-admin/issues/I5F1HP
-		async getApiUserInfo() {
-			return new Promise((resolve) => {
-				setTimeout(() => {
-					// 模拟数据，请求接口时，记得删除多余代码及对应依赖的引入
-					const userName = Cookies.get('userName');
-					// 模拟数据
-					let defaultRoles: Array<string> = [];
-					let defaultAuthBtnList: Array<string> = [];
-					// admin 页面权限标识，对应路由 meta.roles，用于控制路由的显示/隐藏
-					let adminRoles: Array<string> = ['admin'];
-					// admin 按钮权限标识
-					let adminAuthBtnList: Array<string> = ['btn.add', 'btn.del', 'btn.edit', 'btn.link'];
-					// test 页面权限标识，对应路由 meta.roles，用于控制路由的显示/隐藏
-					let testRoles: Array<string> = ['common'];
-					// test 按钮权限标识
-					let testAuthBtnList: Array<string> = ['btn.add', 'btn.link'];
-					// 不同用户模拟不同的用户权限
-					if (userName === 'admin') {
-						defaultRoles = adminRoles;
-						defaultAuthBtnList = adminAuthBtnList;
-					} else {
-						defaultRoles = testRoles;
-						defaultAuthBtnList = testAuthBtnList;
+		
+		async getOpsUserInfo() {
+			// 真实接口请求用户信息
+			return new Promise((resolve, reject) => {
+				userInfoApiInstance.getOpsUserInfo().then((res) => {
+					if (!res) {
+						reject(new Error('响应数据为空'));
+						return;
 					}
-					// 用户信息模拟数据
-					const userInfos = {
-						userName: userName,
-						photo:
-							userName === 'admin'
-								? 'https://img2.baidu.com/it/u=1978192862,2048448374&fm=253&fmt=auto&app=138&f=JPEG?w=504&h=500'
-								: 'https://img2.baidu.com/it/u=2370931438,70387529&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
-						time: new Date().getTime(),
-						roles: defaultRoles,
-						authBtnList: defaultAuthBtnList,
-					};
-					Session.set('userInfo', userInfos);
-					resolve(userInfos);
-				}, 0);
+					if (res && res.code === 200) {
+						const userInfos = {
+							id: res.data.id,
+							nickname: res.data.nickname,
+							username: res.data.username,
+							photo: res.data.avatar,
+							role: res.data.roleName,
+							ipAddr: res.data.ipAddr,
+							loginDate: res.data.loginDate,
+							roleNames: res.data.roleNames,
+							authBtnList: res.data.perms,
+						};
+						Session.set('userInfo', userInfos);
+						resolve(userInfos);
+					} else {
+						reject(new Error(res.msg || '获取用户信息失败'));
+					}
+				}).catch((error) => {
+					reject(error);
+				});
 			});
 		},
 	},

@@ -1,4 +1,19 @@
 import request from '/@/utils/request';
+import { Session } from '/@/utils/storage';
+
+/**
+ * 获取后端验证码
+ */
+export function useCaptchaApi() {
+	return { 
+		getCaptcha: ()=> {
+			return request({
+				url: '/api/captcha/generate',
+				method: 'get',
+			});
+		}
+	};
+}
 
 /**
  * （不建议写成 request.post(xxx)，因为这样 post 时，无法 params 与 data 同时传参）
@@ -9,18 +24,37 @@ import request from '/@/utils/request';
  */
 export function useLoginApi() {
 	return {
-		signIn: (data: object) => {
+		signIn: async (data: object) => {
+			try {
+				const res = await request({
+					url: '/api/user/login',
+					method: 'post',
+					data,
+				});
+				return res;
+			} catch (error) {
+				// 统一处理错误信息
+				if ((error as any)?.response?.data?.message) {
+					throw new Error((error as any).response.data.message);
+				}
+				throw new Error('登录失败，请重试');
+			}
+		},
+		signOut: () => {
 			return request({
-				url: '/user/signIn',
-				method: 'post',
-				data,
+				url: '/api/user/logout',
+				method: 'get',
 			});
 		},
-		signOut: (data: object) => {
+	};
+}
+
+export function userInfoApi() {
+	return {
+		getOpsUserInfo: () => {
 			return request({
-				url: '/user/signOut',
-				method: 'post',
-				data,
+				url: '/api/user/info',
+				method: 'get',
 			});
 		},
 	};
