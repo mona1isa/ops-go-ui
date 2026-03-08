@@ -26,15 +26,15 @@
 					</el-col>
 					<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
 						<el-form-item label="菜单权限">
-							<el-tree 
+							<el-tree
 							ref="menuTreeRef"
-							:data="state.menuData" 
-							:props="state.menuProps" 
-							show-checkbox 
-							check-strictly
-							class="menu-data-tree" 
-							node-key="id" 
-							:default-checked-keys="state.ruleForm.menuIds" />
+							:data="state.menuData"
+							:props="state.menuProps"
+							show-checkbox
+							class="menu-data-tree"
+							node-key="id"
+							:default-checked-keys="state.ruleForm.menuIds"
+							@check="handleMenuCheck" />
 						</el-form-item>
 					</el-col>
 				</el-row>
@@ -177,6 +177,79 @@ const getMenuData = () => {
 	});
 };
 
+// 处理菜单勾选事件，实现父子菜单联动
+const handleMenuCheck = (data: any, checked: any) => {
+	const menuTree = menuTreeRef.value;
+
+	// 如果勾选了父节点，勾选所有子节点
+	if (checked.checkedKeys.includes(data.id)) {
+		const allChildrenIds = getAllChildrenIds(state.menuData, data.id);
+		allChildrenIds.forEach((childId: number) => {
+			if (!checked.checkedKeys.includes(childId)) {
+				menuTree.setChecked(childId, true, false);
+			}
+		});
+	}
+
+	// 如果取消勾选了节点，检查是否需要取消勾选父节点
+	if (!checked.checkedKeys.includes(data.id)) {
+		uncheckParentNode(data.id);
+	}
+};
+
+// 获取指定节点的所有子节点ID
+const getAllChildrenIds = (menuList: any[], parentId: number): number[] => {
+	let ids: number[] = [];
+	menuList.forEach((menu) => {
+		if (menu.id === parentId) {
+			// 找到父节点，递归获取所有子节点
+			if (menu.children && menu.children.length > 0) {
+				menu.children.forEach((child: any) => {
+					ids.push(child.id);
+					ids = ids.concat(getAllChildrenIds([], child.id));
+				});
+			}
+		} else if (menu.children && menu.children.length > 0) {
+			// 递归查找
+			ids = ids.concat(getAllChildrenIds(menu.children, parentId));
+		}
+	});
+	return ids;
+};
+
+// 递归取消勾选父节点（如果父节点的所有子节点都未勾选）
+const uncheckParentNode = (nodeId: number) => {
+	const parentNode = findParentNode(state.menuData, nodeId);
+	if (parentNode) {
+		const menuTree = menuTreeRef.value;
+		const checkedKeys = menuTree.getCheckedKeys();
+		const hasCheckedChild = parentNode.children.some((child: any) => checkedKeys.includes(child.id));
+
+		// 如果父节点的所有子节点都未勾选，取消勾选父节点
+		if (!hasCheckedChild && checkedKeys.includes(parentNode.id)) {
+			menuTree.setChecked(parentNode.id, false, false);
+			// 递归向上检查
+			uncheckParentNode(parentNode.id);
+		}
+	}
+};
+
+// 查找指定节点的父节点
+const findParentNode = (menuList: any[], childId: number): any => {
+	for (const menu of menuList) {
+		if (menu.children && menu.children.length > 0) {
+			const child = menu.children.find((c: any) => c.id === childId);
+			if (child) {
+				return menu;
+			}
+			const found = findParentNode(menu.children, childId);
+			if (found) {
+				return found;
+			}
+		}
+	}
+	return null;
+};
 
 const extractIds = (nodes: RouteItem[]): number[] => {
 	const ids: number[] = [];
