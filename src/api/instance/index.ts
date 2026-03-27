@@ -72,6 +72,22 @@ export function useInstanceApi() {
                 method: 'post',
                 data,
             });
+        },
+        // 扫描网段内的主机
+        scanHosts: (data: object) => {
+            return request({
+                url: '/api/group/sync/scan',
+                method: 'post',
+                data,
+            });
+        },
+        // 保存扫描到的主机
+        saveScannedHosts: (data: object) => {
+            return request({
+                url: '/api/group/sync/save',
+                method: 'post',
+                data,
+            });
         }
     }
 }
