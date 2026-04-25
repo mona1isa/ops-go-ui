@@ -274,7 +274,7 @@ const onOpenUnbindKey = (row: RowInstanceType) => {
 
 // 打开 SSH 终端对话框（保留原有功能）
 const onOpenSSH = (row: RowInstanceType) => {
-    terminalDialogRef.value.openDialog(row.id);
+    terminalDialogRef.value?.openDialog(row.id);
 };
 
 // SSH 终端关闭回调
