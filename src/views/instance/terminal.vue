@@ -380,6 +380,9 @@ const initTerminal = async (wsUrl: string) => {
                 case 'data':
                     state.terminal?.write(msg.data);
                     break;
+                case 'blocked':
+                    state.terminal?.write(msg.data);
+                    break;
                 case 'terminated':
                     state.status = '会话已终止';
                     state.statusType = 'danger';
