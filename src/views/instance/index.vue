@@ -11,6 +11,12 @@
                     </el-icon>
                     查询
                 </el-button>
+                <el-button size="default" plain type="info" class="ml10" @click="resetTableData()">
+                    <el-icon>
+                        <ele-Refresh />
+                    </el-icon>
+                    重置
+                </el-button>
                 
                 <el-button size="default" plain type="success" class="ml10" @click="onOpenAddInstance('add')">
                     <el-icon>
@@ -95,7 +101,17 @@
         
         <!-- 同步主机对话框 -->
         <el-dialog v-model="syncHostDialogVisible" title="同步主机" width="500px">
-            <el-form>
+            <el-form label-width="80px">
+                <el-form-item label="目标分组">
+                    <el-cascader
+                        v-model="syncGroupId"
+                        :options="groupTreeList"
+                        :props="{ checkStrictly: true, value: 'id', label: 'name' }"
+                        placeholder="请选择目标分组"
+                        clearable
+                        style="width: 100%"
+                    />
+                </el-form-item>
                 <el-form-item label="IP网段">
                     <el-input v-model="ipRangeInput" placeholder="请输入IP网段，如：192.168.1.0/24 或 192.168.1.1-100" />
                 </el-form-item>
@@ -146,6 +162,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
 import { ArrowDown } from '@element-plus/icons-vue';
 import { useKeyApi } from '/@/api/keys';
+import { useGroupApi } from '/@/api/group';
 import { Session } from '/@/utils/storage';
 
 // 引入组件
@@ -169,6 +186,9 @@ const instanceApi = useInstanceApi();
 // 凭证接口
 const keyApi = useKeyApi();
 
+// 分组接口
+const groupApi = useGroupApi();
+
 // 定义变量
 const instanceDialogRef = ref();
 const detailDrawerRef = ref();
@@ -186,6 +206,8 @@ const scanResultPageNum = ref(1);
 const scanResultPageSize = ref(10);
 const scanResultTotal = ref(0);
 const selectedScanHosts = ref<any[]>([]);
+const syncGroupId = ref<any[]>([]);
+const groupTreeList = ref<any[]>([]);
 
 const state = reactive<InstanceState>({
 	tableData: {
@@ -198,6 +220,13 @@ const state = reactive<InstanceState>({
 		},
 	},
 });
+
+// 重置搜索条件
+const resetTableData = () => {
+    state.tableData.param.name = '';
+    state.tableData.param.pageNum = 1;
+    getTableData();
+};
 
 // 初始化表格数据
 const getTableData = async () => {
@@ -303,11 +332,25 @@ const onRowDel = (row: RowInstanceType) => {
 // 显示同步主机对话框
 const showSyncHostDialog = () => {
     ipRangeInput.value = '';
+    syncGroupId.value = [];
+    fetchGroupTree();
     syncHostDialogVisible.value = true;
+};
+
+// 获取分组树
+const fetchGroupTree = async () => {
+    const res = await groupApi.getGroupTree();
+    if (res && res.code === 200) {
+        groupTreeList.value = res.data || [];
+    }
 };
 
 // 开始扫描主机
 const startScanHosts = async () => {
+    if (!syncGroupId.value || syncGroupId.value.length === 0) {
+        ElMessage.warning('请选择目标分组');
+        return;
+    }
     if (!ipRangeInput.value) {
         ElMessage.warning('请输入IP网段');
         return;
@@ -354,7 +397,9 @@ const saveScanHosts = async () => {
         return;
     }
     try {
+        const groupId = syncGroupId.value[syncGroupId.value.length - 1];
         const res = await instanceApi.saveScannedHosts({
+            groupId: groupId,
             hosts: selectedScanHosts.value,
         });
         if (res && res.code === 200) {
