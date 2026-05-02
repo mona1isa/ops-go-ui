@@ -74,9 +74,6 @@ const route = useRoute();
 const router = useRouter();
 const instanceApi = useInstanceApi();
 
-// 获取 API 基础 URL
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
 // 获取 token
 const getToken = () => {
     const token = Session.get('token') || '';
@@ -86,9 +83,9 @@ const getToken = () => {
 // WebSocket 接口地址
 const getWebSocketUrl = (instanceId: number) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsBaseUrl = apiBaseUrl.replace(/^https?:/, protocol);
+    const host = window.location.host;
     const token = getToken();
-    return `${wsBaseUrl}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
+    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
 };
 
 interface TerminalTab {

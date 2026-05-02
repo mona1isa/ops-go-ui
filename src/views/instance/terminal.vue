@@ -223,9 +223,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 const emit = defineEmits(['close']);
 const sftpApi = useSftpApi();
 
-// 获取 API 基础 URL
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
 // 获取 token
 const getToken = () => {
     return Session.get('token') || '';
@@ -234,9 +231,9 @@ const getToken = () => {
 // WebSocket 接口地址
 const getWebSocketUrl = (instanceId: number) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsBaseUrl = apiBaseUrl.replace(/^https?:/, protocol);
     const token = getToken();
-    return `${wsBaseUrl}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
+    const host = window.location.host;
+    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
 };
 
 // SSH 终端状态
