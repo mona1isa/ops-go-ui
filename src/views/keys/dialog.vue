@@ -128,7 +128,7 @@ watch(() => state.ruleForm.protocol, (val) => {
 const keysDialogFormRef = ref();
 const openDialog = (type: string, row: RowKeyType) => {
 	if (type === 'edit') {
-	    state.ruleForm = row;
+	    state.ruleForm = {...row, credentials: ''};
 		state.dialog.title = "编辑凭证";
 	} else {
 		state.ruleForm = {...initState};

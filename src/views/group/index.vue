@@ -7,13 +7,17 @@
         <el-button link size="small" @click="showCreateDialog" :icon="Plus" />
       </div>
       <el-tree
+        ref="treeRef"
         :data="groupList"
         :props="treeProps"
         @node-click="handleNodeClick"
         @node-expand="handleNodeExpand"
         @node-collapse="handleNodeCollapse"
         highlight-current
-        default-expand-all
+        :current-node-key="currentGroupId"
+        :default-expanded-keys="defaultExpandedKeys"
+        node-key="id"
+        :expand-on-click-node="false"
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node">
@@ -122,7 +126,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useGroupApi } from '/@/api/group';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Delete, Edit, } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit } from '@element-plus/icons-vue'
 
 const groupApi = useGroupApi();
 
@@ -142,6 +146,8 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 const currentGroupId = ref('');
+const defaultExpandedKeys = ref<string[]>([]);
+const treeRef = ref<any>(null);
 
 // 创建分组对话框
 const createDialogVisible = ref(false);
@@ -163,7 +169,33 @@ const fetchGroupList = async () => {
   const res = await groupApi.getGroupTree();
   if (res && res.code === 200) {
     groupList.value = res.data;
+    // 查找 default 分组并默认选中
+    const defaultGroup = findDefaultGroup(res.data);
+    if (defaultGroup) {
+      currentGroupId.value = defaultGroup.id;
+      defaultExpandedKeys.value = [defaultGroup.id];
+      // 等待 DOM 更新后设置当前选中节点
+      setTimeout(() => {
+        treeRef.value?.setCurrentKey(defaultGroup.id);
+      }, 0);
+      // 加载 default 分组的主机列表
+      fetchHostList();
+    }
   }
+};
+
+// 递归查找 default 分组
+const findDefaultGroup = (groups: any[]): any | null => {
+  for (const group of groups) {
+    if (group.name === 'default') {
+      return group;
+    }
+    if (group.children && group.children.length > 0) {
+      const found = findDefaultGroup(group.children);
+      if (found) return found;
+    }
+  }
+  return null;
 };
 
 // 初始化主机列表
@@ -184,19 +216,16 @@ const fetchHostList = async () => {
 
 // 点击分组节点
 const handleNodeClick = (data: any, node: any) => {
-  if (!node.isLeaf) {
-    node.expanded = !node.expanded;
-  }
   currentGroupId.value = data.id;
   fetchHostList();
 };
 
-const handleNodeExpand = (data: any, node: any) => {
-  node.expanded = true;
+const handleNodeExpand = () => {
+  // 节点展开时触发，无需额外处理
 };
 
-const handleNodeCollapse = (data: any, node: any) => {
-  node.expanded = false;
+const handleNodeCollapse = () => {
+  // 节点折叠时触发，无需额外处理
 };
 
 // 显示创建分组对话框

@@ -11,12 +11,24 @@
                     </el-icon>
                     查询
                 </el-button>
+                <el-button size="default" plain type="info" class="ml10" @click="resetTableData()">
+                    <el-icon>
+                        <ele-Refresh />
+                    </el-icon>
+                    重置
+                </el-button>
                 
                 <el-button size="default" plain type="success" class="ml10" @click="onOpenAddInstance('add')">
                     <el-icon>
                         <ele-FolderAdd />
                     </el-icon>
                     新增主机
+                </el-button>
+                <el-button size="default" plain type="warning" class="ml10" @click="showSyncHostDialog">
+                    <el-icon>
+                        <ele-Refresh />
+                    </el-icon>
+                    同步主机
                 </el-button>
             </div>
             <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
@@ -86,6 +98,58 @@
         <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
         <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
         <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
+        
+        <!-- 同步主机对话框 -->
+        <el-dialog v-model="syncHostDialogVisible" title="同步主机" width="500px">
+            <el-form label-width="80px">
+                <el-form-item label="目标分组">
+                    <el-cascader
+                        v-model="syncGroupId"
+                        :options="groupTreeList"
+                        :props="{ checkStrictly: true, value: 'id', label: 'name' }"
+                        placeholder="请选择目标分组"
+                        clearable
+                        style="width: 100%"
+                    />
+                </el-form-item>
+                <el-form-item label="IP网段">
+                    <el-input v-model="ipRangeInput" placeholder="请输入IP网段，如：192.168.1.0/24 或 192.168.1.1-100" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="syncHostDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="startScanHosts" :loading="scanning">开始扫描</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 扫描结果对话框 -->
+        <el-dialog v-model="scanResultDialogVisible" title="扫描结果" width="800px">
+            <el-table :data="scanResultList" style="width: 100%" @selection-change="handleScanResultSelectionChange">
+                <el-table-column type="selection" width="55" />
+                <el-table-column type="index" label="序号" width="60" />
+                <el-table-column prop="ip" label="主机IP" />
+                <el-table-column prop="port" label="端口" width="80" />
+                <el-table-column prop="osType" label="系统类型" width="120">
+                    <template #default="scope">
+                        <el-tag :type="scope.row.osType === 'Linux' ? 'success' : 'primary'">{{ scope.row.osType }}</el-tag>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-pagination
+                @size-change="handleScanResultSizeChange"
+                @current-change="handleScanResultCurrentChange"
+                :current-page="scanResultPageNum"
+                :page-sizes="[10, 20, 30, 50]"
+                :page-size="scanResultPageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="scanResultTotal"
+                style="margin-top: 10px;"
+            />
+            <template #footer>
+                <el-button @click="scanResultDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="saveScanHosts" :disabled="selectedScanHosts.length === 0">确定保存</el-button>
+            </template>
+        </el-dialog>
         </div>
     </div>
 </template>
@@ -98,6 +162,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { dayjs } from 'element-plus';
 import { ArrowDown } from '@element-plus/icons-vue';
 import { useKeyApi } from '/@/api/keys';
+import { useGroupApi } from '/@/api/group';
 import { Session } from '/@/utils/storage';
 
 // 引入组件
@@ -121,12 +186,28 @@ const instanceApi = useInstanceApi();
 // 凭证接口
 const keyApi = useKeyApi();
 
+// 分组接口
+const groupApi = useGroupApi();
+
 // 定义变量
 const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
 const unbindingKeyDialogRef = ref();
 const terminalDialogRef = ref();
+
+// 同步主机相关变量
+const syncHostDialogVisible = ref(false);
+const ipRangeInput = ref('');
+const scanning = ref(false);
+const scanResultDialogVisible = ref(false);
+const scanResultList = ref<any[]>([]);
+const scanResultPageNum = ref(1);
+const scanResultPageSize = ref(10);
+const scanResultTotal = ref(0);
+const selectedScanHosts = ref<any[]>([]);
+const syncGroupId = ref<any[]>([]);
+const groupTreeList = ref<any[]>([]);
 
 const state = reactive<InstanceState>({
 	tableData: {
@@ -139,6 +220,13 @@ const state = reactive<InstanceState>({
 		},
 	},
 });
+
+// 重置搜索条件
+const resetTableData = () => {
+    state.tableData.param.name = '';
+    state.tableData.param.pageNum = 1;
+    getTableData();
+};
 
 // 初始化表格数据
 const getTableData = async () => {
@@ -215,7 +303,7 @@ const onOpenUnbindKey = (row: RowInstanceType) => {
 
 // 打开 SSH 终端对话框（保留原有功能）
 const onOpenSSH = (row: RowInstanceType) => {
-    terminalDialogRef.value.openDialog(row.id);
+    terminalDialogRef.value?.openDialog(row.id);
 };
 
 // SSH 终端关闭回调
@@ -239,6 +327,91 @@ const onRowDel = (row: RowInstanceType) => {
             });
         })
         .catch(() => {});
+};
+
+// 显示同步主机对话框
+const showSyncHostDialog = () => {
+    ipRangeInput.value = '';
+    syncGroupId.value = [];
+    fetchGroupTree();
+    syncHostDialogVisible.value = true;
+};
+
+// 获取分组树
+const fetchGroupTree = async () => {
+    const res = await groupApi.getGroupTree();
+    if (res && res.code === 200) {
+        groupTreeList.value = res.data || [];
+    }
+};
+
+// 开始扫描主机
+const startScanHosts = async () => {
+    if (!syncGroupId.value || syncGroupId.value.length === 0) {
+        ElMessage.warning('请选择目标分组');
+        return;
+    }
+    if (!ipRangeInput.value) {
+        ElMessage.warning('请输入IP网段');
+        return;
+    }
+    scanning.value = true;
+    try {
+        const res = await instanceApi.scanHosts({ ipRange: ipRangeInput.value });
+        if (res && res.code === 200) {
+            scanResultList.value = res.data.hosts || [];
+            scanResultTotal.value = scanResultList.value.length;
+            syncHostDialogVisible.value = false;
+            scanResultDialogVisible.value = true;
+            scanResultPageNum.value = 1;
+            ElMessage.success(`扫描完成，发现 ${scanResultList.value.length} 台主机`);
+        } else {
+            ElMessage.error(res?.msg || '扫描失败');
+        }
+    } catch (error) {
+        ElMessage.error('扫描请求失败');
+    } finally {
+        scanning.value = false;
+    }
+};
+
+// 扫描结果分页处理
+const handleScanResultSizeChange = (val: number) => {
+    scanResultPageSize.value = val;
+    scanResultPageNum.value = 1;
+};
+
+const handleScanResultCurrentChange = (val: number) => {
+    scanResultPageNum.value = val;
+};
+
+// 处理扫描结果选中
+const handleScanResultSelectionChange = (selection: any[]) => {
+    selectedScanHosts.value = selection;
+};
+
+// 保存扫描到的主机
+const saveScanHosts = async () => {
+    if (selectedScanHosts.value.length === 0) {
+        ElMessage.warning('请选择要保存的主机');
+        return;
+    }
+    try {
+        const groupId = syncGroupId.value[syncGroupId.value.length - 1];
+        const res = await instanceApi.saveScannedHosts({
+            groupId: groupId,
+            hosts: selectedScanHosts.value,
+        });
+        if (res && res.code === 200) {
+            ElMessage.success(`成功保存 ${selectedScanHosts.value.length} 台主机`);
+            scanResultDialogVisible.value = false;
+            getTableData();
+        } else {
+            ElMessage.error(res?.msg || '保存失败');
+        }
+    } catch (error) {
+        ElMessage.error('保存请求失败');
+    }
 };
 
 </script>

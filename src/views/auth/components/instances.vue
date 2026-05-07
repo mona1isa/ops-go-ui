@@ -13,10 +13,12 @@
               <el-link v-if="scope.row.bindingKeys !==null && scope.row.bindingKeys.length > 0" type="primary" @click="onOpenKeyAuthCancel(scope.row)">{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column label="操作" width="200">
           <template #default="scope">
+            <el-space>
               <el-button plain type="primary" size="small" @click="handleRemoveAuth(scope.row)" :icon="Promotion">解除</el-button>
               <el-button plain type="primary" size="small" @click="onOpenKeyAuth(scope.row)" :icon="Connection">凭证授权</el-button>
+            </el-space>
           </template>
         </el-table-column>
       </el-table>

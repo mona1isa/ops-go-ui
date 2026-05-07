@@ -10,6 +10,12 @@
                     </el-icon>
                     查询
                 </el-button>
+                <el-button size="default" plain type="info" class="ml10" @click="resetTableData()">
+                    <el-icon>
+                        <ele-Refresh />
+                    </el-icon>
+                    重置
+                </el-button>
             </div>
             <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                 <el-table-column prop="id" label="ID" width="60" />
@@ -98,6 +104,13 @@ const state = reactive<InstanceState>({
         }
     }
 });
+
+// 重置搜索条件
+const resetTableData = () => {
+    state.tableData.param.name = '';
+    state.tableData.param.pageNum = 1;
+    getTableData();
+};
 
 // 获取表格数据
 const getTableData = async () => {
