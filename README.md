@@ -481,7 +481,7 @@ npm install
 
 ## 👥 作者
 
-- **Zhany_v** - [GitHub](https://github.com/zhany)
+- **Zhany_v** - [GitHub](https://github.com/mona1isa)
 
 ---
 
@@ -500,7 +500,7 @@ npm install
 
 ## 📮 联系方式
 
-- **Issues**: [GitHub Issues](https://github.com/zhany/ops-go-ui/issues)
-- **Email**: your-email@example.com
+- **Issues**: [GitHub Issues](https://github.com/mona1isa/ops-go-ui/issues)
+- **Email**: zhangyu_neu[at]sina.com
 
 如果觉得项目不错，欢迎 Star 支持一下！
