@@ -229,11 +229,13 @@ const getToken = () => {
 };
 
 // WebSocket 接口地址
-const getWebSocketUrl = (instanceId: number) => {
+const getWebSocketUrl = (instanceId: number, terminal?: Terminal | null) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const token = getToken();
     const host = window.location.host;
-    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
+    const cols = terminal?.cols || 100;
+    const rows = terminal?.rows || 30;
+    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}&cols=${cols}&rows=${rows}`;
 };
 
 // SSH 终端状态
@@ -280,8 +282,7 @@ const openDialog = async (instanceId: number) => {
 
     try {
         await nextTick();
-        const wsUrl = getWebSocketUrl(instanceId);
-        await initTerminal(wsUrl);
+        await initTerminal(instanceId);
     } catch (error: any) {
         state.status = `连接失败: ${error.message || '未知错误'}`;
         state.statusType = 'danger';
@@ -301,6 +302,8 @@ const connectSSH = async () => {
         state.socket.send(JSON.stringify({
             type: 'connect',
             keyId: state.selectedKeyId,
+            cols: state.terminal?.cols || 100,
+            rows: state.terminal?.rows || 30,
         }));
     } catch (error: any) {
         state.status = `连接失败: ${error.message || '未知错误'}`;
@@ -314,7 +317,7 @@ const connectSSH = async () => {
 };
 
 // 初始化终端
-const initTerminal = async (wsUrl: string) => {
+const initTerminal = async (instanceId: number) => {
     await nextTick();
     const terminalElement = document.getElementById('terminal');
     if (!terminalElement) {
@@ -338,6 +341,7 @@ const initTerminal = async (wsUrl: string) => {
     state.terminal.open(terminalElement);
     state.fitAddon.fit();
 
+    const wsUrl = getWebSocketUrl(instanceId, state.terminal);
     state.socket = new WebSocket(wsUrl);
     state.socket.onopen = () => {
         state.status = '等待连接...';
@@ -369,6 +373,14 @@ const initTerminal = async (wsUrl: string) => {
                     state.showKeySelector = false;
                     state.loading = false;
                     state.terminal?.writeln('\x1b[32m' + msg.data + '\x1b[0m\r\n');
+                    // SSH 连接成功后，发送终端尺寸给后端
+                    if (state.socket && state.terminal) {
+                        state.socket.send(JSON.stringify({
+                            type: 'resize',
+                            cols: state.terminal.cols,
+                            rows: state.terminal.rows,
+                        }));
+                    }
                     // SSH 连接成功后，自动加载 SFTP home 目录
                     if (state.instanceId && state.selectedKeyId) {
                         loadSftpFileList('');

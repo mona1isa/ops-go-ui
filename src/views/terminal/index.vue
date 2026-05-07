@@ -81,11 +81,13 @@ const getToken = () => {
 };
 
 // WebSocket 接口地址
-const getWebSocketUrl = (instanceId: number) => {
+const getWebSocketUrl = (instanceId: number, terminal?: Terminal | null) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
     const token = getToken();
-    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}`;
+    const cols = terminal?.cols || 100;
+    const rows = terminal?.rows || 30;
+    return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}&cols=${cols}&rows=${rows}`;
 };
 
 interface TerminalTab {
@@ -212,7 +214,7 @@ const initTerminal = async (tab: TerminalTab) => {
     tab.fitAddon.fit();
 
     // 建立 WebSocket 连接
-    const wsUrl = getWebSocketUrl(tab.instanceId);
+    const wsUrl = getWebSocketUrl(tab.instanceId, tab.terminal);
     tab.socket = new WebSocket(wsUrl);
 
     tab.socket.onopen = () => {
@@ -243,8 +245,15 @@ const initTerminal = async (tab: TerminalTab) => {
                     break;
 
                 case 'success':
-                    // 连接成功
+                    // 连接成功，发送终端尺寸给后端
                     tab.terminal?.writeln('\x1b[32m' + msg.data + '\x1b[0m\r\n');
+                    if (tab.socket && tab.terminal) {
+                        tab.socket.send(JSON.stringify({
+                            type: 'resize',
+                            cols: tab.terminal.cols,
+                            rows: tab.terminal.rows,
+                        }));
+                    }
                     break;
 
                 case 'data':
@@ -298,6 +307,8 @@ const sendConnectMessage = (tab: TerminalTab) => {
         tab.socket.send(JSON.stringify({
             type: 'connect',
             keyId: tab.selectedKeyId,
+            cols: tab.terminal?.cols || 100,
+            rows: tab.terminal?.rows || 30,
         }));
     }
 };
