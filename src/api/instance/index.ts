@@ -23,6 +23,13 @@ export function useInstanceApi() {
                 data,
             });
         },
+        getMyInstance: (data: object) => {
+            return request({
+                url: '/api/instance/myInstance',
+                method: 'post',
+                data,
+            });
+        },
         getInstanceInfo: (id: number) => {
             return request({
                 url: '/api/instance/info/'+ id,
