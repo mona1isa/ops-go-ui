@@ -73,10 +73,9 @@
                 <el-form-item v-if="formData.type === 1" label="命令内容" prop="content">
                     <el-input v-model="formData.content" type="textarea" :rows="3" placeholder="请输入要执行的命令" />
                 </el-form-item>
-                <el-form-item v-if="formData.type === 2" label="脚本内容" prop="content">
-                    <el-select v-model="formData.scriptLang" style="width: 120px; margin-bottom: 8px">
-                        <el-option label="Shell" value="shell" />
-                        <el-option label="Python" value="python" />
+                <el-form-item v-if="formData.type === 2" label="选择脚本">
+                    <el-select v-model="formData.scriptId" placeholder="选择现有脚本（可选）" clearable style="width: 100%; margin-bottom: 8px" @change="onScriptChange">
+                        <el-option v-for="s in scriptList" :key="s.id" :label="s.name" :value="s.id" />
                     </el-select>
                     <el-input v-model="formData.content" type="textarea" :rows="6" placeholder="请输入脚本内容" />
                 </el-form-item>
@@ -103,16 +102,19 @@
 </template>
 
 <script setup lang="ts" name="taskTemplateIndex">
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { useTaskTemplateApi } from '/@/api/taskTemplate';
+import { useScriptApi } from '/@/api/script';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 const taskTemplateApi = useTaskTemplateApi();
+const scriptApi = useScriptApi();
 const dialogVisible = ref(false);
 const dialogTitle = ref('新增模板');
 const submitLoading = ref(false);
 const formRef = ref<any>(null);
 const dialogType = ref('add');
+const scriptList = ref<any[]>([]);
 
 const formData = reactive({
     id: 0,
@@ -120,6 +122,7 @@ const formData = reactive({
     type: 1,
     content: '',
     scriptLang: 'shell',
+    scriptId: null as number | null,
     srcPath: '',
     destPath: '',
     timeout: 300,
@@ -183,6 +186,22 @@ const onHandleCurrentChange = (val: number) => {
     getTableData();
 };
 
+const loadScripts = async () => {
+    const res = await scriptApi.getScriptPage({ pageNum: 1, pageSize: 999 });
+    if (res && res.code === 200) {
+        scriptList.value = res.data || [];
+    }
+};
+
+const onScriptChange = (scriptId: number | null) => {
+    if (scriptId) {
+        const selected = scriptList.value.find((s: any) => s.id === scriptId);
+        if (selected) {
+            formData.content = selected.content || '';
+        }
+    }
+};
+
 const onOpenAddDialog = (type: string) => {
     dialogType.value = type;
     dialogTitle.value = '新增模板';
@@ -191,6 +210,7 @@ const onOpenAddDialog = (type: string) => {
     formData.type = 1;
     formData.content = '';
     formData.scriptLang = 'shell';
+    formData.scriptId = null;
     formData.srcPath = '';
     formData.destPath = '';
     formData.timeout = 300;
@@ -207,6 +227,7 @@ const onOpenEditDialog = (type: string, row: any) => {
     formData.type = row.type;
     formData.content = row.content || '';
     formData.scriptLang = row.scriptLang || 'shell';
+    formData.scriptId = null;
     formData.srcPath = row.srcPath || '';
     formData.destPath = row.destPath || '';
     formData.timeout = row.timeout || 300;
@@ -258,6 +279,10 @@ const onRowDel = (row: any) => {
         })
         .catch(() => {});
 };
+
+onMounted(() => {
+    loadScripts();
+});
 
 getTableData();
 </script>

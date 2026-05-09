@@ -9,18 +9,17 @@
                 <el-form label-width="100px">
                     <el-form-item label="执行类型">
                         <el-radio-group v-model="execForm.type">
-                            <el-radio :value="1">执行命令</el-radio>
-                            <el-radio :value="2">执行脚本</el-radio>
-                            <el-radio :value="3">分发文件</el-radio>
+                            <el-radio :label="1">执行命令</el-radio>
+                            <el-radio :label="2">执行脚本</el-radio>
+                            <el-radio :label="3">分发文件</el-radio>
                         </el-radio-group>
                     </el-form-item>
                     <el-form-item v-if="execForm.type === 1" label="命令内容">
                         <el-input v-model="execForm.content" type="textarea" :rows="3" placeholder="请输入要执行的命令" />
                     </el-form-item>
-                    <el-form-item v-if="execForm.type === 2" label="脚本内容">
-                        <el-select v-model="execForm.scriptLang" style="width: 120px; margin-bottom: 8px">
-                            <el-option label="Shell" value="shell" />
-                            <el-option label="Python" value="python" />
+                    <el-form-item v-if="execForm.type === 2" label="选择脚本">
+                        <el-select v-model="execForm.scriptId" placeholder="选择现有脚本（可选）" clearable style="width: 100%; margin-bottom: 8px" @change="onScriptChange">
+                            <el-option v-for="s in scriptList" :key="s.id" :label="s.name" :value="s.id" />
                         </el-select>
                         <el-input v-model="execForm.content" type="textarea" :rows="5" placeholder="请输入脚本内容" />
                     </el-form-item>
@@ -101,7 +100,7 @@
         </div>
 
         <!-- 执行详情对话框 -->
-        <el-dialog v-model="detailVisible" title="执行详情" width="800px">
+        <el-dialog v-model="detailVisible" title="执行详情" width="900px">
             <el-descriptions :column="3" border class="mb15">
                 <el-descriptions-item label="执行编号">{{ detailData.execution?.executionNo }}</el-descriptions-item>
                 <el-descriptions-item label="名称">{{ detailData.execution?.name }}</el-descriptions-item>
@@ -110,9 +109,9 @@
                 </el-descriptions-item>
             </el-descriptions>
             <el-table :data="detailData.hosts" style="width: 100%" max-height="400">
-                <el-table-column prop="instanceName" label="主机" width="120" />
-                <el-table-column prop="instanceIp" label="IP" width="130" />
-                <el-table-column prop="status" label="状态" width="80">
+                <el-table-column prop="instanceName" label="主机" width="100" />
+                <el-table-column prop="instanceIp" label="IP" width="120" />
+                <el-table-column prop="status" label="状态" width="70">
                     <template #default="scope">
                         <el-tag :type="getHostStatusTag(scope.row.status)">{{ getHostStatusLabel(scope.row.status) }}</el-tag>
                     </template>
@@ -122,10 +121,23 @@
                         {{ scope.row.duration > 0 ? scope.row.duration + 'ms' : '-' }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="result" label="结果" show-overflow-tooltip />
-                <el-table-column prop="errorMsg" label="错误" show-overflow-tooltip>
+                <el-table-column label="结果" min-width="200">
                     <template #default="scope">
-                        <span style="color: #f56c6c">{{ scope.row.errorMsg }}</span>
+                        <div v-if="scope.row.result" class="output-block">
+                            <div class="output-header">
+                                <el-tag size="small" type="success">输出</el-tag>
+                                <el-button size="small" text type="primary" @click="copyText(scope.row.result)">复制</el-button>
+                            </div>
+                            <pre class="output-pre">{{ scope.row.result }}</pre>
+                        </div>
+                        <div v-if="scope.row.errorMsg" class="output-block mt5">
+                            <div class="output-header">
+                                <el-tag size="small" type="danger">错误</el-tag>
+                                <el-button size="small" text type="primary" @click="copyText(scope.row.errorMsg)">复制</el-button>
+                            </div>
+                            <pre class="output-pre error-pre">{{ scope.row.errorMsg }}</pre>
+                        </div>
+                        <span v-if="!scope.row.result && !scope.row.errorMsg" style="color: #909399">-</span>
                     </template>
                 </el-table-column>
             </el-table>
@@ -137,18 +149,22 @@
 import { reactive, ref, onMounted } from 'vue';
 import { useTaskExecutionApi } from '/@/api/taskExecution';
 import { useInstanceApi } from '/@/api/instance';
+import { useScriptApi } from '/@/api/script';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 const taskExecutionApi = useTaskExecutionApi();
 const instanceApi = useInstanceApi();
+const scriptApi = useScriptApi();
 const execLoading = ref(false);
 const detailVisible = ref(false);
 const instanceList = ref<any[]>([]);
+const scriptList = ref<any[]>([]);
 
 const execForm = reactive({
     type: 1,
     content: '',
     scriptLang: 'shell',
+    scriptId: null as number | null,
     srcPath: '',
     destPath: '',
     instanceIds: [] as number[],
@@ -207,9 +223,25 @@ const getHostStatusTag = (status: number): any => {
 };
 
 const loadInstances = async () => {
-    const res = await instanceApi.getMyInstance({ pageNum: 1, pageSize: 9999 });
+    const res = await instanceApi.getInstanceList({});
     if (res && res.code === 200) {
         instanceList.value = res.data || [];
+    }
+};
+
+const loadScripts = async () => {
+    const res = await scriptApi.getScriptPage({ pageNum: 1, pageSize: 999 });
+    if (res && res.code === 200) {
+        scriptList.value = res.data || [];
+    }
+};
+
+const onScriptChange = (scriptId: number | null) => {
+    if (scriptId) {
+        const selected = scriptList.value.find((s: any) => s.id === scriptId);
+        if (selected) {
+            execForm.content = selected.content || '';
+        }
     }
 };
 
@@ -286,6 +318,14 @@ const onViewDetail = async (row: any) => {
     }
 };
 
+const copyText = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        ElMessage.success('已复制到剪贴板');
+    }).catch(() => {
+        ElMessage.error('复制失败');
+    });
+};
+
 const onCancel = async (row: any) => {
     try {
         await ElMessageBox.confirm('确定要取消该执行任务吗？', '提示', {
@@ -307,6 +347,7 @@ const onCancel = async (row: any) => {
 
 onMounted(() => {
     loadInstances();
+    loadScripts();
     getTableData();
 });
 </script>
@@ -326,5 +367,41 @@ onMounted(() => {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+
+.output-block {
+    background: #f5f7fa;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.output-pre {
+    margin: 0;
+    padding: 8px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.error-pre {
+    color: #f56c6c;
+}
+
+.mt5 {
+    margin-top: 5px;
 }
 </style>

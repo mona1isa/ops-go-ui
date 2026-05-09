@@ -184,13 +184,16 @@ const onOpenAddDialog = (type: string) => {
     loadTemplates();
 };
 
-const onOpenEditDialog = (type: string, row: any) => {
+const onOpenEditDialog = async (type: string, row: any) => {
     dialogType.value = type;
     dialogTitle.value = '编辑编排';
-    formData.id = row.id;
-    formData.name = row.name;
-    formData.description = row.description || '';
-    formData.steps = (row.steps || []).map((s: any) => ({
+    // 调用详情接口获取完整数据（含步骤）
+    const res = await taskPipelineApi.getDetail({ id: row.id });
+    const detail = res?.code === 200 ? res.data : row;
+    formData.id = detail.id;
+    formData.name = detail.name;
+    formData.description = detail.description || '';
+    formData.steps = (detail.steps || []).map((s: any) => ({
         stepName: s.stepName,
         templateId: s.templateId,
         stepOrder: s.stepOrder,
