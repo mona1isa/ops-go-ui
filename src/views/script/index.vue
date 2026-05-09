@@ -23,7 +23,11 @@
                     <el-table-column prop="name" label="脚本名称" show-overflow-tooltip />
                     <el-table-column prop="type" label="类型" width="100" />
                     <el-table-column prop="remark" label="备注" show-overflow-tooltip />
-                    <el-table-column prop="createdAt" label="创建时间" width="170" />
+                    <el-table-column prop="createdAt" label="创建时间" width="165" show-overflow-tooltip>
+                        <template #default="scope">
+                            {{ scope.row.createdAt ? formatDate(new Date(scope.row.createdAt), 'YYYY-mm-dd HH:MM:SS') : '-' }}
+                        </template>
+                    </el-table-column>
                     <el-table-column label="操作" width="150">
                         <template #default="scope">
                             <el-button size="small" text type="primary" @click="onOpenDialog('edit', scope.row)">编辑</el-button>
@@ -88,6 +92,7 @@
 <script setup lang="ts" name="scriptIndex">
 import { reactive, ref, computed } from 'vue';
 import { useScriptApi } from '/@/api/script';
+import { formatDate } from '/@/utils/formatTime';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Codemirror } from 'vue-codemirror';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
