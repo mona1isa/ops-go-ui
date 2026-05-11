@@ -26,9 +26,9 @@
                 <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                     <el-table-column prop="id" label="ID" width="60" />
                     <el-table-column prop="name" label="模板名称" show-overflow-tooltip />
-                    <el-table-column prop="type" label="类型" width="90">
+                    <el-table-column prop="type" label="类型" width="100">
                         <template #default="scope">
-                            <el-tag :type="getTypeTagType(scope.row.type)">{{ getTypeLabel(scope.row.type) }}</el-tag>
+                            <el-tag :type="getTypeTagType(scope.row.type)" size="small" >{{ getTypeLabel(scope.row.type) }}</el-tag>
                         </template>
                     </el-table-column>
                     <el-table-column prop="content" label="内容" show-overflow-tooltip />
