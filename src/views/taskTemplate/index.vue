@@ -28,7 +28,7 @@
                     <el-table-column prop="name" label="模板名称" show-overflow-tooltip />
                     <el-table-column prop="type" label="类型" width="100">
                         <template #default="scope">
-                            <el-tag :type="getTypeTagType(scope.row.type)">{{ getTypeLabel(scope.row.type) }}</el-tag>
+                            <el-tag :type="getTypeTagType(scope.row.type)" size="small" >{{ getTypeLabel(scope.row.type) }}</el-tag>
                         </template>
                     </el-table-column>
                     <el-table-column prop="content" label="内容" show-overflow-tooltip />
@@ -73,19 +73,35 @@
                 <el-form-item v-if="formData.type === 1" label="命令内容" prop="content">
                     <el-input v-model="formData.content" type="textarea" :rows="3" placeholder="请输入要执行的命令" />
                 </el-form-item>
-                <el-form-item v-if="formData.type === 2" label="脚本内容" prop="content">
-                    <el-select v-model="formData.scriptLang" style="width: 120px; margin-bottom: 8px">
-                        <el-option label="Shell" value="shell" />
-                        <el-option label="Python" value="python" />
+                <el-form-item v-if="formData.type === 2" label="选择脚本">
+                    <el-select v-model="formData.scriptId" placeholder="选择现有脚本（可选）" clearable style="width: 100%; margin-bottom: 8px" @change="onScriptChange">
+                        <el-option v-for="s in scriptList" :key="s.id" :label="s.name" :value="s.id" />
                     </el-select>
                     <el-input v-model="formData.content" type="textarea" :rows="6" placeholder="请输入脚本内容" />
                 </el-form-item>
-                <el-form-item v-if="formData.type === 3" label="源文件路径" prop="srcPath">
-                    <el-input v-model="formData.srcPath" placeholder="服务器上的源文件路径" />
-                </el-form-item>
-                <el-form-item v-if="formData.type === 3" label="目标路径" prop="destPath">
-                    <el-input v-model="formData.destPath" placeholder="远程主机的目标路径" />
-                </el-form-item>
+                <template v-if="formData.type === 3">
+                    <el-form-item label="选择文件" prop="srcPath">
+                        <el-select v-model="formData.srcPath" placeholder="请选择已上传的文件" clearable style="width: 100%; margin-bottom: 8px">
+                            <el-option v-for="f in localFileList" :key="f.path" :label="`${f.name} (${formatFileSize(f.size)})`" :value="f.path" />
+                        </el-select>
+                        <el-upload
+                            action="/api/file/local/upload"
+                            :headers="{ Authorization: Session.get('token') || '' }"
+                            :show-file-list="false"
+                            :on-success="onUploadSuccess"
+                            :on-error="onUploadError"
+                            accept="*"
+                        >
+                            <el-button type="primary" size="small">
+                                <el-icon><ele-Upload /></el-icon>
+                                上传新文件到服务器
+                            </el-button>
+                        </el-upload>
+                    </el-form-item>
+                    <el-form-item label="目标路径" prop="destPath">
+                        <el-input v-model="formData.destPath" placeholder="远程主机的目标路径，如 /opt/app/config.yml" />
+                    </el-form-item>
+                </template>
                 <el-form-item label="超时时间">
                     <el-input-number v-model="formData.timeout" :min="10" :max="3600" :step="30" />
                     <span class="ml10" style="color: #909399">秒</span>
@@ -103,16 +119,23 @@
 </template>
 
 <script setup lang="ts" name="taskTemplateIndex">
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { useTaskTemplateApi } from '/@/api/taskTemplate';
+import { useScriptApi } from '/@/api/script';
+import { useFileApi } from '/@/api/file';
+import { Session } from '/@/utils/storage';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 const taskTemplateApi = useTaskTemplateApi();
+const scriptApi = useScriptApi();
+const fileApi = useFileApi();
 const dialogVisible = ref(false);
 const dialogTitle = ref('新增模板');
 const submitLoading = ref(false);
 const formRef = ref<any>(null);
 const dialogType = ref('add');
+const scriptList = ref<any[]>([]);
+const localFileList = ref<any[]>([]);
 
 const formData = reactive({
     id: 0,
@@ -120,6 +143,7 @@ const formData = reactive({
     type: 1,
     content: '',
     scriptLang: 'shell',
+    scriptId: null as number | null,
     srcPath: '',
     destPath: '',
     timeout: 300,
@@ -183,6 +207,49 @@ const onHandleCurrentChange = (val: number) => {
     getTableData();
 };
 
+const loadScripts = async () => {
+    const res = await scriptApi.getScriptPage({ pageNum: 1, pageSize: 999 });
+    if (res && res.code === 200) {
+        scriptList.value = res.data || [];
+    }
+};
+
+const loadLocalFiles = async () => {
+    const res = await fileApi.getLocalFiles();
+    if (res && res.code === 200) {
+        localFileList.value = res.data || [];
+    }
+};
+
+const formatFileSize = (size: number) => {
+    if (size < 1024) return size + ' B';
+    if (size < 1024 * 1024) return (size / 1024).toFixed(2) + ' KB';
+    return (size / (1024 * 1024)).toFixed(2) + ' MB';
+};
+
+const onUploadSuccess = (res: any) => {
+    if (res && res.code === 200) {
+        ElMessage.success('上传成功');
+        formData.srcPath = res.data.path;
+        loadLocalFiles();
+    } else {
+        ElMessage.error(res?.msg || '上传失败');
+    }
+};
+
+const onUploadError = () => {
+    ElMessage.error('上传失败');
+};
+
+const onScriptChange = (scriptId: number | null) => {
+    if (scriptId) {
+        const selected = scriptList.value.find((s: any) => s.id === scriptId);
+        if (selected) {
+            formData.content = selected.content || '';
+        }
+    }
+};
+
 const onOpenAddDialog = (type: string) => {
     dialogType.value = type;
     dialogTitle.value = '新增模板';
@@ -191,12 +258,14 @@ const onOpenAddDialog = (type: string) => {
     formData.type = 1;
     formData.content = '';
     formData.scriptLang = 'shell';
+    formData.scriptId = null;
     formData.srcPath = '';
     formData.destPath = '';
     formData.timeout = 300;
     formData.keyId = 0;
     formData.description = '';
     dialogVisible.value = true;
+    loadLocalFiles();
 };
 
 const onOpenEditDialog = (type: string, row: any) => {
@@ -207,12 +276,14 @@ const onOpenEditDialog = (type: string, row: any) => {
     formData.type = row.type;
     formData.content = row.content || '';
     formData.scriptLang = row.scriptLang || 'shell';
+    formData.scriptId = null;
     formData.srcPath = row.srcPath || '';
     formData.destPath = row.destPath || '';
     formData.timeout = row.timeout || 300;
     formData.keyId = row.keyId || 0;
     formData.description = row.description || '';
     dialogVisible.value = true;
+    loadLocalFiles();
 };
 
 const onSubmit = async () => {
@@ -258,6 +329,10 @@ const onRowDel = (row: any) => {
         })
         .catch(() => {});
 };
+
+onMounted(() => {
+    loadScripts();
+});
 
 getTableData();
 </script>

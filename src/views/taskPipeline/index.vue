@@ -61,14 +61,41 @@
                 </el-form-item>
                 <el-form-item label="执行步骤">
                     <div style="width: 100%">
-                        <div v-for="(step, index) in formData.steps" :key="index" class="step-row">
-                            <el-input v-model="step.stepName" placeholder="步骤名称" style="width: 140px" />
-                            <el-select v-model="step.templateId" placeholder="选择模板" style="width: 180px; margin-left: 8px">
-                                <el-option v-for="t in templateList" :key="t.id" :label="t.name" :value="t.id" />
-                            </el-select>
-                            <el-input-number v-model="step.stepOrder" :min="1" :max="99" style="width: 100px; margin-left: 8px" />
-                            <el-button type="danger" :icon="Delete" circle size="small" style="margin-left: 8px" @click="removeStep(index)" />
-                        </div>
+                        <el-card v-for="(step, index) in formData.steps" :key="index" shadow="never" class="step-card" body-style="padding: 12px">
+                            <div class="step-header">
+                                <span class="step-index">步骤 {{ index + 1 }}</span>
+                                <el-button type="danger" :icon="Delete" circle size="small" @click="removeStep(index)" />
+                            </div>
+                            <div class="step-body">
+                                <div class="step-field">
+                                    <span class="field-label">名称</span>
+                                    <el-input v-model="step.stepName" placeholder="步骤名称" style="width: 140px" size="small" />
+                                </div>
+                                <div class="step-field">
+                                    <span class="field-label">模板</span>
+                                    <el-select v-model="step.templateId" placeholder="选择模板" style="width: 160px" size="small">
+                                        <el-option v-for="t in templateList" :key="t.id" :label="t.name" :value="t.id" />
+                                    </el-select>
+                                </div>
+                                <div class="step-field">
+                                    <span class="field-label">排序</span>
+                                    <el-input-number v-model="step.stepOrder" :min="1" :max="99" style="width: 80px" size="small" />
+                                </div>
+                                <div class="step-field">
+                                    <span class="field-label">成功</span>
+                                    <el-select v-model="step.onSuccess" placeholder="成功策略" style="width: 130px" size="small" disabled>
+                                        <el-option label="执行下一步" :value="1" />
+                                    </el-select>
+                                </div>
+                                <div class="step-field">
+                                    <span class="field-label">失败</span>
+                                    <el-select v-model="step.onFailure" placeholder="失败策略" style="width: 140px" size="small">
+                                        <el-option label="终止执行" :value="1" />
+                                        <el-option label="跳过继续" :value="2" />
+                                    </el-select>
+                                </div>
+                            </div>
+                        </el-card>
                         <el-button type="primary" plain size="small" @click="addStep" style="margin-top: 8px">
                             <el-icon><ele-Plus /></el-icon>
                             添加步骤
@@ -163,6 +190,7 @@ const addStep = () => {
         templateId: null,
         stepOrder: formData.steps.length + 1,
         parentStepId: 0,
+        onSuccess: 1,
         onFailure: 1,
         retryCount: 0,
     });
@@ -184,17 +212,21 @@ const onOpenAddDialog = (type: string) => {
     loadTemplates();
 };
 
-const onOpenEditDialog = (type: string, row: any) => {
+const onOpenEditDialog = async (type: string, row: any) => {
     dialogType.value = type;
     dialogTitle.value = '编辑编排';
-    formData.id = row.id;
-    formData.name = row.name;
-    formData.description = row.description || '';
-    formData.steps = (row.steps || []).map((s: any) => ({
+    // 调用详情接口获取完整数据（含步骤）
+    const res = await taskPipelineApi.getDetail({ id: row.id });
+    const detail = res?.code === 200 ? res.data : row;
+    formData.id = detail.id;
+    formData.name = detail.name;
+    formData.description = detail.description || '';
+    formData.steps = (detail.steps || []).map((s: any) => ({
         stepName: s.stepName,
         templateId: s.templateId,
         stepOrder: s.stepOrder,
         parentStepId: s.parentStepId || 0,
+        onSuccess: s.onSuccess || 1,
         onFailure: s.onFailure || 1,
         retryCount: s.retryCount || 0,
     }));
@@ -255,10 +287,41 @@ getTableData();
 </script>
 
 <style scoped lang="scss">
-.step-row {
+.step-card {
+    margin-bottom: 12px;
+    border: 1px solid var(--el-border-color-light);
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.step-index {
+    font-weight: 600;
+    color: var(--el-color-primary);
+    font-size: 14px;
+}
+
+.step-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.step-field {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    gap: 6px;
+}
+
+.field-label {
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+    white-space: nowrap;
 }
 
 .layout-padding-view {
