@@ -78,14 +78,14 @@
                 <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
                     <el-table-column prop="executionNo" label="执行编号" width="200" show-overflow-tooltip />
                     <el-table-column prop="name" label="名称" show-overflow-tooltip />
-                    <el-table-column prop="type" label="类型" width="90">
+                    <el-table-column prop="type" label="类型" width="120">
                         <template #default="scope">
-                            <el-tag :type="getExecTypeTag(scope.row.type)">{{ getExecTypeLabel(scope.row.type) }}</el-tag>
+                            <el-tag :type="getExecTypeTag(scope.row.type)" type="small">{{ getExecTypeLabel(scope.row.type) }}</el-tag>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="状态" width="90">
+                    <el-table-column prop="status" label="状态" width="120">
                         <template #default="scope">
-                            <el-tag :type="getStatusTag(scope.row.status)">{{ getStatusLabel(scope.row.status) }}</el-tag>
+                            <el-tag :type="getStatusTag(scope.row.status)" type="small">{{ getStatusLabel(scope.row.status) }}</el-tag>
                         </template>
                     </el-table-column>
                     <el-table-column prop="totalHosts" label="主机数" width="80" />

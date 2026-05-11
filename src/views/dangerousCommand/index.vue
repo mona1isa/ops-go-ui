@@ -22,7 +22,7 @@
                     <el-table-column prop="id" label="ID" width="60" />
                     <el-table-column prop="name" label="规则名称" show-overflow-tooltip />
                     <el-table-column prop="pattern" label="匹配模式" show-overflow-tooltip />
-                    <el-table-column prop="matchType" label="匹配类型" width="100">
+                    <el-table-column prop="matchType" label="匹配类型" width="120">
                         <template #default="scope">
                             <el-tag :type="getMatchTypeTagType(scope.row.matchType)">
                                 {{ getMatchTypeLabel(scope.row.matchType) }}
