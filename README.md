@@ -54,7 +54,10 @@ Ops-Go UI 是 Ops-Go 运维管理系统的前端项目，基于 Vue 3 + TypeScri
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/zhany/ops-go-ui.git
+git clone https://github.com/mona1isa/ops-go-ui.git
+cd ops-go-ui
+或者
+git clone https://gitee.com/Zhany_v/ops-go-ui.git
 cd ops-go-ui
 ```
 
@@ -550,7 +553,7 @@ npm install
 
 ## 🔗 相关链接
 
-- **后端项目**: [Ops-Go](https://github.com/zhany/ops-go)
+- **后端项目**: [Ops-Go](https://github.com/mona1isa/ops-go)
 - **Vue 3 文档**: [https://vuejs.org/](https://vuejs.org/)
 - **Element Plus 文档**: [https://element-plus.org/](https://element-plus.org/)
 - **Vite 文档**: [https://vitejs.dev/](https://vitejs.dev/)
