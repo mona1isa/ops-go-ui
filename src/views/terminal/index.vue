@@ -419,26 +419,26 @@ onMounted(async () => {
 
 // 页面激活时（keep-alive 缓存后切回）
 onActivated(() => {
-    nextTick(() => {
-        // 触发所有标签的终端自适应，恢复显示
-        state.terminalMap.forEach((tab) => {
-            if (tab.fitAddon && tab.terminal) {
-                try {
-                    tab.fitAddon.fit();
-                    tab.terminal.refresh(0, tab.terminal.rows - 1);
-                } catch (e) {}
-            }
-            if (tab.socket && tab.socket.readyState === WebSocket.OPEN && tab.terminal) {
-                try {
-                    tab.socket.send(JSON.stringify({
-                        type: 'resize',
-                        cols: tab.terminal.cols,
-                        rows: tab.terminal.rows,
-                    }));
-                } catch (e) {}
-            }
-        });
-    });
+    // 延迟执行，确保 DOM 从缓存恢复后尺寸已稳定
+    setTimeout(() => {
+        const activeTab = activeTabRef.value;
+        // 只处理当前激活的标签
+        if (activeTab?.fitAddon && activeTab.terminal) {
+            try {
+                activeTab.fitAddon.fit();
+                activeTab.terminal.refresh(0, activeTab.terminal.rows - 1);
+            } catch (e) {}
+        }
+        if (activeTab?.socket && activeTab.socket.readyState === WebSocket.OPEN && activeTab.terminal) {
+            try {
+                activeTab.socket.send(JSON.stringify({
+                    type: 'resize',
+                    cols: activeTab.terminal.cols,
+                    rows: activeTab.terminal.rows,
+                }));
+            } catch (e) {}
+        }
+    }, 150);
 });
 
 // 页面失活时（keep-alive 缓存前切走）
@@ -585,11 +585,24 @@ const initTerminal = async (tab: TerminalTab) => {
 
     // 挂载终端
     tab.terminal.open(terminalElement);
-    tab.fitAddon.fit();
 
-    // 建立 WebSocket 连接
+    // 建立 WebSocket 连接（先使用默认尺寸）
     const wsUrl = getWebSocketUrl(tab.instanceId, tab.terminal);
     tab.socket = new WebSocket(wsUrl);
+
+    // 延迟 fit，确保 el-tabs DOM 完全渲染且尺寸正确
+    setTimeout(() => {
+        if (tab.fitAddon && tab.terminal) {
+            tab.fitAddon.fit();
+            if (tab.socket && tab.socket.readyState === WebSocket.OPEN) {
+                tab.socket.send(JSON.stringify({
+                    type: 'resize',
+                    cols: tab.terminal.cols,
+                    rows: tab.terminal.rows,
+                }));
+            }
+        }
+    }, 150);
 
     tab.socket.onopen = () => {
         tab.status = '等待连接...';
@@ -726,7 +739,9 @@ const sendConnectMessage = (tab: TerminalTab) => {
 
 // 处理窗口大小变化
 const handleResize = (tab: TerminalTab) => {
-    if (tab.fitAddon) {
+    // 只处理当前激活的标签，非激活标签的 DOM 可能被隐藏（display: none）
+    if (state.activeTab !== tab.instanceId.toString()) return;
+    if (tab.fitAddon && tab.terminal) {
         tab.fitAddon.fit();
     }
     if (tab.socket && tab.socket.readyState === WebSocket.OPEN && tab.terminal) {
@@ -795,12 +810,21 @@ const handleTabChange = (tabName: string) => {
     syncBackToTab(); // 先保存之前标签的状态
     state.activeTab = tabName;
     syncActiveTabState(); // 加载新标签的状态
-    // 切换后触发当前标签终端自适应
+    // 切换后触发当前标签终端自适应并发送尺寸给后端
     nextTick(() => {
-        const tab = activeTabRef.value;
-        if (tab?.fitAddon) {
-            tab.fitAddon.fit();
-        }
+        setTimeout(() => {
+            const tab = activeTabRef.value;
+            if (tab?.fitAddon && tab.terminal) {
+                tab.fitAddon.fit();
+            }
+            if (tab?.socket && tab.socket.readyState === WebSocket.OPEN && tab.terminal) {
+                tab.socket.send(JSON.stringify({
+                    type: 'resize',
+                    cols: tab.terminal.cols,
+                    rows: tab.terminal.rows,
+                }));
+            }
+        }, 50);
     });
 };
 
