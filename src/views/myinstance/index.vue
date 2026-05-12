@@ -75,22 +75,24 @@
 			>
 			</el-pagination>
         </el-card>
-        <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
+
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useMyInstanceApi } from '/@/api/myinstance'
 import { InstanceState } from '/@/types/views';
 import { ArrowDown } from '@element-plus/icons-vue';
 
-// 引入 SSH 终端对话框
-const TerminalDialog = defineAsyncComponent(() => import('/@/views/instance/terminal.vue'));
+
+
+const router = useRouter();
 
 // 定义接口
 const myInstanceApi = useMyInstanceApi();
-const terminalDialogRef = ref();
+
 
 const state = reactive<InstanceState>({
     tableData: {
@@ -170,15 +172,12 @@ const getbindingKeys = (bindingKeys: any) => {
     }).join('; ');
 };
 
-// 打开 SSH 终端
+// 打开 SSH 终端（在前端标签页中打开，支持同时操作多台主机）
 const onOpenSSH = (row: any) => {
-    terminalDialogRef.value.openDialog(row.id);
+    router.push({ path: `/terminal/${row.id}`, query: { tagsViewName: row.name } });
 };
 
-// SSH 终端关闭回调
-const handleTerminalClose = () => {
-    // 可以在这里处理终端关闭后的逻辑
-};
+
 
 // 打开页面时
 onMounted(() => {
