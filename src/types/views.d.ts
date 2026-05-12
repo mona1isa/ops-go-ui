@@ -378,6 +378,7 @@ declare type RowInstanceType <T = any> = {
 	diskGb: number;
 	spec: string;
 	status: string;
+	onlineStatus: string;
 	os: string;
 	ip: string;
 	createAt: string;

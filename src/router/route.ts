@@ -1006,6 +1006,18 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				},
 			},
 			{
+				path: '/terminal/:id',
+				name: 'terminal',
+				component: () => import('/@/views/terminal/index.vue'),
+				meta: {
+					title: 'SSH 终端',
+					isHide: true,
+					isKeepAlive: true,
+					roles: ['admin', 'common'],
+					icon: 'ele-Connection',
+				},
+			},
+			{
 				path: '/link',
 				name: 'layoutLinkView',
 				component: () => import('/@/layout/routerView/link.vue'),
@@ -1092,18 +1104,6 @@ export const staticRoutes: Array<RouteRecordRaw> = [
 		component: () => import('/@/views/login/index.vue'),
 		meta: {
 			title: '登录',
-		},
-	},
-	/**
-	 * 独立终端页面（全屏显示，不包含 layout）
-	 */
-	{
-		path: '/terminal/:id?',
-		name: 'terminal',
-		component: () => import('/@/views/terminal/index.vue'),
-		meta: {
-			title: 'SSH 终端',
-			isHide: true,
 		},
 	},
 	/**

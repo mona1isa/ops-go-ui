@@ -4,6 +4,10 @@
             <el-card shadow="hover">
             <div class="app-search mb15">
                 <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入主机名称" style="max-width: 180px" clearable> </el-input>
+                <el-select v-model="state.tableData.param.onlineStatus" size="default" placeholder="在线状态" style="max-width: 120px; margin-left: 10px;" clearable>
+                    <el-option label="在线" value="1" />
+                    <el-option label="离线" value="0" />
+                </el-select>
                 
                 <el-button size="default" plain type="primary" class="ml10" @click="getTableData()">
                     <el-icon>
@@ -43,6 +47,12 @@
                 <el-table-column prop="bindingKeys" label="登录凭证" show-overflow-tooltip>
                     <template #default="scope">
                         <el-link v-if="scope.row.bindingKeys.length > 0" type="primary" @click="onOpenUnbindKey(scope.row)">{{ getbindingKeys(scope.row.bindingKeys) }}</el-link>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="onlineStatus" label="在线状态" width="90" show-overflow-tooltip>
+                    <template #default="scope">
+                        <el-tag v-if="scope.row.onlineStatus === '1'" type="success" size="small">在线</el-tag>
+                        <el-tag v-else type="info" size="small">离线</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column prop="status" label="主机状态" show-overflow-tooltip>
@@ -97,7 +107,7 @@
         <DetailDrawer ref="detailDrawerRef" />
         <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
         <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
-        <TerminalDialog ref="terminalDialogRef" @close="handleTerminalClose"/>
+
         
         <!-- 同步主机对话框 -->
         <el-dialog v-model="syncHostDialogVisible" title="同步主机" width="500px">
@@ -155,7 +165,8 @@
 </template>
 
 <script setup lang="ts" name="instanceIndex">
-import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
+import { defineAsyncComponent, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useInstanceApi } from '/@/api/instance';
 import { InstanceStatusItem, InstanceState, RowInstanceType } from '/@/types/views';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -177,8 +188,9 @@ const BindKeyDialog = defineAsyncComponent(() => import('/@/views/instance/bingk
 // 引入解绑凭证对话框
 const UnbindingKeyDialog = defineAsyncComponent(() => import('/@/views/instance/unbindingkey.vue'));
 
-// 引入 SSH 终端对话框
-const TerminalDialog = defineAsyncComponent(() => import('/@/views/instance/terminal.vue'));
+
+
+const router = useRouter();
 
 // 定义接口
 const instanceApi = useInstanceApi();
@@ -194,7 +206,7 @@ const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
 const unbindingKeyDialogRef = ref();
-const terminalDialogRef = ref();
+
 
 // 同步主机相关变量
 const syncHostDialogVisible = ref(false);
@@ -224,6 +236,7 @@ const state = reactive<InstanceState>({
 // 重置搜索条件
 const resetTableData = () => {
     state.tableData.param.name = '';
+    state.tableData.param.onlineStatus = '';
     state.tableData.param.pageNum = 1;
     getTableData();
 };
@@ -242,8 +255,22 @@ const getTableData = async () => {
     }, 500);
 };
 
+// 定时刷新器
+let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
 onMounted(() => {
     getTableData();
+    // 每 30 秒自动刷新列表
+    refreshTimer = setInterval(() => {
+        getTableData();
+    }, 30000);
+});
+
+onUnmounted(() => {
+    if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+    }
 });
 // 页码改变
 const onHandleCurrentChange = (val: number) => {
@@ -301,15 +328,12 @@ const onOpenUnbindKey = (row: RowInstanceType) => {
     }
 };
 
-// 打开 SSH 终端对话框（保留原有功能）
+// 打开 SSH 终端（在前端标签页中打开，支持同时操作多台主机）
 const onOpenSSH = (row: RowInstanceType) => {
-    terminalDialogRef.value?.openDialog(row.id);
+    router.push({ path: `/terminal/${row.id}`, query: { tagsViewName: row.name } });
 };
 
-// SSH 终端关闭回调
-const handleTerminalClose = () => {
-    // 可以在这里处理终端关闭后的逻辑
-};
+
 
 // 删除操作
 const onRowDel = (row: RowInstanceType) => {
