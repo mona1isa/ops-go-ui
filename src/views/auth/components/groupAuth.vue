@@ -57,7 +57,7 @@ const loadGroup = (userId: number) => {
 };
 
 const handleAuth = async (row: any) => {
-    if (!currentUserId) {
+    if (!currentUserId.value) {
         return;
     }
     state.tableData.loading = true;
@@ -77,7 +77,7 @@ const handleAuth = async (row: any) => {
 };
 
 const getTableData = async () => {
-    if (!currentUserId) {
+    if (!currentUserId.value) {
         return;
     }
     try {

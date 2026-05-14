@@ -66,7 +66,7 @@ const loadInstance = (userId: number) => {
 
 // 初始化表格数据
 const getTableData = async () => {
-    if (!currentUserId) {
+    if (!currentUserId.value) {
         return;
     }
     let data = {
@@ -95,7 +95,7 @@ const onHandleSizeChange = (val: number) => {
 
 // 主机授权
 const handleAuth = async (row: any) => {
-    if (!currentUserId) {
+    if (!currentUserId.value) {
         return;
     }
     state.tableData.loading = true;

@@ -90,7 +90,7 @@ const getTableData = async () => {
   if (res && res.code === 200) {
     state.tableData.data = res.data.groups;
     state.tableData.total = res.data.total;
-  };
+  }
 };
 
 onMounted(() => {

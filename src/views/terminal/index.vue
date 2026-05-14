@@ -136,6 +136,53 @@
             </template>
         </el-dialog>
 
+        <!-- 下载确认对话框 -->
+        <el-dialog v-model="downloadDialog.visible" title="文件下载" width="400px" :close-on-click-modal="false">
+            <div class="download-confirm">
+                <el-icon size="32" class="download-icon"><ele-Download /></el-icon>
+                <div class="download-info">
+                    <p class="download-filename">{{ downloadDialog.fileName }}</p>
+                    <p class="download-filesize">{{ formatSize(downloadDialog.fileSize) }}</p>
+                </div>
+            </div>
+            <template #footer>
+                <el-button @click="downloadDialog.visible = false">取消</el-button>
+                <el-button type="primary" @click="doDownloadFile">确定下载</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 文件传输进度对话框 -->
+        <el-dialog
+            v-model="transferProgress.visible"
+            :title="transferProgress.type === 'upload' ? '文件上传中' : '文件下载中'"
+            width="420px"
+            :close-on-click-modal="false"
+            :show-close="false"
+            :close-on-press-escape="false"
+        >
+            <div class="transfer-progress">
+                <div class="transfer-file-info">
+                    <el-icon size="18" class="file-type-icon">
+                        <ele-Document />
+                    </el-icon>
+                    <span class="file-name" :title="transferProgress.fileName">{{ transferProgress.fileName }}</span>
+                </div>
+                <el-progress
+                    :percentage="transferProgress.percentage"
+                    :stroke-width="14"
+                    :status="transferProgress.status === 'exception' ? 'exception' : ''"
+                />
+                <div class="transfer-stats">
+                    <span>{{ formatSize(transferProgress.transferred) }} / {{ formatSize(transferProgress.fileSize) }}</span>
+                    <span>{{ transferProgress.percentage }}%</span>
+                </div>
+                <div class="transfer-actions">
+                    <el-button size="small" @click="cancelTransfer" type="danger" plain v-if="transferProgress.status === 'uploading' || transferProgress.status === 'downloading'">取消</el-button>
+                    <el-button size="small" @click="confirmTransfer" type="primary" plain v-else>确定</el-button>
+                </div>
+            </div>
+        </el-dialog>
+
         <!-- SFTP 抽屉（当前激活标签的 SFTP） -->
         <div v-if="state.tabs.length > 0" class="sftp-wrapper" :class="{ collapsed: !sftpState.visible }">
             <!-- 切换按钮 -->
@@ -200,7 +247,7 @@
                         :data="sftpState.fileList"
                         size="small"
                         class="sftp-table"
-                        height="auto"
+                        height="100%"
                         v-loading="sftpState.loading"
                     >
                         <el-table-column label="名称" min-width="140" show-overflow-tooltip>
@@ -230,7 +277,7 @@
                                     v-if="!scope.row.isDir"
                                     size="16"
                                     class="action-icon"
-                                    @click="downloadFile(scope.row)"
+                                    @click="showDownloadConfirm(scope.row)"
                                 >
                                     <ele-Download />
                                 </el-icon>
@@ -357,6 +404,33 @@ const sftpState = reactive({
     newFileName: '',
     renameTarget: null as any,
 });
+
+// 文件传输进度状态
+const transferProgress = reactive({
+    visible: false,
+    type: 'upload' as 'upload' | 'download',
+    fileName: '',
+    fileSize: 0,
+    transferred: 0,
+    percentage: 0,
+    status: '' as '' | 'uploading' | 'downloading' | 'exception',
+});
+
+let abortController: AbortController | null = null;
+
+const cancelTransfer = () => {
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
+    transferProgress.visible = false;
+    transferProgress.status = '';
+};
+
+const confirmTransfer = () => {
+    transferProgress.visible = false;
+    transferProgress.status = '';
+};
 
 // 同步 activeTabState 到当前激活标签
 const syncActiveTabState = () => {
@@ -996,30 +1070,119 @@ const formatSize = (size: number) => {
 const downloadFile = async (row: any) => {
     const tab = activeTabRef.value;
     if (!tab || !tab.selectedKeyId) return;
-    sftpState.loading = true;
-    tab.sftpLoading = true;
+
+    let writableStream: any = null;
+    let useFilePicker = false;
+
+    // 优先使用文件系统访问 API 弹出另存为窗口
+    if ('showSaveFilePicker' in window) {
+        try {
+            const handle = await (window as any).showSaveFilePicker({
+                suggestedName: row.name,
+            });
+            writableStream = await handle.createWritable();
+            useFilePicker = true;
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                return;
+            }
+            ElMessage.error(err.message || '打开保存对话框失败');
+            return;
+        }
+    }
+
+    // 初始化进度状态
+    transferProgress.visible = true;
+    transferProgress.type = 'download';
+    transferProgress.fileName = row.name;
+    transferProgress.fileSize = row.size || 0;
+    transferProgress.transferred = 0;
+    transferProgress.percentage = 0;
+    transferProgress.status = 'downloading';
+
+    abortController = new AbortController();
+    const remotePath = sftpState.currentPath === '/' ? `/${row.name}` : `${sftpState.currentPath}/${row.name}`;
+
     try {
-        const remotePath = sftpState.currentPath === '/' ? `/${row.name}` : `${sftpState.currentPath}/${row.name}`;
-        const res = await sftpApi.downloadFile({
-            instanceId: tab.instanceId,
-            keyId: tab.selectedKeyId,
-            remotePath: remotePath,
-        });
-        const blob = new Blob([res as any]);
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = row.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        if (useFilePicker && writableStream) {
+            // 流式写入本地文件
+            const fileWritable = {
+                write: async (chunk: Uint8Array) => {
+                    await writableStream.write(chunk);
+                },
+                close: async () => {
+                    await writableStream.close();
+                },
+            };
+            await sftpApi.downloadStream(
+                {
+                    instanceId: tab.instanceId,
+                    keyId: tab.selectedKeyId,
+                    remotePath: remotePath,
+                    fileSize: row.size || 0,
+                },
+                fileWritable,
+                (received, total) => {
+                    transferProgress.transferred = received;
+                    transferProgress.percentage = total > 0 ? Math.round((received * 100) / total) : 0;
+                },
+                abortController.signal
+            );
+        } else {
+            // 浏览器不支持 showSaveFilePicker，使用 blob 收集后自动下载
+            const chunks: Uint8Array[] = [];
+            const blobWritable = {
+                write: async (chunk: Uint8Array) => {
+                    chunks.push(chunk);
+                },
+                close: async () => {
+                    return new Blob(chunks);
+                },
+            };
+            const blob = await sftpApi.downloadStream(
+                {
+                    instanceId: tab.instanceId,
+                    keyId: tab.selectedKeyId,
+                    remotePath: remotePath,
+                    fileSize: row.size || 0,
+                },
+                blobWritable,
+                (received, total) => {
+                    transferProgress.transferred = received;
+                    transferProgress.percentage = total > 0 ? Math.round((received * 100) / total) : 0;
+                },
+                abortController.signal
+            );
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = row.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+        transferProgress.status = '';
         ElMessage.success('下载成功');
     } catch (error: any) {
-        ElMessage.error(error.message || '下载失败');
+        if (error.name === 'AbortError') {
+            ElMessage.info('下载已取消');
+            transferProgress.visible = false;
+            transferProgress.status = '';
+        } else {
+            transferProgress.status = 'exception';
+            ElMessage.error(error.message || '下载失败');
+        }
+        // 如果使用了文件系统访问 API 且出错了，尝试中止写入
+        if (useFilePicker && writableStream) {
+            try {
+                await writableStream.abort();
+            } catch (e) {
+                // 忽略中止错误
+            }
+        }
     } finally {
-        sftpState.loading = false;
-        tab.sftpLoading = false;
+        abortController = null;
     }
 };
 
@@ -1122,27 +1285,157 @@ const doRename = async () => {
     }
 };
 
+const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB
+
 const handleUploadChange = async (uploadFile: any) => {
     const tab = activeTabRef.value;
     if (!tab || !tab.selectedKeyId) return;
     const file = uploadFile.raw;
     if (!file) return;
+
+    // 小文件直接走原逻辑
+    if (file.size <= CHUNK_SIZE) {
+        await uploadSingleFile(file, tab.instanceId, tab.selectedKeyId);
+        return;
+    }
+
+    // 大文件切片上传
+    await uploadChunkedFile(file, tab.instanceId, tab.selectedKeyId);
+};
+
+const uploadSingleFile = async (file: File, instanceId: number, keyId: number) => {
+    transferProgress.visible = true;
+    transferProgress.type = 'upload';
+    transferProgress.fileName = file.name;
+    transferProgress.fileSize = file.size || 0;
+    transferProgress.transferred = 0;
+    transferProgress.percentage = 0;
+    transferProgress.status = 'uploading';
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('instanceId', String(tab.instanceId));
-    formData.append('keyId', String(tab.selectedKeyId));
+    formData.append('instanceId', String(instanceId));
+    formData.append('keyId', String(keyId));
     formData.append('remotePath', sftpState.currentPath);
-    sftpState.loading = true;
-    tab.sftpLoading = true;
+
+    abortController = new AbortController();
     try {
-        await sftpApi.uploadFile(formData);
+        await sftpApi.uploadFile(
+            formData,
+            (progressEvent: any) => {
+                const loaded = progressEvent.loaded || 0;
+                const total = progressEvent.total || file.size || 0;
+                transferProgress.transferred = loaded;
+                transferProgress.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+            },
+            abortController.signal
+        );
+        transferProgress.status = '';
         ElMessage.success('上传成功');
         await refreshSftp();
     } catch (error: any) {
-        ElMessage.error(error.message || '上传失败');
+        if (error.name === 'AbortError' || error.message === 'canceled') {
+            ElMessage.info('上传已取消');
+            transferProgress.visible = false;
+            transferProgress.status = '';
+        } else {
+            transferProgress.status = 'exception';
+            ElMessage.error(error.message || '上传失败');
+        }
     } finally {
-        sftpState.loading = false;
-        tab.sftpLoading = false;
+        abortController = null;
+    }
+};
+
+const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) => {
+    const chunkTotal = Math.ceil(file.size / CHUNK_SIZE);
+
+    // 查询已上传进度
+    let uploadedSize = 0;
+    try {
+        const checkRes = await sftpApi.uploadCheck({
+            instanceId,
+            keyId,
+            remotePath: sftpState.currentPath,
+            fileName: file.name,
+        });
+        uploadedSize = checkRes.data?.uploadedSize || 0;
+    } catch (e: any) {
+        // 查询失败继续从 0 开始
+    }
+
+    const startChunk = Math.floor(uploadedSize / CHUNK_SIZE);
+
+    // 初始化进度
+    transferProgress.visible = true;
+    transferProgress.type = 'upload';
+    transferProgress.fileName = file.name;
+    transferProgress.fileSize = file.size || 0;
+    transferProgress.transferred = uploadedSize;
+    transferProgress.percentage = file.size > 0 ? Math.round((uploadedSize * 100) / file.size) : 0;
+    transferProgress.status = 'uploading';
+
+    abortController = new AbortController();
+
+    try {
+        for (let i = startChunk; i < chunkTotal; i++) {
+            if (abortController.signal.aborted) {
+                throw new Error('canceled');
+            }
+
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+
+            const formData = new FormData();
+            formData.append('file', chunk, file.name);
+            formData.append('instanceId', String(instanceId));
+            formData.append('keyId', String(keyId));
+            formData.append('remotePath', sftpState.currentPath);
+            formData.append('chunkIndex', String(i));
+            formData.append('chunkTotal', String(chunkTotal));
+            formData.append('fileSize', String(file.size));
+            formData.append('fileName', file.name);
+
+            // 每片重试 3 次
+            let lastError: any = null;
+            let success = false;
+            for (let retry = 0; retry < 3; retry++) {
+                if (abortController.signal.aborted) {
+                    throw new Error('canceled');
+                }
+                try {
+                    await sftpApi.uploadChunk(formData);
+                    success = true;
+                    break;
+                } catch (err: any) {
+                    lastError = err;
+                    if (err.message === 'canceled') throw err;
+                    await new Promise((r) => setTimeout(r, 500 * (retry + 1)));
+                }
+            }
+            if (!success) {
+                throw lastError || new Error('分片上传失败');
+            }
+
+            transferProgress.transferred = end;
+            transferProgress.percentage = file.size > 0 ? Math.round((end * 100) / file.size) : 0;
+        }
+
+        transferProgress.status = '';
+        ElMessage.success('上传成功');
+        await refreshSftp();
+    } catch (error: any) {
+        if (error.name === 'AbortError' || error.message === 'canceled') {
+            ElMessage.info('上传已取消');
+            transferProgress.visible = false;
+            transferProgress.status = '';
+        } else {
+            transferProgress.status = 'exception';
+            ElMessage.error(error.message || '上传失败');
+        }
+    } finally {
+        abortController = null;
     }
 };
 </script>
@@ -1430,6 +1723,45 @@ const handleUploadChange = async (uploadFile: any) => {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+// ===== 文件传输进度样式 =====
+.transfer-progress {
+    padding: 10px 0;
+
+    .transfer-file-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+
+        .file-type-icon {
+            color: #409eff;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #303133;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .transfer-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #606266;
+    }
+
+    .transfer-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
     }
 }
 
