@@ -7,7 +7,6 @@
                 type="card"
                 closable
                 @tab-remove="removeTab"
-                @tab-change="handleTabChange"
             >
                 <el-tab-pane
                     v-for="tab in state.tabs"
@@ -309,7 +308,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick, ref, computed } from 'vue';
+import { reactive, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -416,6 +415,14 @@ const transferProgress = reactive({
     status: '' as '' | 'uploading' | 'downloading' | 'exception',
 });
 
+// 文件下载确认对话框状态
+const downloadDialog = reactive({
+    visible: false,
+    fileName: '',
+    fileSize: 0,
+    row: null as any,
+});
+
 let abortController: AbortController | null = null;
 
 const cancelTransfer = () => {
@@ -457,21 +464,48 @@ const syncActiveTabState = () => {
 };
 
 // 同步当前激活标签的变更
-const syncBackToTab = () => {
-    const tab = activeTabRef.value;
-    if (tab) {
-        tab.showKeySelector = activeTabState.showKeySelector;
-        tab.selectedKeyId = activeTabState.selectedKeyId;
-        tab.availableKeys = activeTabState.availableKeys;
-        tab.connecting = activeTabState.connecting;
+const syncBackToTab = (tab?: TerminalTab | null) => {
+    const target = tab || activeTabRef.value;
+    if (target) {
+        target.showKeySelector = activeTabState.showKeySelector;
+        target.selectedKeyId = activeTabState.selectedKeyId;
+        target.availableKeys = activeTabState.availableKeys;
+        target.connecting = activeTabState.connecting;
         // SFTP
-        tab.sftpVisible = sftpState.visible;
-        tab.sftpCurrentPath = sftpState.currentPath;
-        tab.sftpFileList = sftpState.fileList;
-        tab.sftpBreadcrumbs = sftpState.breadcrumbs;
-        tab.sftpLoading = sftpState.loading;
+        target.sftpVisible = sftpState.visible;
+        target.sftpCurrentPath = sftpState.currentPath;
+        target.sftpFileList = sftpState.fileList;
+        target.sftpBreadcrumbs = sftpState.breadcrumbs;
+        target.sftpLoading = sftpState.loading;
     }
 };
+
+// 监听标签切换，正确处理状态同步
+watch(() => state.activeTab, (newTabId, oldTabId) => {
+    // 1. 将当前 facade 状态保存到【旧】标签
+    if (oldTabId) {
+        const oldTab = state.terminalMap.get(parseInt(oldTabId));
+        syncBackToTab(oldTab);
+    }
+    // 2. 加载新标签状态到 facade
+    syncActiveTabState();
+    // 3. 终端自适应 + resize
+    nextTick(() => {
+        setTimeout(() => {
+            const tab = activeTabRef.value;
+            if (tab?.fitAddon && tab.terminal) {
+                tab.fitAddon.fit();
+            }
+            if (tab?.socket && tab.socket.readyState === WebSocket.OPEN && tab.terminal) {
+                tab.socket.send(JSON.stringify({
+                    type: 'resize',
+                    cols: tab.terminal.cols,
+                    rows: tab.terminal.rows,
+                }));
+            }
+        }, 50);
+    });
+});
 
 // 初始化页面
 onMounted(async () => {
@@ -525,8 +559,9 @@ const addTerminalTab = async (instanceId: number, instanceName?: string) => {
     // 检查是否已存在
     const existingTab = state.terminalMap.get(instanceId);
     if (existingTab) {
+        // 保存当前标签状态到旧标签，再切换（watcher 会自动处理状态加载）
+        syncBackToTab();
         state.activeTab = instanceId.toString();
-        syncActiveTabState();
         return;
     }
 
@@ -552,8 +587,8 @@ const addTerminalTab = async (instanceId: number, instanceName?: string) => {
 
     state.tabs.push(tab);
     state.terminalMap.set(instanceId, tab);
-    state.activeTab = instanceId.toString();
-    syncActiveTabState();
+    syncBackToTab(); // 保存当前标签状态到旧标签
+    state.activeTab = instanceId.toString(); // watcher 自动处理状态加载
 
     // 等待 DOM 更新后初始化终端
     await nextTick();
@@ -872,34 +907,9 @@ const removeTab = (targetName: string) => {
     // 如果删除的是当前激活的标签，切换到最后一个标签
     if (state.activeTab === targetName && state.tabs.length > 0) {
         state.activeTab = state.tabs[state.tabs.length - 1].instanceId.toString();
-        syncActiveTabState();
     } else if (state.tabs.length === 0) {
         state.activeTab = '';
-        syncActiveTabState();
     }
-};
-
-// 标签切换
-const handleTabChange = (tabName: string) => {
-    syncBackToTab(); // 先保存之前标签的状态
-    state.activeTab = tabName;
-    syncActiveTabState(); // 加载新标签的状态
-    // 切换后触发当前标签终端自适应并发送尺寸给后端
-    nextTick(() => {
-        setTimeout(() => {
-            const tab = activeTabRef.value;
-            if (tab?.fitAddon && tab.terminal) {
-                tab.fitAddon.fit();
-            }
-            if (tab?.socket && tab.socket.readyState === WebSocket.OPEN && tab.terminal) {
-                tab.socket.send(JSON.stringify({
-                    type: 'resize',
-                    cols: tab.terminal.cols,
-                    rows: tab.terminal.rows,
-                }));
-            }
-        }, 50);
-    });
 };
 
 // 关闭整个页面
@@ -1065,6 +1075,20 @@ const formatSize = (size: number) => {
     if (size < 1024 * 1024) return (size / 1024).toFixed(2) + ' KB';
     if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(2) + ' MB';
     return (size / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+};
+
+const showDownloadConfirm = (row: any) => {
+    downloadDialog.fileName = row.name;
+    downloadDialog.fileSize = row.size || 0;
+    downloadDialog.row = row;
+    downloadDialog.visible = true;
+};
+
+const doDownloadFile = () => {
+    if (downloadDialog.row) {
+        downloadFile(downloadDialog.row);
+    }
+    downloadDialog.visible = false;
 };
 
 const downloadFile = async (row: any) => {
@@ -1723,6 +1747,38 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+// ===== 下载确认对话框样式 =====
+.download-confirm {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+
+    .download-icon {
+        color: #409eff;
+        flex-shrink: 0;
+    }
+
+    .download-info {
+        flex: 1;
+        min-width: 0;
+
+        .download-filename {
+            font-size: 14px;
+            color: #303133;
+            font-weight: 500;
+            margin: 0 0 6px 0;
+            word-break: break-all;
+        }
+
+        .download-filesize {
+            font-size: 12px;
+            color: #909399;
+            margin: 0;
+        }
     }
 }
 
