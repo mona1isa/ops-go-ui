@@ -307,7 +307,7 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="terminal">
 import { reactive, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Terminal } from 'xterm';
