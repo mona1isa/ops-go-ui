@@ -2,7 +2,7 @@
     <div class="auth-container">
         <el-row :gutter="10">
             <el-col :span="6">
-                <el-card class="user-list-card">
+                <el-card class="user-list-card" :body-style="{ height: '100%', padding: '16px', boxSizing: 'border-box' }">
                     <UserList ref="userListRef" @user-change="handleUserChange"/>
                 </el-card>
             </el-col>
@@ -95,14 +95,30 @@ watch(activeTab, (newTab) => {
 </script>
 
 <style scoped lang="scss">
+.auth-container {
+  min-height: calc(100vh - 110px);
+}
+
 .user-list-card {
     margin-left: 10px;
     margin-top: 20px;
-    height: 600px;
+    height: calc(100vh - 130px);
+    display: flex;
+    flex-direction: column;
+
+    :deep(.el-card__body) {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
 }
 
 .auth-right {
   flex: 1;
   padding: 20px;
+}
+
+.host-info-card {
+    min-height: calc(100vh - 130px);
 }
 </style>
