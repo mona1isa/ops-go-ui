@@ -13,7 +13,7 @@
 					</div>
 				</div>
 				<div class="right">
-					<img src="https://i.hd-r.cn/2cf0d2e192660eec23eb9d0655753e7d.png" />
+					<img src="https://i.hd-r.cn/2cf0d2e192660eec23eb9d0655753e7d.png" alt="401 无访问权限" loading="lazy" width="450" height="350" />
 				</div>
 			</div>
 		</div>
@@ -38,8 +38,9 @@ const onSetAuth = () => {
 	.error-flex {
 		margin: auto;
 		display: flex;
-		height: 350px;
-		width: 900px;
+		min-height: 350px;
+		max-width: 900px;
+			width: 100%;
 		.left {
 			flex: 1;
 			height: 100%;

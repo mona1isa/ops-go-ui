@@ -34,8 +34,16 @@
                     </el-icon>
                     同步主机
                 </el-button>
+                <el-button size="default" plain type="danger" class="ml10" :disabled="selectedHostIds.length === 0" :loading="batchDeleting" @click="onBatchDel">
+                    <el-icon>
+                        <ele-Delete />
+                    </el-icon>
+                    批量删除
+                    <el-tag v-if="selectedHostIds.length > 0" type="danger" size="small" effect="dark" round class="ml5">{{ selectedHostIds.length }}</el-tag>
+                </el-button>
             </div>
-            <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
+            <el-table ref="instanceTableRef" :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%" @selection-change="handleSelectionChange">
+                <el-table-column type="selection" width="55" align="center" />
                 <el-table-column prop="id" label="ID" width="60" />
                 <el-table-column prop="name" label="主机名称" show-overflow-tooltip>
                     <template #default="scope">
@@ -206,6 +214,12 @@ const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
 const unbindingKeyDialogRef = ref();
+const instanceTableRef = ref();
+
+// 批量删除相关变量
+const selectedHosts = ref<RowInstanceType[]>([]);
+const selectedHostIds = ref<number[]>([]);
+const batchDeleting = ref(false);
 
 
 // 同步主机相关变量
@@ -334,6 +348,50 @@ const onOpenSSH = (row: RowInstanceType) => {
 };
 
 
+
+// 表格选择变化
+const handleSelectionChange = (selection: RowInstanceType[]) => {
+    selectedHosts.value = selection;
+    selectedHostIds.value = selection.map((item) => item.id);
+};
+
+// 批量删除操作
+const onBatchDel = () => {
+    if (selectedHostIds.value.length === 0) {
+        ElMessage.warning('请选择要删除的主机');
+        return;
+    }
+    const hostNames = selectedHosts.value.map((item) => item.name).join('、');
+    const displayNames = hostNames.length > 100 ? hostNames.substring(0, 100) + '...' : hostNames;
+    ElMessageBox.confirm(
+        `此操作将永久删除以下 ${selectedHostIds.value.length} 台主机：\n${displayNames}\n\n是否继续?`,
+        '批量删除确认',
+        {
+            confirmButtonText: '确认删除',
+            cancelButtonText: '取消',
+            type: 'warning',
+            dangerouslyUseHTMLString: false,
+        }
+    )
+        .then(() => {
+            batchDeleting.value = true;
+            instanceApi
+                .batchDeleteInstance({ ids: selectedHostIds.value })
+                .then((res) => {
+                    if (res && res.code == 200) {
+                        ElMessage.success(`成功删除 ${selectedHostIds.value.length} 台主机`);
+                        selectedHosts.value = [];
+                        selectedHostIds.value = [];
+                        instanceTableRef.value?.clearSelection();
+                        getTableData();
+                    }
+                })
+                .finally(() => {
+                    batchDeleting.value = false;
+                });
+        })
+        .catch(() => {});
+};
 
 // 删除操作
 const onRowDel = (row: RowInstanceType) => {

@@ -50,22 +50,22 @@
 						<el-tab-pane label="基本信息" name="baseInfo">
 							<el-form :model="state.personalForm" size="default" label-width="100px">
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="昵称:" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
+									<el-form-item label="昵称" :rules="[{ required: true, message: '请输入昵称', trigger: 'blur' }]">
 										<el-input v-model="state.personalForm.nickname" placeholder="请输入昵称" clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="邮箱:" :rules="[{ required: true, message: '请输入邮箱', trigger: 'blur' }, { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱', trigger: 'blur' }]">
+									<el-form-item label="邮箱" :rules="[{ required: true, message: '请输入邮箱', trigger: 'blur' }, { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱', trigger: 'blur' }]">
 										<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="手机:" :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]">
+									<el-form-item label="手机" :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]">
 										<el-input v-model="state.personalForm.phone" placeholder="请输入手机" clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="性别:">
+									<el-form-item label="性别">
 										<el-select v-model="state.personalForm.sex" placeholder="请选择性别" clearable class="w100">
 											<el-option label="男" :value="0"></el-option>
 											<el-option label="女" :value="1"></el-option>
@@ -88,18 +88,18 @@
 						<el-tab-pane label="修改密码" name="password">
 							<el-form :model="state.passwordForm" size="default" label-width="100px">
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="旧密码:" :rules="[{ required: true, message: '请输入旧密码', trigger: 'blur' }]">
-										<el-input v-model="state.passwordForm.oldPassword" placeholder="请输入旧密码" type="password" clearable></el-input>
+									<el-form-item label="旧密码" :rules="[{ required: true, message: '请输入旧密码', trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.oldPassword" placeholder="请输入旧密码" type="password" show-password clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="新密码:" :rules="[{ required: true, message: '请输入新密码', trigger: 'blur' }]">
-										<el-input v-model="state.passwordForm.newPassword" placeholder="请输入新密码" type="password" clearable></el-input>
+									<el-form-item label="新密码" :rules="[{ required: true, message: '请输入新密码', trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.newPassword" placeholder="请输入新密码" type="password" show-password clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">
-									<el-form-item label="确认密码:" :rules="[{ required: true, message: '请确认新密码', trigger: 'blur' }, { validator: validatePassword, trigger: 'blur' }]">
-										<el-input v-model="state.passwordForm.confirmPassword" placeholder="请确认新密码" type="password" clearable></el-input>
+									<el-form-item label="确认密码" :rules="[{ required: true, message: '请确认新密码', trigger: 'blur' }, { validator: validatePassword, trigger: 'blur' }]">
+										<el-input v-model="state.passwordForm.confirmPassword" placeholder="请确认新密码" type="password" show-password clearable></el-input>
 									</el-form-item>
 								</el-row>
 								<el-row :gutter="20" class="update-info-gutter">

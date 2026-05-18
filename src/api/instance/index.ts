@@ -56,6 +56,13 @@ export function useInstanceApi() {
                 method: 'delete',
             });
         },
+        batchDeleteInstance: (data: { ids: number[] }) => {
+            return request({
+                url: '/api/instance/batchDelete',
+                method: 'post',
+                data,
+            });
+        },
 
         instanceBindingKey: (data: object) => {
             return request({

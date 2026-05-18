@@ -1,10 +1,11 @@
 <template>
 	<el-container class="layout-container">
+		<a href="#main-content" class="skip-link">跳转到主要内容</a>
 		<LayoutAside />
 		<el-container class="layout-container-view h100">
 			<el-scrollbar ref="layoutScrollbarRef" class="layout-backtop">
 				<LayoutHeader />
-				<LayoutMain ref="layoutMainRef" />
+				<LayoutMain ref="layoutMainRef" id="main-content" />
 			</el-scrollbar>
 		</el-container>
 	</el-container>

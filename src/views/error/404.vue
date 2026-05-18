@@ -13,7 +13,7 @@
 					</div>
 				</div>
 				<div class="right">
-					<img src="https://i.hd-r.cn/1a0d90a6c1e8b0184c7299dda713effd.png" />
+					<img src="https://i.hd-r.cn/1a0d90a6c1e8b0184c7299dda713effd.png" alt="404 页面未找到" loading="lazy" width="450" height="350" />
 				</div>
 			</div>
 		</div>
@@ -38,8 +38,9 @@ const onGoHome = () => {
 	.error-flex {
 		margin: auto;
 		display: flex;
-		height: 350px;
-		width: 900px;
+		min-height: 350px;
+		max-width: 900px;
+			width: 100%;
 		.left {
 			flex: 1;
 			height: 100%;
