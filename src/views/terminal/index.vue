@@ -270,7 +270,7 @@
                                 <span v-else>-</span>
                             </template>
                         </el-table-column>
-                        <el-table-column label="操作" width="90" fixed="right">
+                        <el-table-column label="操作" width="90">
                             <template #default="scope">
                                 <el-icon
                                     v-if="!scope.row.isDir"
@@ -1574,8 +1574,8 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
     z-index: 500;
 
     &:not(.collapsed) {
-        width: 320px;
-        min-width: 320px;
+        width: 420px;
+        min-width: 420px;
     }
 
     &.collapsed {
@@ -1628,6 +1628,8 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
     flex-direction: column;
     height: 100%;
     padding: 10px;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .sftp-header {
@@ -1687,9 +1689,14 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
 
 .sftp-table {
     flex: 1;
+    min-width: 0;
 
     :deep(.el-table__body-wrapper) {
         overflow-y: auto;
+    }
+
+    :deep(.el-table__body-wrapper), :deep(.el-table__header-wrapper) {
+        overflow-x: hidden;
     }
 }
 

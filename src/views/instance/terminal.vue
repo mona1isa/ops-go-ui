@@ -211,7 +211,7 @@
                                         <span v-else>-</span>
                                     </template>
                                 </el-table-column>
-                                <el-table-column label="操作" width="90" fixed="right">
+                                <el-table-column label="操作" width="90">
                                     <template #default="scope">
                                         <el-icon
                                             v-if="!scope.row.isDir"
@@ -1038,8 +1038,8 @@ defineExpose({
 
     &:not(.collapsed) {
         width: 25%;
-        min-width: 300px;
-        max-width: 400px;
+        min-width: 400px;
+        max-width: 520px;
     }
 
     &.collapsed {
@@ -1092,6 +1092,8 @@ defineExpose({
     flex-direction: column;
     height: 100%;
     padding: 10px;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .sftp-header {
@@ -1142,9 +1144,14 @@ defineExpose({
 
 .sftp-table {
     flex: 1;
+    min-width: 0;
 
     :deep(.el-table__body-wrapper) {
         overflow-y: auto;
+    }
+
+    :deep(.el-table__body-wrapper), :deep(.el-table__header-wrapper) {
+        overflow-x: hidden;
     }
 }
 
