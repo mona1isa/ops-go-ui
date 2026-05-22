@@ -53,11 +53,15 @@ export async function initBackEndControlRoutes() {
 	// 存储接口原始路由（未处理component），根据需求选择使用
 	useRequestOldRoutes().setRequestOldRoutes(JSON.parse(JSON.stringify(res.data)));
 	// 处理路由（component），替换 dynamicRoutes（/@/router/route）第一个顶级 children 的路由
-	// 保留终端路由，避免被后端路由数据覆盖
+	// 保留终端路由和凭证详情路由，避免被后端路由数据覆盖
 	const terminalRoute = dynamicRoutes[0].children.find((v: any) => v.path === '/terminal/:id');
+	const keysDetailRoute = dynamicRoutes[0].children.find((v: any) => v.path === '/keys/detail/:id');
 	dynamicRoutes[0].children = await backEndComponent(res.data);
 	if (terminalRoute && !dynamicRoutes[0].children.some((v: any) => v.path === '/terminal/:id')) {
 		dynamicRoutes[0].children.push(terminalRoute);
+	}
+	if (keysDetailRoute && !dynamicRoutes[0].children.some((v: any) => v.path === '/keys/detail/:id')) {
+		dynamicRoutes[0].children.push(keysDetailRoute);
 	}
 	// 添加动态路由
 	await setAddRoute();
