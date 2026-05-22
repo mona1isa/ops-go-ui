@@ -4,7 +4,17 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	outline: none !important;
+}
+
+/* 无障碍焦点环：仅在键盘导航时显示 */
+:focus-visible {
+	outline: 2px solid var(--el-color-primary);
+	outline-offset: 2px;
+}
+
+/* 鼠标点击时不显示焦点环 */
+:focus:not(:focus-visible) {
+	outline: none;
 }
 
 :root {
@@ -39,6 +49,33 @@ body,
 	font-size: 14px;
 	overflow: hidden;
 	position: relative;
+}
+
+/* Skip Link - 无障碍跳转 */
+.skip-link {
+	position: absolute;
+	top: -40px;
+	left: 0;
+	background: var(--el-color-primary);
+	color: #fff;
+	padding: 8px 16px;
+	z-index: 999999;
+	border-radius: 0 0 4px 0;
+	font-size: 14px;
+	text-decoration: none;
+	transition: top 0.2s ease;
+	&:focus {
+		top: 0;
+	}
+}
+
+/* 移动端基础字体不小于 16px，防止 iOS 自动缩放 */
+@media screen and (max-width: 768px) {
+	html,
+	body,
+	#app {
+		font-size: 16px;
+	}
 }
 
 /* 主布局样式

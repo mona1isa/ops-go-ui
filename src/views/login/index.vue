@@ -31,7 +31,7 @@
 							</el-tabs>
 						</div>
 						<Scan v-if="state.isScan" />
-						<div class="login-content-main-sacn" @click="state.isScan = !state.isScan">
+						<div class="login-content-main-sacn" @click="state.isScan = !state.isScan" role="button" :aria-label="state.isScan ? '切换到账号密码登录' : '切换到扫码登录'" tabindex="0" @keydown.enter="state.isScan = !state.isScan">
 							<i class="iconfont" :class="state.isScan ? 'icon-diannao1' : 'icon-barcode-qr'"></i>
 							<div class="login-content-main-sacn-delta"></div>
 						</div>
@@ -53,7 +53,7 @@ import loginBg from '/@/assets/login-bg.svg';
 
 // 引入组件
 const Account = defineAsyncComponent(() => import('/@/views/login/component/account.vue'));
-const Mobile = defineAsyncComponent(() => import('/@/views/login/component/mobile.vue'));
+// const Mobile = defineAsyncComponent(() => import('/@/views/login/component/mobile.vue'));
 const Scan = defineAsyncComponent(() => import('/@/views/login/component/scan.vue'));
 
 // 定义变量内容
@@ -159,7 +159,7 @@ onMounted(() => {
 					width: 100%;
 					height: 3px;
 					background: linear-gradient(90deg, transparent, var(--el-color-primary));
-					animation: loginLeft 3s linear infinite;
+					animation: loginLeft 1.5s ease-out forwards;
 				}
 				&::after {
 					filter: hue-rotate(60deg);
@@ -168,8 +168,8 @@ onMounted(() => {
 					width: 3px;
 					height: 100%;
 					background: linear-gradient(180deg, transparent, var(--el-color-primary));
-					animation: loginTop 3s linear infinite;
-					animation-delay: 0.7s;
+					animation: loginTop 1.5s ease-out forwards;
+					animation-delay: 0.3s;
 				}
 			}
 			.login-right-warp-two {
@@ -180,8 +180,8 @@ onMounted(() => {
 					width: 100%;
 					height: 3px;
 					background: linear-gradient(270deg, transparent, var(--el-color-primary));
-					animation: loginRight 3s linear infinite;
-					animation-delay: 1.4s;
+					animation: loginRight 1.5s ease-out forwards;
+					animation-delay: 0.6s;
 				}
 				&::after {
 					filter: hue-rotate(300deg);
@@ -190,8 +190,8 @@ onMounted(() => {
 					width: 3px;
 					height: 100%;
 					background: linear-gradient(360deg, transparent, var(--el-color-primary));
-					animation: loginBottom 3s linear infinite;
-					animation-delay: 2.1s;
+					animation: loginBottom 1.5s ease-out forwards;
+					animation-delay: 0.9s;
 				}
 			}
 			.login-right-warp-mian {

@@ -1,7 +1,7 @@
 <template>
 	<el-form size="large" class="login-content-form">
 		<el-form-item class="login-animation1">
-			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.username" clearable autocomplete="off">
+			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.username" clearable autocomplete="off" aria-label="用户名">
 				<template #prefix>
 					<el-icon class="el-input__icon"><ele-User /></el-icon>
 				</template>
@@ -13,6 +13,7 @@
 				:placeholder="$t('message.account.accountPlaceholder2')"
 				v-model="state.ruleForm.password"
 				autocomplete="off"
+					aria-label="密码"
 			>
 				<template #prefix>
 					<el-icon class="el-input__icon"><ele-Unlock /></el-icon>
@@ -27,7 +28,7 @@
 				</template>
 			</el-input>
 		</el-form-item>
-		<el-form-item class="login-animation3">
+		<el-form-item class="login-animation3" v-if="captchaEnabled">
 			<el-col :span="15">
 				<el-input
 					text
@@ -36,6 +37,7 @@
 					v-model="state.ruleForm.code"
 					clearable
 					autocomplete="off"
+					aria-label="验证码"
 				>
 					<template #prefix>
 						<el-icon class="el-input__icon"><ele-Position /></el-icon>
@@ -58,13 +60,13 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import { reactive, computed, onMounted, onUnmounted } from 'vue';
+import { reactive, ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import Cookies from 'js-cookie';
-import { storeToRefs } from 'pinia';
-import { useThemeConfig } from '/@/stores/themeConfig';
+// import { storeToRefs } from 'pinia';
+// import { useThemeConfig } from '/@/stores/themeConfig';
 import { initBackEndControlRoutes } from '/@/router/backEnd';
 import { Session } from '/@/utils/storage';
 import { formatAxis } from '/@/utils/formatTime';
@@ -73,8 +75,8 @@ import { useCaptchaApi, useLoginApi } from '/@/api/login';
 
 // 定义变量内容
 const { t } = useI18n();
-const storesThemeConfig = useThemeConfig();
-const { themeConfig } = storeToRefs(storesThemeConfig);
+// const storesThemeConfig = useThemeConfig();
+// const { themeConfig } = storeToRefs(storesThemeConfig);
 const route = useRoute();
 const router = useRouter();
 const state = reactive({
@@ -96,6 +98,9 @@ const captcha = reactive({
 	img: '',
 	uuid: '',
 });
+
+// 验证码开关
+const captchaEnabled = ref(false);
 
 const captchaApi = useCaptchaApi();
 
@@ -127,16 +132,31 @@ const currentTime = computed(() => {
 // 获取验证码
 const getCaptchaCode = async () => {
 	const response = await captchaApi.getCaptcha();
-	captcha.code = response.code;
-	captcha.img = "data:image/png;base64," + response.img;
-	state.ruleForm.uuid = response.uuid;
+	captchaEnabled.value = response.captchaEnabled === true;
+	if (captchaEnabled.value) {
+		captcha.code = response.code;
+		captcha.img = "data:image/png;base64," + response.img;
+		state.ruleForm.uuid = response.uuid;
+	} else {
+		captcha.img = '';
+		state.ruleForm.uuid = '';
+		state.ruleForm.code = '';
+	}
 };
 
 // 登录
 const onSignIn = async () => {
 	state.loading.signIn = true;
 	try {
-		const response = await useLoginApi().signIn(state.ruleForm);
+		const loginData: any = {
+			username: state.ruleForm.username,
+			password: state.ruleForm.password,
+		};
+		if (captchaEnabled.value) {
+			loginData.code = state.ruleForm.code;
+			loginData.uuid = state.ruleForm.uuid;
+		}
+		const response = await useLoginApi().signIn(loginData);
 		if (response.code === 200) {
 			// 存储 token 到浏览器缓存
 			Session.set('token', response.token);
@@ -153,7 +173,9 @@ const onSignIn = async () => {
 	} catch (error: any) {
 		// ElMessage.error(error.message || '登录失败，请重试');
 		state.loading.signIn = false;
-		getCaptchaCode();
+		if (captchaEnabled.value) {
+			getCaptchaCode();
+		}
 	}
 };
 // 登录成功后的跳转

@@ -1018,6 +1018,18 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				},
 			},
 			{
+				path: '/keys/detail/:id',
+				name: 'keysDetail',
+				component: () => import('/@/views/keys/detail.vue'),
+				meta: {
+					title: '凭证详情',
+					isHide: true,
+					isKeepAlive: true,
+					roles: ['admin', 'common'],
+					icon: 'ele-Key',
+				},
+			},
+			{
 				path: '/link',
 				name: 'layoutLinkView',
 				component: () => import('/@/layout/routerView/link.vue'),

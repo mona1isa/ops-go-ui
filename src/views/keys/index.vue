@@ -96,7 +96,7 @@
                         <div class="key-card-header">
                             <div class="key-card-title">
                                 <el-icon><ele-Key /></el-icon>
-                                <span class="ml5">{{ item.name }}</span>
+                                <el-link type="primary" :underline="false" @click="goToDetail(item)">{{ item.name }}</el-link>
                             </div>
                             <el-dropdown trigger="click" placement="bottom-end">
                                 <el-icon class="key-card-more"><ele-MoreFilled /></el-icon>
@@ -184,6 +184,7 @@
 
 <script setup lang="ts" name="keys">
 import { reactive, onMounted, defineAsyncComponent, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useKeyApi } from '/@/api/keys';
 import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
 import { KeyState, RowKeyType } from '/@/types/views';
@@ -191,9 +192,8 @@ import { KeyState, RowKeyType } from '/@/types/views';
 // 定义组件
 const KeyDialog = defineAsyncComponent(() => import('/@/views/keys/dialog.vue'));
 
-// 定义接口
 const keyApi = useKeyApi();
-
+const router = useRouter();
 // 定义变量内容
 const keysDialogRef = ref();
 
@@ -255,6 +255,11 @@ const handleReset = () => {
     getTableData();
 };
 
+
+// 跳转到凭证详情页
+const goToDetail = (row: RowKeyType) => {
+	router.push({ name: 'keysDetail', params: { id: row.id } });
+};
 // 获取协议图标样式
 const getProtocolIconClass = (protocol: string) => {
     switch (protocol?.toLowerCase()) {

@@ -57,6 +57,44 @@ export function useKeyApi() {
                 method: 'post',
                 data,
             });
-        }
+        },
+
+        getKeyDetail: (id: number) => {
+            return request({
+                url: '/api/keys/' + id,
+                method: 'get',
+            });
+        },
+
+        getKeyInstances: (keyId: number, params: { pageNum: number; pageSize: number }) => {
+            return request({
+                url: '/api/keys/' + keyId + '/instances',
+                method: 'get',
+                params,
+            });
+        },
+
+        getAvailableInstances: (keyId: number, params?: { name?: string; ip?: string }) => {
+            return request({
+                url: '/api/keys/' + keyId + '/available-instances',
+                method: 'get',
+                params,
+            });
+        },
+
+        bindInstances: (data: { keyId: number; instanceIds: number[] }) => {
+            return request({
+                url: '/api/keys/bind-instances',
+                method: 'post',
+                data,
+            });
+        },
+
+        unbindInstance: (keyId: number, instanceId: number) => {
+            return request({
+                url: '/api/keys/' + keyId + '/instances/' + instanceId,
+                method: 'delete',
+            });
+        },
     }
 }
