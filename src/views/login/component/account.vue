@@ -28,7 +28,7 @@
 				</template>
 			</el-input>
 		</el-form-item>
-		<el-form-item class="login-animation3">
+		<el-form-item class="login-animation3" v-if="captchaEnabled">
 			<el-col :span="15">
 				<el-input
 					text
@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import { reactive, computed, onMounted, onUnmounted } from 'vue';
+import { reactive, ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
@@ -99,6 +99,9 @@ const captcha = reactive({
 	uuid: '',
 });
 
+// 验证码开关
+const captchaEnabled = ref(false);
+
 const captchaApi = useCaptchaApi();
 
 // 页面加载完毕，获取验证码
@@ -129,16 +132,31 @@ const currentTime = computed(() => {
 // 获取验证码
 const getCaptchaCode = async () => {
 	const response = await captchaApi.getCaptcha();
-	captcha.code = response.code;
-	captcha.img = "data:image/png;base64," + response.img;
-	state.ruleForm.uuid = response.uuid;
+	captchaEnabled.value = response.captchaEnabled === true;
+	if (captchaEnabled.value) {
+		captcha.code = response.code;
+		captcha.img = "data:image/png;base64," + response.img;
+		state.ruleForm.uuid = response.uuid;
+	} else {
+		captcha.img = '';
+		state.ruleForm.uuid = '';
+		state.ruleForm.code = '';
+	}
 };
 
 // 登录
 const onSignIn = async () => {
 	state.loading.signIn = true;
 	try {
-		const response = await useLoginApi().signIn(state.ruleForm);
+		const loginData: any = {
+			username: state.ruleForm.username,
+			password: state.ruleForm.password,
+		};
+		if (captchaEnabled.value) {
+			loginData.code = state.ruleForm.code;
+			loginData.uuid = state.ruleForm.uuid;
+		}
+		const response = await useLoginApi().signIn(loginData);
 		if (response.code === 200) {
 			// 存储 token 到浏览器缓存
 			Session.set('token', response.token);
@@ -155,7 +173,9 @@ const onSignIn = async () => {
 	} catch (error: any) {
 		// ElMessage.error(error.message || '登录失败，请重试');
 		state.loading.signIn = false;
-		getCaptchaCode();
+		if (captchaEnabled.value) {
+			getCaptchaCode();
+		}
 	}
 };
 // 登录成功后的跳转
