@@ -1,6 +1,7 @@
 <template>
     <div class="terminal-page">
         <!-- 顶部标签栏 -->
+        <div class="terminal-main">
         <div class="terminal-tabs">
             <el-tabs
                 v-model="state.activeTab"
@@ -20,7 +21,7 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div class="terminal-actions">
+        <div class="terminal-actions" :style="{ right: sftpState.visible ? '440px' : '20px' }">
             <el-button type="danger" size="small" @click="closePage" plain>
                 <el-icon><ele-Close /></el-icon>
                 关闭页面
@@ -297,6 +298,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- 空状态 -->
@@ -763,6 +765,11 @@ const initTerminal = async (tab: TerminalTab) => {
                             cols: tab.terminal.cols,
                             rows: tab.terminal.rows,
                         }));
+                    }
+                    // 后端单凭证直连时不会发 credentials 消息，从 success 中获取 keyId
+                    if (msg.keyId && !tab.selectedKeyId) {
+                        tab.selectedKeyId = msg.keyId;
+                        activeTabState.selectedKeyId = msg.keyId;
                     }
                     // SSH 连接成功后，自动加载 SFTP home 目录
                     if (tab.selectedKeyId) {
@@ -1477,14 +1484,22 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
     overflow: hidden;
 }
 
+.terminal-main {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
 .terminal-tabs {
     flex: 1;
     min-height: 0;
+    min-width: 0;
     background-color: #1e1e1e;
     display: flex;
     flex-direction: column;
-    margin-right: 0;
-    transition: margin-right 0.3s ease;
 
     :deep(.el-tabs) {
         display: flex;
@@ -1564,14 +1579,10 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
 
 // ===== SFTP 抽屉面板 =====
 .sftp-wrapper {
-    position: absolute;
-    right: 0;
-    top: 40px;
-    bottom: 0;
+    position: relative;
     display: flex;
     flex-shrink: 0;
     transition: width 0.3s ease, min-width 0.3s ease;
-    z-index: 500;
 
     &:not(.collapsed) {
         width: 420px;

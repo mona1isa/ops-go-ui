@@ -441,6 +441,10 @@ const initTerminal = async (instanceId: number) => {
                             rows: state.terminal.rows,
                         }));
                     }
+                    // 后端单凭证直连时不会发 credentials 消息，从 success 中获取 keyId
+                    if (msg.keyId && !state.selectedKeyId) {
+                        state.selectedKeyId = msg.keyId;
+                    }
                     // SSH 连接成功后，自动加载 SFTP home 目录
                     if (state.instanceId && state.selectedKeyId) {
                         loadSftpFileList('');
