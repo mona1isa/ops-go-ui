@@ -764,6 +764,11 @@ const initTerminal = async (tab: TerminalTab) => {
                             rows: tab.terminal.rows,
                         }));
                     }
+                    // 后端单凭证直连时不会发 credentials 消息，从 success 中获取 keyId
+                    if (msg.keyId && !tab.selectedKeyId) {
+                        tab.selectedKeyId = msg.keyId;
+                        activeTabState.selectedKeyId = msg.keyId;
+                    }
                     // SSH 连接成功后，自动加载 SFTP home 目录
                     if (tab.selectedKeyId) {
                         loadSftpFileList(tab, '');
