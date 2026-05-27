@@ -177,6 +177,7 @@
                     <span>{{ transferProgress.percentage }}%</span>
                 </div>
                 <div class="transfer-actions">
+                    <el-button size="small" @click="runInBackground" type="warning" plain v-if="transferProgress.type === 'upload' && transferProgress.status === 'uploading'">后台运行</el-button>
                     <el-button size="small" @click="cancelTransfer" type="danger" plain v-if="transferProgress.status === 'uploading' || transferProgress.status === 'downloading'">取消</el-button>
                     <el-button size="small" @click="confirmTransfer" type="primary" plain v-else>确定</el-button>
                 </div>
@@ -226,6 +227,45 @@
                                 <el-icon><ele-Upload /></el-icon>
                             </el-button>
                         </el-upload>
+                        <el-popover
+                            placement="bottom-end"
+                            :width="420"
+                            trigger="click"
+                        >
+                            <template #reference>
+                                <el-badge :value="uploadTasks.length" :hidden="!uploadTasks.length">
+                                    <el-button ref="taskButtonRef" size="small" plain title="上传任务">
+                                        <el-icon><ele-Clock /></el-icon>
+                                    </el-button>
+                                </el-badge>
+                            </template>
+                            <div class="upload-tasks-popover">
+                                <div class="tasks-header">上传任务</div>
+                                <el-empty v-if="uploadTasks.length === 0" description="暂无上传任务" :image-size="60" />
+                                <div v-else class="tasks-list">
+                                    <div v-for="task in uploadTasks" :key="task.id" class="task-item">
+                                        <div class="task-info">
+                                            <el-icon size="16"><ele-Document /></el-icon>
+                                            <span class="task-name" :title="task.fileName">{{ task.fileName }}</span>
+                                            <el-tag v-if="task.status === 'uploading'" size="small" type="warning">上传中</el-tag>
+                                            <el-tag v-else-if="task.status === 'completed'" size="small" type="success">已完成</el-tag>
+                                            <el-tag v-else-if="task.status === 'failed'" size="small" type="danger">失败</el-tag>
+                                            <el-tag v-else-if="task.status === 'canceled'" size="small" type="info">已取消</el-tag>
+                                            <el-icon v-if="task.status !== 'uploading'" size="14" class="task-remove" @click="removeUploadTask(task.id)"><ele-Close /></el-icon>
+                                        </div>
+                                        <el-progress
+                                            :percentage="task.percentage"
+                                            :stroke-width="6"
+                                            :status="task.status === 'failed' ? 'exception' : task.status === 'completed' ? 'success' : ''"
+                                        />
+                                        <div class="task-stats">
+                                            <span>{{ formatSize(task.transferred) }} / {{ formatSize(task.fileSize) }}</span>
+                                            <span v-if="task.errorMsg" class="task-error">{{ task.errorMsg }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-popover>
                     </div>
 
                     <!-- 面包屑 -->
@@ -307,6 +347,9 @@
             description="暂无 SSH 连接，点击右上角按钮添加连接"
         />
     </div>
+
+    <!-- 飞入动画元素 -->
+    <div v-if="flyStyle.show" class="fly-dot" :style="{ left: flyStyle.left, top: flyStyle.top }"></div>
 </template>
 
 <script setup lang="ts" name="terminal">
@@ -427,10 +470,37 @@ const downloadDialog = reactive({
 
 let abortController: AbortController | null = null;
 
+// 后台上传任务
+interface UploadTask {
+    id: number;
+    fileName: string;
+    fileSize: number;
+    transferred: number;
+    percentage: number;
+    status: 'uploading' | 'completed' | 'failed' | 'canceled';
+    abortController: AbortController | null;
+    errorMsg?: string;
+}
+let taskIdCounter = 0;
+const uploadTasks = reactive<UploadTask[]>([]);
+const showUploadTasksPopover = ref(false);
+const taskButtonRef = ref<HTMLElement | null>(null);
+const flyAnimating = ref(false);
+const flyStyle = reactive({ left: '0px', top: '0px', show: false });
+
+// 上传会话 ID，用于将 pendingBgSwitch 绑定到特定上传调用，避免并发上传互相干扰
+let uploadSessionCounter = 0;
+const currentUploadSession = ref(0);
+
 const cancelTransfer = () => {
     if (abortController) {
         abortController.abort();
         abortController = null;
+    }
+    if (pendingBgSwitch.value) {
+        const task = uploadTasks.find(t => t.id === pendingBgSwitch.value!.task.id);
+        if (task && task.status === 'uploading') task.status = 'canceled';
+        pendingBgSwitch.value = null;
     }
     transferProgress.visible = false;
     transferProgress.status = '';
@@ -439,6 +509,72 @@ const cancelTransfer = () => {
 const confirmTransfer = () => {
     transferProgress.visible = false;
     transferProgress.status = '';
+};
+
+// 待切换后台上传的任务（由 runInBackground 创建，上传函数在下一次进度回调时消费）
+// sessionId 绑定到特定上传调用，防止并发上传时互相干扰
+const pendingBgSwitch = ref<{ task: UploadTask; sessionId: number } | null>(null);
+
+// 后台上传
+const runInBackground = () => {
+    if (!abortController || pendingBgSwitch.value) return;
+    const task: UploadTask = {
+        id: ++taskIdCounter,
+        fileName: transferProgress.fileName,
+        fileSize: transferProgress.fileSize,
+        transferred: transferProgress.transferred,
+        percentage: transferProgress.percentage,
+        status: 'uploading',
+        abortController: abortController,
+    };
+    uploadTasks.push(task);
+    pendingBgSwitch.value = { task, sessionId: currentUploadSession.value };
+    abortController = null; // 后台任务接管 AbortController 所有权
+    triggerFlyAnimation();
+    transferProgress.visible = false;
+    transferProgress.status = '';
+};
+
+// 飞入动画
+const triggerFlyAnimation = () => {
+    const btnEl = taskButtonRef.value?.$el || taskButtonRef.value;
+    if (!btnEl || typeof btnEl.getBoundingClientRect !== 'function') return;
+    const btnRect = btnEl.getBoundingClientRect();
+    const targetX = btnRect.left + btnRect.width / 2;
+    const targetY = btnRect.top + btnRect.height / 2;
+    const startX = window.innerWidth / 2;
+    const startY = window.innerHeight / 2;
+
+    // 起始位置：屏幕中央
+    flyStyle.left = `${startX}px`;
+    flyStyle.top = `${startY}px`;
+    flyStyle.show = true;
+    flyAnimating.value = true;
+
+    // 强制重排后触发动画
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            flyStyle.left = `${targetX}px`;
+            flyStyle.top = `${targetY}px`;
+        });
+    });
+
+    setTimeout(() => {
+        flyStyle.show = false;
+        flyAnimating.value = false;
+    }, 600);
+};
+
+// 移除后台上传任务
+const removeUploadTask = (taskId: number) => {
+    const idx = uploadTasks.findIndex(t => t.id === taskId);
+    if (idx >= 0) {
+        const task = uploadTasks[idx];
+        if (task.abortController && task.status === 'uploading') {
+            task.abortController.abort();
+        }
+        uploadTasks.splice(idx, 1);
+    }
 };
 
 // 同步 activeTabState 到当前激活标签
@@ -1335,6 +1471,11 @@ const handleUploadChange = async (uploadFile: any) => {
 };
 
 const uploadSingleFile = async (file: File, instanceId: number, keyId: number) => {
+    // 分配唯一上传会话 ID，防止并发上传时互相干扰
+    const mySessionId = ++uploadSessionCounter;
+    currentUploadSession.value = mySessionId;
+
+    // 始终以前台模式启动
     transferProgress.visible = true;
     transferProgress.type = 'upload';
     transferProgress.fileName = file.name;
@@ -1342,6 +1483,26 @@ const uploadSingleFile = async (file: File, instanceId: number, keyId: number) =
     transferProgress.transferred = 0;
     transferProgress.percentage = 0;
     transferProgress.status = 'uploading';
+
+    // 当前上传专属的后台任务 ID，在 runInBackground 触发后由 updateProgress 消费
+    // 用 ID 通过 uploadTasks (reactive) 查找，确保修改能被 Vue 3 响应式系统跟踪
+    let myBgTaskId: number | null = null;
+
+    const updateProgress = (loaded: number, total: number) => {
+        // 只消费属于当前上传会话的 pendingBgSwitch
+        if (pendingBgSwitch.value && pendingBgSwitch.value.sessionId === mySessionId && myBgTaskId === null) {
+            myBgTaskId = pendingBgSwitch.value.task.id;
+            pendingBgSwitch.value = null;
+        }
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
+        if (bgTask) {
+            bgTask.transferred = loaded;
+            bgTask.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+        } else {
+            transferProgress.transferred = loaded;
+            transferProgress.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+        }
+    };
 
     const formData = new FormData();
     formData.append('file', file);
@@ -1356,22 +1517,38 @@ const uploadSingleFile = async (file: File, instanceId: number, keyId: number) =
             (progressEvent: any) => {
                 const loaded = progressEvent.loaded || 0;
                 const total = progressEvent.total || file.size || 0;
-                transferProgress.transferred = loaded;
-                transferProgress.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+                updateProgress(loaded, total);
             },
             abortController.signal
         );
-        transferProgress.status = '';
-        ElMessage.success('上传成功');
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
+        if (bgTask) {
+            bgTask.status = 'completed';
+            bgTask.percentage = 100;
+            ElMessage.success(`后台上传完成: ${file.name}`);
+        } else {
+            transferProgress.status = '';
+            ElMessage.success('上传成功');
+        }
         await refreshSftp();
     } catch (error: any) {
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
         if (error.name === 'AbortError' || error.message === 'canceled') {
-            ElMessage.info('上传已取消');
-            transferProgress.visible = false;
-            transferProgress.status = '';
+            if (bgTask) {
+                if (bgTask.status === 'uploading') bgTask.status = 'canceled';
+            } else {
+                ElMessage.info('上传已取消');
+                transferProgress.visible = false;
+                transferProgress.status = '';
+            }
         } else {
-            transferProgress.status = 'exception';
-            ElMessage.error(error.message || '上传失败');
+            if (bgTask) {
+                bgTask.status = 'failed';
+                bgTask.errorMsg = error.message || '上传失败';
+            } else {
+                transferProgress.status = 'exception';
+                ElMessage.error(error.message || '上传失败');
+            }
         }
     } finally {
         abortController = null;
@@ -1379,6 +1556,10 @@ const uploadSingleFile = async (file: File, instanceId: number, keyId: number) =
 };
 
 const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) => {
+    // 分配唯一上传会话 ID，防止并发上传时互相干扰
+    const mySessionId = ++uploadSessionCounter;
+    currentUploadSession.value = mySessionId;
+
     const chunkTotal = Math.ceil(file.size / CHUNK_SIZE);
 
     // 查询已上传进度
@@ -1397,7 +1578,26 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
 
     const startChunk = Math.floor(uploadedSize / CHUNK_SIZE);
 
-    // 初始化进度
+    // 当前上传专属的后台任务 ID
+    let myBgTaskId: number | null = null;
+
+    const updateProgress = (loaded: number, total: number) => {
+        // 只消费属于当前上传会话的 pendingBgSwitch
+        if (pendingBgSwitch.value && pendingBgSwitch.value.sessionId === mySessionId && myBgTaskId === null) {
+            myBgTaskId = pendingBgSwitch.value.task.id;
+            pendingBgSwitch.value = null;
+        }
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
+        if (bgTask) {
+            bgTask.transferred = loaded;
+            bgTask.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+        } else {
+            transferProgress.transferred = loaded;
+            transferProgress.percentage = total > 0 ? Math.round((loaded * 100) / total) : 0;
+        }
+    };
+
+    // 始终以前台模式初始化进度
     transferProgress.visible = true;
     transferProgress.type = 'upload';
     transferProgress.fileName = file.name;
@@ -1407,10 +1607,13 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
     transferProgress.status = 'uploading';
 
     abortController = new AbortController();
+    // 保存本地引用 — runInBackground() 会将模块级 abortController 置 null，
+    // 但分片上传的 for 循环仍需检查是否被取消
+    const localAbort = abortController;
 
     try {
         for (let i = startChunk; i < chunkTotal; i++) {
-            if (abortController.signal.aborted) {
+            if (localAbort.signal.aborted) {
                 throw new Error('canceled');
             }
 
@@ -1432,7 +1635,7 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
             let lastError: any = null;
             let success = false;
             for (let retry = 0; retry < 3; retry++) {
-                if (abortController.signal.aborted) {
+                if (localAbort.signal.aborted) {
                     throw new Error('canceled');
                 }
                 try {
@@ -1449,21 +1652,37 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
                 throw lastError || new Error('分片上传失败');
             }
 
-            transferProgress.transferred = end;
-            transferProgress.percentage = file.size > 0 ? Math.round((end * 100) / file.size) : 0;
+            updateProgress(end, file.size);
         }
 
-        transferProgress.status = '';
-        ElMessage.success('上传成功');
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
+        if (bgTask) {
+            bgTask.status = 'completed';
+            bgTask.percentage = 100;
+            ElMessage.success(`后台上传完成: ${file.name}`);
+        } else {
+            transferProgress.status = '';
+            ElMessage.success('上传成功');
+        }
         await refreshSftp();
     } catch (error: any) {
+        const bgTask = myBgTaskId !== null ? uploadTasks.find(t => t.id === myBgTaskId) : undefined;
         if (error.name === 'AbortError' || error.message === 'canceled') {
-            ElMessage.info('上传已取消');
-            transferProgress.visible = false;
-            transferProgress.status = '';
+            if (bgTask) {
+                if (bgTask.status === 'uploading') bgTask.status = 'canceled';
+            } else {
+                ElMessage.info('上传已取消');
+                transferProgress.visible = false;
+                transferProgress.status = '';
+            }
         } else {
-            transferProgress.status = 'exception';
-            ElMessage.error(error.message || '上传失败');
+            if (bgTask) {
+                bgTask.status = 'failed';
+                bgTask.errorMsg = error.message || '上传失败';
+            } else {
+                transferProgress.status = 'exception';
+                ElMessage.error(error.message || '上传失败');
+            }
         }
     } finally {
         abortController = null;
@@ -1836,6 +2055,101 @@ const uploadChunkedFile = async (file: File, instanceId: number, keyId: number) 
         display: flex;
         justify-content: flex-end;
         margin-top: 16px;
+        gap: 8px;
+
+        .bg-btn {
+            margin-right: auto;
+        }
+    }
+}
+
+// ===== 后台上传任务弹窗 =====
+.upload-tasks-popover {
+    .tasks-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #ebeef5;
+    }
+
+    .tasks-list {
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .task-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f2f2f2;
+
+        &:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+    }
+
+    .task-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+
+        .task-name {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
+            color: #303133;
+        }
+
+        .task-remove {
+            color: #c0c4cc;
+            cursor: pointer;
+            flex-shrink: 0;
+
+            &:hover {
+                color: #f56c6c;
+            }
+        }
+    }
+
+    .task-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #909399;
+
+        .task-error {
+            color: #f56c6c;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}
+
+// ===== 飞入动画 =====
+.fly-dot {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    background: #409eff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.4);
+
+    &.animate-in {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0.3;
     }
 }
 

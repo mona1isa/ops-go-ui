@@ -467,6 +467,23 @@ const onViewDetail = async (row: any) => {
 };
 
 const copyText = (text: string) => {
+    if (!navigator.clipboard) {
+        // fallback for insecure contexts (non-HTTPS / non-localhost)
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            ElMessage.success('已复制到剪贴板');
+        } catch {
+            ElMessage.error('复制失败');
+        }
+        document.body.removeChild(textarea);
+        return;
+    }
     navigator.clipboard.writeText(text).then(() => {
         ElMessage.success('已复制到剪贴板');
     }).catch(() => {
