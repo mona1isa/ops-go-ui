@@ -362,6 +362,7 @@ import { useInstanceApi } from '/@/api/instance';
 import { useMyInstanceApi } from '/@/api/myinstance';
 import { useSftpApi } from '/@/api/sftp';
 import { Session } from '/@/utils/storage';
+import mittBus from '/@/utils/mitt';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 const route = useRoute();
@@ -648,6 +649,12 @@ watch(() => state.activeTab, (newTabId, oldTabId) => {
 // 初始化页面
 onMounted(async () => {
     await loadHostList();
+
+    // 监听 tagsView 关闭终端标签事件
+    mittBus.on('onTerminalTabClose', (instanceId: number) => {
+        removeTab(instanceId.toString());
+    });
+
     // 检查 URL 参数中是否有 instanceId
     const instanceId = route.params.id as string;
     if (instanceId) {
@@ -689,7 +696,17 @@ onActivated(() => {
 
 // 页面失活时（keep-alive 缓存前切走）
 onDeactivated(() => {
-    // keep-alive 保持连接，不需要清理
+    // 关闭所有 el-dialog，防止 Teleported DOM 残留遮挡其他页面
+    // Vue KeepAlive 不会自动清理 Teleport 到 body 的元素
+    state.showAddDialog = false;
+    state.tabs.forEach((tab) => {
+        tab.showKeySelector = false;
+    });
+    activeTabState.showKeySelector = false;
+    sftpState.showMkdirDialog = false;
+    sftpState.showRenameDialog = false;
+    downloadDialog.visible = false;
+    transferProgress.visible = false;
 });
 
 // 添加终端标签
@@ -1091,6 +1108,7 @@ const closePage = () => {
 
 // 组件卸载时清理
 onBeforeUnmount(() => {
+    mittBus.off('onTerminalTabClose');
     // 关闭所有连接
     state.terminalMap.forEach((tab) => {
         if (tab.socket) {
