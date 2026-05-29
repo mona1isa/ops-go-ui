@@ -83,7 +83,7 @@ const state = reactive({
 	isShowPassword: false,
 	ruleForm: {
 		username: 'admin',
-		password: '123456',
+		password: '',
 		code: '',
 		uuid: '',
 	},
