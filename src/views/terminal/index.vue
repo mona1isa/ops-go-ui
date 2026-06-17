@@ -380,7 +380,12 @@ const getToken = () => {
 // WebSocket 接口地址
 const getWebSocketUrl = (instanceId: number, terminal?: Terminal | null) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    // 优先使用环境变量配置的 WebSocket 地址，否则使用当前页面 host
+    // - 开发环境通过 vite proxy（ws: true）：无需额外配置，直接使用当前 host（1080）
+    // - 生产环境 nginx 代理：直接使用当前 host
+    // - 本地直连后端（无代理）：设置 VITE_WS_URL=http://localhost:8080
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    const host = wsUrl ? new URL(wsUrl).host : window.location.host;
     const token = getToken();
     const cols = terminal?.cols || 100;
     const rows = terminal?.rows || 30;
