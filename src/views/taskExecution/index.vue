@@ -1,10 +1,15 @@
 <template>
     <div class="layout-padding">
         <div class="layout-padding-view layout-padding-auto">
-            <!-- 快速执行区域 -->
-            <el-card shadow="hover" class="mb15">
+            <el-card shadow="hover">
                 <template #header>
-                    <span>快速执行</span>
+                    <div class="card-header">
+                        <span>快速执行</span>
+                        <el-button text type="primary" @click="router.push({ path: '/taskOrchestration/taskExecution/record' })">
+                            <el-icon><ele-Document /></el-icon>
+                            查看执行记录
+                        </el-button>
+                    </div>
                 </template>
                 <el-form label-width="100px">
                     <el-form-item label="执行类型">
@@ -69,180 +74,28 @@
                     </el-form-item>
                 </el-form>
             </el-card>
-
-            <!-- 执行记录 -->
-            <el-card shadow="hover">
-                <template #header>
-                    <span>执行记录</span>
-                </template>
-                <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
-                    <el-table-column prop="executionNo" label="执行编号" width="200" show-overflow-tooltip />
-                    <el-table-column prop="name" label="名称" show-overflow-tooltip />
-                    <el-table-column prop="type" label="类型" width="120">
-                        <template #default="scope">
-                            <el-tag :type="getExecTypeTag(scope.row.type)" type="small">{{ getExecTypeLabel(scope.row.type) }}</el-tag>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="status" label="状态" width="120">
-                        <template #default="scope">
-                            <el-tag :type="getStatusTag(scope.row.status)" type="small">{{ getStatusLabel(scope.row.status) }}</el-tag>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="totalHosts" label="主机数" width="80" />
-                    <el-table-column prop="successHosts" label="成功" width="60">
-                        <template #default="scope">
-                            <span style="color: #67c23a">{{ scope.row.successHosts }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="failHosts" label="失败" width="60">
-                        <template #default="scope">
-                            <span style="color: #f56c6c">{{ scope.row.failHosts }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="userName" label="执行人" width="90" />
-                    <el-table-column prop="createdAt" label="时间" width="165" show-overflow-tooltip>
-                        <template #default="scope">
-                            {{ scope.row.createdAt ? formatDate(new Date(scope.row.createdAt), 'YYYY-mm-dd HH:MM:SS') : '-' }}
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="120">
-                        <template #default="scope">
-                            <el-button size="small" text type="primary" @click="onViewDetail(scope.row)">详情</el-button>
-                            <el-button size="small" text type="warning" @click="onCancel(scope.row)" v-if="scope.row.status === 1 || scope.row.status === 2">取消</el-button>
-                        </template>
-                    </el-table-column>
-                </el-table>
-
-                <el-pagination
-                    @size-change="onHandleSizeChange"
-                    @current-change="onHandleCurrentChange"
-                    class="mt15"
-                    :pager-count="5"
-                    :page-sizes="[10, 20, 30]"
-                    v-model:current-page="state.tableData.param.pageNum"
-                    background
-                    v-model:page-size="state.tableData.param.pageSize"
-                    layout="total, sizes, prev, pager, next, jumper"
-                    :total="state.tableData.total"
-                />
-            </el-card>
         </div>
-
-        <!-- 执行详情对话框 -->
-        <el-dialog v-model="detailVisible" title="执行详情" width="900px">
-            <el-descriptions :column="3" border class="mb15">
-                <el-descriptions-item label="执行编号">{{ detailData.execution?.executionNo }}</el-descriptions-item>
-                <el-descriptions-item label="名称">{{ detailData.execution?.name }}</el-descriptions-item>
-                <el-descriptions-item label="状态">
-                    <el-tag :type="getStatusTag(detailData.execution?.status)">{{ getStatusLabel(detailData.execution?.status) }}</el-tag>
-                </el-descriptions-item>
-            </el-descriptions>
-
-            <!-- 非编排执行：直接展示主机结果 -->
-            <el-table v-if="detailData.execution?.type !== 5" :data="detailData.hosts" style="width: 100%" max-height="400">
-                <el-table-column prop="instanceName" label="主机" width="100" />
-                <el-table-column prop="instanceIp" label="IP" width="120" />
-                <el-table-column prop="status" label="状态" width="70">
-                    <template #default="scope">
-                        <el-tag :type="getHostStatusTag(scope.row.status)">{{ getHostStatusLabel(scope.row.status) }}</el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="duration" label="耗时" width="80">
-                    <template #default="scope">
-                        {{ scope.row.duration > 0 ? scope.row.duration + 'ms' : '-' }}
-                    </template>
-                </el-table-column>
-                <el-table-column label="结果" min-width="200">
-                    <template #default="scope">
-                        <div v-if="scope.row.result" class="output-block">
-                            <div class="output-header">
-                                <el-tag size="small" type="success">输出</el-tag>
-                                <el-button size="small" text type="primary" @click="copyText(scope.row.result)">复制</el-button>
-                            </div>
-                            <pre class="output-pre">{{ scope.row.result }}</pre>
-                        </div>
-                        <div v-if="scope.row.errorMsg" class="output-block mt5">
-                            <div class="output-header">
-                                <el-tag size="small" type="danger">错误</el-tag>
-                                <el-button size="small" text type="primary" @click="copyText(scope.row.errorMsg)">复制</el-button>
-                            </div>
-                            <pre class="output-pre error-pre">{{ scope.row.errorMsg }}</pre>
-                        </div>
-                        <span v-if="!scope.row.result && !scope.row.errorMsg" style="color: #909399">-</span>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <!-- 编排执行：按步骤展示 -->
-            <div v-else>
-                <el-collapse v-model="activeStepNames">
-                    <el-collapse-item v-for="(item, index) in detailData.steps" :key="index" :name="index">
-                        <template #title>
-                            <div class="step-title">
-                                <span class="step-name">{{ item.step?.stepName }}</span>
-                                <el-tag :type="getStepStatusTag(item.step?.status)" size="small">{{ getStepStatusLabel(item.step?.status) }}</el-tag>
-                                <span class="step-time" v-if="item.step?.startedAt">{{ item.step?.startedAt }} ~ {{ item.step?.finishedAt || '执行中' }}</span>
-                            </div>
-                        </template>
-                        <el-table :data="item.hosts" style="width: 100%" max-height="300" size="small">
-                            <el-table-column prop="instanceName" label="主机" width="100" />
-                            <el-table-column prop="instanceIp" label="IP" width="120" />
-                            <el-table-column prop="status" label="状态" width="70">
-                                <template #default="scope">
-                                    <el-tag :type="getHostStatusTag(scope.row.status)" size="small">{{ getHostStatusLabel(scope.row.status) }}</el-tag>
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="duration" label="耗时" width="80">
-                                <template #default="scope">
-                                    {{ scope.row.duration > 0 ? scope.row.duration + 'ms' : '-' }}
-                                </template>
-                            </el-table-column>
-                            <el-table-column label="结果" min-width="200">
-                                <template #default="scope">
-                                    <div v-if="scope.row.result" class="output-block">
-                                        <div class="output-header">
-                                            <el-tag size="small" type="success">输出</el-tag>
-                                            <el-button size="small" text type="primary" @click="copyText(scope.row.result)">复制</el-button>
-                                        </div>
-                                        <pre class="output-pre">{{ scope.row.result }}</pre>
-                                    </div>
-                                    <div v-if="scope.row.errorMsg" class="output-block mt5">
-                                        <div class="output-header">
-                                            <el-tag size="small" type="danger">错误</el-tag>
-                                            <el-button size="small" text type="primary" @click="copyText(scope.row.errorMsg)">复制</el-button>
-                                        </div>
-                                        <pre class="output-pre error-pre">{{ scope.row.errorMsg }}</pre>
-                                    </div>
-                                    <span v-if="!scope.row.result && !scope.row.errorMsg" style="color: #909399">-</span>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                    </el-collapse-item>
-                </el-collapse>
-            </div>
-        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts" name="taskExecutionIndex">
 import { reactive, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useTaskExecutionApi } from '/@/api/taskExecution';
 import { useInstanceApi } from '/@/api/instance';
 import { useScriptApi } from '/@/api/script';
 import { useFileApi } from '/@/api/file';
 import { useTaskPipelineApi } from '/@/api/taskPipeline';
 import { Session } from '/@/utils/storage';
-import { formatDate } from '/@/utils/formatTime';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
+const router = useRouter();
 const taskExecutionApi = useTaskExecutionApi();
 const instanceApi = useInstanceApi();
 const scriptApi = useScriptApi();
 const fileApi = useFileApi();
 const pipelineApi = useTaskPipelineApi();
 const execLoading = ref(false);
-const detailVisible = ref(false);
-const activeStepNames = ref<number[]>([]);
 const instanceList = ref<any[]>([]);
 const scriptList = ref<any[]>([]);
 const localFileList = ref<any[]>([]);
@@ -261,66 +114,6 @@ const execForm = reactive({
     name: '',
     pipelineId: null as number | null,
 });
-
-const detailData = reactive({
-    execution: null as any,
-    hosts: [] as any[],
-    steps: [] as any[],
-});
-
-const state = reactive<any>({
-    tableData: {
-        data: [],
-        total: 0,
-        loading: false,
-        param: {
-            pageNum: 1,
-            pageSize: 10,
-            status: null,
-            type: null,
-        },
-    },
-});
-
-const getExecTypeLabel = (type: number) => {
-    const map: Record<number, string> = { 1: '快速命令', 2: '快速脚本', 3: '快速文件', 4: '模板执行', 5: '编排执行' };
-    return map[type] || '未知';
-};
-
-const getExecTypeTag = (type: number): any => {
-    const map: Record<number, any> = { 1: 'success', 2: 'warning', 3: 'info', 4: '', 5: 'danger' };
-    return map[type] || 'info';
-};
-
-const getStatusLabel = (status: number) => {
-    const map: Record<number, string> = { 1: '待执行', 2: '执行中', 3: '已完成', 4: '部分失败', 5: '全部失败', 6: '已取消' };
-    return map[status] || '未知';
-};
-
-const getStatusTag = (status: number): any => {
-    const map: Record<number, any> = { 1: 'info', 2: 'warning', 3: 'success', 4: 'danger', 5: 'danger', 6: 'info' };
-    return map[status] || 'info';
-};
-
-const getHostStatusLabel = (status: number) => {
-    const map: Record<number, string> = { 1: '待执行', 2: '执行中', 3: '成功', 4: '失败', 5: '超时', 6: '跳过' };
-    return map[status] || '未知';
-};
-
-const getHostStatusTag = (status: number): any => {
-    const map: Record<number, any> = { 1: 'info', 2: 'warning', 3: 'success', 4: 'danger', 5: 'danger', 6: 'info' };
-    return map[status] || 'info';
-};
-
-const getStepStatusLabel = (status: number) => {
-    const map: Record<number, string> = { 1: '待执行', 2: '执行中', 3: '成功', 4: '失败', 5: '跳过' };
-    return map[status] || '未知';
-};
-
-const getStepStatusTag = (status: number): any => {
-    const map: Record<number, any> = { 1: 'info', 2: 'warning', 3: 'success', 4: 'danger', 5: 'info' };
-    return map[status] || 'info';
-};
 
 const loadInstances = async () => {
     const res = await instanceApi.getInstanceList({});
@@ -379,26 +172,6 @@ const onScriptChange = (scriptId: number | null) => {
     }
 };
 
-const getTableData = async () => {
-    state.tableData.loading = true;
-    const res = await taskExecutionApi.getList(state.tableData.param);
-    if (res && res.code === 200) {
-        state.tableData.data = res.data;
-        state.tableData.total = res.total;
-    }
-    state.tableData.loading = false;
-};
-
-const onHandleSizeChange = (val: number) => {
-    state.tableData.param.pageSize = val;
-    getTableData();
-};
-
-const onHandleCurrentChange = (val: number) => {
-    state.tableData.param.pageNum = val;
-    getTableData();
-};
-
 const onQuickExecute = async () => {
     if (execForm.instanceIds.length === 0) {
         ElMessage.warning('请选择目标主机');
@@ -444,8 +217,8 @@ const onQuickExecute = async () => {
             res = await taskExecutionApi.quickExecute(execForm);
         }
         if (res && res.code === 200) {
-            ElMessage.success('任务已创建');
-            getTableData();
+            ElMessage.success('任务已创建，跳转到执行记录');
+            router.push({ path: '/taskOrchestration/taskExecution/record', query: { autoRefresh: 'true', timeout: String(execForm.timeout) } });
         } else {
             ElMessage.error(res?.msg || '执行失败');
         }
@@ -456,66 +229,11 @@ const onQuickExecute = async () => {
     }
 };
 
-const onViewDetail = async (row: any) => {
-    const res = await taskExecutionApi.getDetail({ executionId: row.id });
-    if (res && res.code === 200) {
-        detailData.execution = res.data.execution;
-        detailData.hosts = res.data.hosts || [];
-        detailData.steps = res.data.steps || [];
-        detailVisible.value = true;
-    }
-};
-
-const copyText = (text: string) => {
-    if (!navigator.clipboard) {
-        // fallback for insecure contexts (non-HTTPS / non-localhost)
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            ElMessage.success('已复制到剪贴板');
-        } catch {
-            ElMessage.error('复制失败');
-        }
-        document.body.removeChild(textarea);
-        return;
-    }
-    navigator.clipboard.writeText(text).then(() => {
-        ElMessage.success('已复制到剪贴板');
-    }).catch(() => {
-        ElMessage.error('复制失败');
-    });
-};
-
-const onCancel = async (row: any) => {
-    try {
-        await ElMessageBox.confirm('确定要取消该执行任务吗？', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
-        });
-        const res = await taskExecutionApi.cancelExecution({ executionId: row.id });
-        if (res && res.code === 200) {
-            ElMessage.success('已取消');
-            getTableData();
-        } else {
-            ElMessage.error(res?.msg || '取消失败');
-        }
-    } catch {
-        // 用户取消
-    }
-};
-
 onMounted(() => {
     loadInstances();
     loadScripts();
     loadLocalFiles();
     loadPipelines();
-    getTableData();
 });
 </script>
 
@@ -536,58 +254,9 @@ onMounted(() => {
     flex-direction: column;
 }
 
-.output-block {
-    background: #f5f7fa;
-    border-radius: 4px;
-    padding: 8px;
-}
-
-.output-header {
+.card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
-}
-
-.output-pre {
-    margin: 0;
-    padding: 8px;
-    background: #1e1e1e;
-    color: #d4d4d4;
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.error-pre {
-    color: #f56c6c;
-}
-
-.mt5 {
-    margin-top: 5px;
-}
-
-.step-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding-right: 20px;
-}
-
-.step-name {
-    font-weight: 500;
-    min-width: 120px;
-}
-
-.step-time {
-    color: #909399;
-    font-size: 12px;
-    margin-left: auto;
 }
 </style>
