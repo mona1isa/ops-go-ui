@@ -941,7 +941,7 @@ onBeforeUnmount(() => {
 	display: flex;
 	flex-shrink: 0;
 	transition: width 0.3s ease, min-width 0.3s ease;
-	background-color: #fff;
+	background-color: #1e1e1e;
 
 	&:not(.collapsed) {
 		width: 420px;
@@ -988,8 +988,8 @@ onBeforeUnmount(() => {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	background: #ffffff;
-	border-left: 1px solid #dcdfe6;
+	background: #1e1e1e;
+	border-left: 1px solid #333;
 	overflow: hidden;
 }
 
@@ -1007,6 +1007,10 @@ onBeforeUnmount(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+
+	:deep(.el-empty__description p) {
+		color: #909399;
+	}
 }
 
 .sftp-header {
@@ -1015,12 +1019,12 @@ onBeforeUnmount(() => {
 	justify-content: space-between;
 	margin-bottom: 8px;
 	padding-bottom: 8px;
-	border-bottom: 1px solid #ebeef5;
+	border-bottom: 1px solid #333;
 
 	.sftp-title {
 		font-size: 14px;
 		font-weight: 600;
-		color: #303133;
+		color: #d4d4d4;
 	}
 
 	.sftp-host {
@@ -1047,9 +1051,14 @@ onBeforeUnmount(() => {
 .sftp-breadcrumb {
 	margin-bottom: 8px;
 	padding: 6px 8px;
-	background: #f5f7fa;
+	background: #252526;
 	border-radius: 4px;
 	font-size: 12px;
+
+	:deep(.el-breadcrumb__separator),
+	:deep(.el-breadcrumb__inner) {
+		color: #909399;
+	}
 
 	:deep(.el-breadcrumb__item) {
 		cursor: pointer;
@@ -1075,6 +1084,43 @@ onBeforeUnmount(() => {
 	:deep(.el-table__body-wrapper),
 	:deep(.el-table__header-wrapper) {
 		overflow-x: hidden;
+	}
+
+	// 深色主题：与中间终端背景保持一致
+	:deep(.el-table),
+	:deep(.el-table__inner-wrapper),
+	:deep(.el-table tr),
+	:deep(.el-table__body),
+	:deep(.el-table__header),
+	:deep(.el-table__header-wrapper th.el-table__cell),
+	:deep(.el-table td.el-table__cell),
+	:deep(.el-table__body tr:hover > td.el-table__cell),
+	:deep(.el-table__body tr.hover-row > td.el-table__cell) {
+		background-color: transparent;
+	}
+
+	:deep(.el-table) {
+		--el-table-bg-color: transparent;
+		--el-table-tr-bg-color: transparent;
+		--el-table-header-bg-color: #252526;
+		--el-table-header-text-color: #d4d4d4;
+		--el-table-text-color: #d4d4d4;
+		--el-table-border-color: #333;
+		--el-table-row-hover-bg-color: #2a2d2e;
+	}
+
+	:deep(th.el-table__cell) {
+		background-color: #252526;
+	}
+
+	:deep(.el-table__empty-text) {
+		color: #909399;
+	}
+
+	// 展开/滚动条等残留线的颜色
+	:deep(.el-table__inner-wrapper::before),
+	:deep(.el-table__border-left-patch) {
+		background-color: #333;
 	}
 }
 
@@ -1126,7 +1172,6 @@ onBeforeUnmount(() => {
 	font-size: 12px;
 	color: #909399;
 }
-
 .sftp-path {
 	max-width: 220px;
 	overflow: hidden;

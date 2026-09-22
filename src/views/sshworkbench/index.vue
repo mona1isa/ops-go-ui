@@ -706,13 +706,14 @@ onBeforeUnmount(() => {
 	bottom: 0;
 	display: flex;
 	overflow: hidden;
-	background-color: var(--el-bg-color);
+	background-color: #1e1e1e;
 }
 .wb-side {
 	width: 280px;
 	display: flex;
 	flex-direction: column;
-	border-right: 1px solid var(--el-border-color-lighter);
+	background-color: #1e1e1e;
+	border-right: 1px solid #333;
 }
 .wb-panel-title {
 	display: flex;
@@ -722,14 +723,56 @@ onBeforeUnmount(() => {
 	padding: 0 10px;
 	font-size: 14px;
 	font-weight: bold;
-	border-bottom: 1px solid var(--el-border-color-lighter);
+	color: #d4d4d4;
+	border-bottom: 1px solid #333;
 }
 .wb-search {
 	padding: 8px 10px;
+
+	:deep(.el-input__wrapper) {
+		background-color: #252526;
+		box-shadow: 0 0 0 1px #3c3c3c inset;
+	}
+
+	:deep(.el-input__inner) {
+		color: #d4d4d4;
+
+		&::placeholder {
+			color: #7a7a7a;
+		}
+	}
 }
 .wb-side-body {
 	flex: 1;
 	overflow: hidden;
+}
+// 左侧主机分组树深色主题
+.wb-side {
+	:deep(.el-tree) {
+		background-color: transparent;
+		color: #d4d4d4;
+	}
+
+	:deep(.el-tree-node__content) {
+		height: 30px;
+		background-color: transparent;
+
+		&:hover {
+			background-color: #2a2d2e;
+		}
+	}
+
+	:deep(.el-tree-node.is-current > .el-tree-node__content) {
+		background-color: #094771;
+	}
+
+	:deep(.el-tree-node__expand-icon) {
+		color: #909399;
+	}
+
+	:deep(.el-tree-node__expand-icon.is-leaf) {
+		color: transparent;
+	}
 }
 .wb-tree-node {
 	display: flex;
@@ -747,7 +790,7 @@ onBeforeUnmount(() => {
 	margin-left: auto;
 	padding-right: 8px;
 	font-size: 12px;
-	color: var(--el-text-color-secondary);
+	color: #909399;
 }
 .wb-host-icon {
 	margin-right: 6px;
@@ -859,7 +902,7 @@ onBeforeUnmount(() => {
 	padding: 20px 10px;
 	text-align: center;
 	font-size: 13px;
-	color: var(--el-text-color-secondary);
+	color: #7a7a7a;
 }
 .wb-key-list {
 	display: flex;
