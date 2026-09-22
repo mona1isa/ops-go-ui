@@ -172,9 +172,10 @@ const getbindingKeys = (bindingKeys: any) => {
     }).join('; ');
 };
 
-// 打开 SSH 终端（在前端标签页中打开，支持同时操作多台主机）
+// 打开 SSH 远程连接（在新页面打开，左侧为有权限的主机分组，右侧为终端）
 const onOpenSSH = (row: any) => {
-    router.push({ path: `/terminal/${row.id}`, query: { tagsViewName: row.name } });
+    const routeUrl = router.resolve({ path: '/sshWorkbench', query: { instanceId: row.id } });
+    window.open(routeUrl.href, '_blank');
 };
 
 
