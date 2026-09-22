@@ -265,7 +265,9 @@ const getToken = () => {
 const getWebSocketUrl = (instanceId: number, terminal?: Terminal | null) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const token = getToken();
-    const host = window.location.host;
+    // 优先使用环境变量配置的 WebSocket 地址，否则使用当前页面 host
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    const host = wsUrl ? new URL(wsUrl).host : window.location.host;
     const cols = terminal?.cols || 100;
     const rows = terminal?.rows || 30;
     return `${protocol}//${host}/api/instance/terminal?instanceId=${instanceId}&token=${encodeURIComponent(token)}&cols=${cols}&rows=${rows}`;

@@ -223,7 +223,7 @@ const getMenuData = (routes: RouteItems) => {
 	return arr;
 };
 // 打开弹窗
-const openDialog = (type: string, row: Object) => {
+const openDialog = (type: string, row?: any) => {
 	
 	if (type === 'edit') {
 		state.ruleForm = JSON.parse(JSON.stringify(row));
@@ -240,6 +240,14 @@ const openDialog = (type: string, row: Object) => {
 		nextTick(() => {
 			menuDialogFormRef.value.resetFields();
 		});
+		// 如果传入了当前行，默认上级菜单设为当前行
+		if (row && row.id) {
+			state.ruleForm.parentId = row.id;
+			state.ruleForm.ids = getParentIds(state.menuData, row.id);
+		} else {
+			state.ruleForm.parentId = 0;
+			state.ruleForm.ids = [];
+		}
 	}
 	state.dialog.type = type;
 	state.dialog.isShowDialog = true;

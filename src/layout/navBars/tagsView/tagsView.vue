@@ -191,6 +191,11 @@ const singleAddTagsView = (path: string, to?: RouteToFrom) => {
 };
 // 1、添加 tagsView：未设置隐藏（isHide）也添加到在 tagsView 中（可开启多标签详情，单标签详情）
 const addTagsView = (path: string, to?: RouteToFrom) => {
+	// 同步添加缓存：确保组件在首次渲染前就已注册到 keep-alive
+	// 避免 keep-alive 在组件渲染后才加入 include，导致无法正确管理 DOM 生命周期
+	if (to?.meta?.isKeepAlive && to?.name && !storesKeepALiveNames.cachedViews.includes(to.name as string)) {
+		storesKeepALiveNames.cachedViews.push(to.name as string);
+	}
 	// 防止拿取不到路由信息
 	nextTick(async () => {
 		// 修复：https://gitee.com/lyt-top/vue-next-admin/issues/I3YX6G
@@ -245,24 +250,25 @@ const refreshCurrentTagsView = async (fullPath: string) => {
 };
 // 3、关闭当前 tagsView：如果是设置了固定的（isAffix），不可以关闭
 const closeCurrentTagsView = (path: string) => {
-	state.tagsViewList.map((v: RouteItem, k: number, arr: RouteItems) => {
+	state.tagsViewList.map((v: RouteItem, k: number) => {
 		if (!v.meta?.isAffix) {
 			if (getThemeConfig.value.isShareTagsView ? v.path === path : v.url === path) {
-				storesKeepALiveNames.delCachedView(v);
+				if (v.name === 'terminal' && v.params?.id) {
+					mittBus.emit('onTerminalTabClose', parseInt(v.params.id as string));
+				}
 				state.tagsViewList.splice(k, 1);
 				setTimeout(() => {
+					storesKeepALiveNames.delCachedView(v);
 					if (state.tagsViewList.length === k && getThemeConfig.value.isShareTagsView ? state.routePath === path : state.routeActive === path) {
 						// 最后一个且高亮时
-						const lastItem = arr[arr.length - 1];
+						const lastItem = state.tagsViewList[state.tagsViewList.length - 1];
 						if (lastItem && lastItem.meta) {
 							if (lastItem.meta.isDynamic) {
 								// 动态路由（xxx/:id/:name"）
-								if (k !== arr.length) router.push({ name: arr[k].name, params: arr[k].params });
-								else router.push({ name: lastItem.name, params: lastItem.params });
+								router.push({ name: lastItem.name, params: lastItem.params });
 							} else {
 								// 普通路由
-								if (k !== arr.length) router.push({ path: arr[k].path, query: arr[k].query });
-								else router.push({ path: lastItem.path, query: lastItem.query });
+								router.push({ path: lastItem.path, query: lastItem.query });
 							}
 						} else {
 							// 如果最后一个项不存在或没有 meta 属性，跳转到首页
@@ -271,12 +277,12 @@ const closeCurrentTagsView = (path: string) => {
 					} else {
 						// 非最后一个且高亮时，跳转到下一个
 						if (state.tagsViewList.length !== k && getThemeConfig.value.isShareTagsView ? state.routePath === path : state.routeActive === path) {
-							if (arr[k].meta.isDynamic) {
+							if (state.tagsViewList[k].meta.isDynamic) {
 								// 动态路由（xxx/:id/:name"）
-								router.push({ name: arr[k].name, params: arr[k].params });
+								router.push({ name: state.tagsViewList[k].name, params: state.tagsViewList[k].params });
 							} else {
 								// 普通路由
-								router.push({ path: arr[k].path, query: arr[k].query });
+								router.push({ path: state.tagsViewList[k].path, query: state.tagsViewList[k].query });
 							}
 						}
 					}

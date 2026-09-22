@@ -1138,4 +1138,16 @@ export const staticRoutes: Array<RouteRecordRaw> = [
 			title: 'message.router.visualizingLinkDemo2',
 		},
 	},
+	/**
+	 * 远程连接工作台：独立的全屏页面（无左侧菜单/顶部导航），
+	 * 由主机列表「SSH 连接」在新标签页打开。
+	 */
+	{
+		path: '/sshWorkbench',
+		name: 'sshWorkbench',
+		component: () => import('/@/views/sshworkbench/index.vue'),
+		meta: {
+			title: '远程连接',
+		},
+	},
 ];

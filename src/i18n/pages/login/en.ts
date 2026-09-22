@@ -9,8 +9,8 @@ export default {
 		two4: 'Links',
 	},
 	account: {
-		accountPlaceholder1: 'The user name admin or not is common',
-		accountPlaceholder2: 'Password: 123456',
+		accountPlaceholder1: 'Please enter the user name',
+		accountPlaceholder2: 'Please enter the Password',
 		accountPlaceholder3: 'Please enter the verification code',
 		accountBtnText: 'Sign in',
 	},

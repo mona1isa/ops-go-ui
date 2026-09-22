@@ -10,6 +10,14 @@ export function useMyInstanceApi() {
             });
         },
 
+        // 获取当前用户有权限的主机分组树（含分组下的主机与可用凭证）
+        getMyGroupTree: () => {
+            return request({
+                url: '/api/instance/myGroupTree',
+                method: 'post'
+            });
+        },
+
 
     }
 }

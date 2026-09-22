@@ -62,7 +62,7 @@
 				</el-table-column>
 				<el-table-column label="操作" show-overflow-tooltip width="140">
 					<template #default="scope">
-						<el-button size="small" text type="primary" @click="onOpenAddMenu('add')" v-auths="['sys:menu:add']">新增</el-button>
+						<el-button size="small" text type="primary" @click="onOpenAddMenu('add', scope.row)" v-auths="['sys:menu:add']">新增</el-button>
 						<el-button size="small" text type="primary" @click="onOpenEditMenu('edit', scope.row)" v-auths="['sys:menu:edit']">修改</el-button>
 						<el-button size="small" text type="primary" @click="onTabelRowDel(scope.row)" v-auths="['sys:menu:rm']">删除</el-button>
 					</template>
@@ -122,8 +122,8 @@ const getTypeText = (type: string) => {
 };
 
 // 打开新增菜单弹窗
-const onOpenAddMenu = (type: string) => {
-	menuDialogRef.value.openDialog(type);
+const onOpenAddMenu = (type: string, row?: any) => {
+	menuDialogRef.value.openDialog(type, row);
 };
 // 打开编辑菜单弹窗
 const onOpenEditMenu = (type: string, row: Object) => {
