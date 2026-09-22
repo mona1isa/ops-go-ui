@@ -63,6 +63,50 @@
 					<el-tag v-if="activeTab && activeTab.status" :type="activeTab.statusType" size="small" class="ml10">{{ activeTab.status }}</el-tag>
 				</div>
 				<div class="wb-terminal-ops">
+					<el-popover placement="bottom-end" :width="280" trigger="click">
+						<template #reference>
+							<el-button size="small" plain title="字体设置">
+								<el-icon><ele-MagicStick /></el-icon>
+							</el-button>
+						</template>
+						<div class="wb-font-panel">
+							<div class="wb-font-title">终端字体设置</div>
+							<div class="wb-font-row">
+								<span class="wb-font-label">字体</span>
+								<el-select
+									v-model="state.terminalFontFamily"
+									size="small"
+									class="wb-font-select"
+									@change="applyFontSetting"
+								>
+									<el-option v-for="f in FONT_FAMILIES" :key="f.value" :label="f.label" :value="f.value" />
+								</el-select>
+							</div>
+							<div class="wb-font-row">
+								<span class="wb-font-label">字号</span>
+								<el-input-number
+									v-model="state.terminalFontSize"
+									:min="FONT_SIZE_MIN"
+									:max="FONT_SIZE_MAX"
+									:step="1"
+									size="small"
+									controls-position="right"
+									class="wb-font-size"
+									@change="applyFontSetting"
+								/>
+							</div>
+							<!-- 实时预览：直观呈现改后的终端观感 -->
+							<div
+								class="wb-font-preview"
+								:style="{ fontFamily: state.terminalFontFamily, fontSize: state.terminalFontSize + 'px' }"
+							>
+								[root@host ~]# ls -al
+							</div>
+							<div class="wb-font-footer">
+								<el-button size="small" link type="primary" @click="resetFontSetting">恢复默认</el-button>
+							</div>
+						</div>
+					</el-popover>
 					<el-select
 						v-if="activeTab && activeTab.instance.keys.length > 1"
 						v-model="activeTab.keyId"
@@ -128,7 +172,7 @@ import { FitAddon } from 'xterm-addon-fit';
 import { ElMessage } from 'element-plus';
 import 'xterm/css/xterm.css';
 import { useMyInstanceApi } from '/@/api/myinstance';
-import { Session } from '/@/utils/storage';
+import { Local, Session } from '/@/utils/storage';
 import { NextLoading } from '/@/utils/loading';
 import SftpPanel from '/@/components/sftpPanel/index.vue';
 
@@ -185,6 +229,35 @@ interface TermSession {
 const route = useRoute();
 const myInstanceApi = useMyInstanceApi();
 
+// 预置终端等宽字体（均为等宽字体，避免终端字符错位）
+const FONT_FAMILIES = [
+	{ label: 'Consolas', value: 'Consolas, "Courier New", monospace' },
+	{ label: 'Courier New', value: '"Courier New", Courier, monospace' },
+	{ label: 'Monaco', value: 'Monaco, Consolas, monospace' },
+	{ label: 'Menlo', value: 'Menlo, Monaco, Consolas, monospace' },
+	{ label: 'DejaVu Sans Mono', value: '"DejaVu Sans Mono", monospace' },
+	{ label: 'Ubuntu Mono', value: '"Ubuntu Mono", monospace' },
+	{ label: 'Source Code Pro', value: '"Source Code Pro", monospace' },
+	{ label: '霞鹜文楷等宽', value: '"LXGW WenKai Mono", "Courier New", monospace' },
+];
+const DEFAULT_FONT = { fontFamily: FONT_FAMILIES[0].value, fontSize: 14 };
+const FONT_SIZE_MIN = 10;
+const FONT_SIZE_MAX = 28;
+
+// 读取持久化的终端字体设置（带取值校验与默认回退，防止脏数据导致字号异常）
+const loadFontSetting = () => {
+	const saved = Local.get('terminalFont');
+	const fontSize = Number(saved?.fontSize);
+	return {
+		fontFamily:
+			typeof saved?.fontFamily === 'string' && saved.fontFamily ? saved.fontFamily : DEFAULT_FONT.fontFamily,
+		fontSize:
+			Number.isFinite(fontSize) && fontSize >= FONT_SIZE_MIN && fontSize <= FONT_SIZE_MAX
+				? fontSize
+				: DEFAULT_FONT.fontSize,
+	};
+};
+
 const treeRef = ref();
 
 // 终端会话：每个主机一个，独立于响应式 state
@@ -200,6 +273,9 @@ const state = reactive({
 	pendingInstanceId: null as number | null,
 	keyOptions: [] as SshKey[], // 服务端返回的可选登录凭证
 	keyDialogVisible: false,
+	// 终端字体设置（持久化到 localStorage）
+	terminalFontFamily: DEFAULT_FONT.fontFamily,
+	terminalFontSize: DEFAULT_FONT.fontSize,
 });
 
 const activeTab = computed<Tab | null>(() => state.tabs.find((t) => t.instance.id === state.activeInstanceId) || null);
@@ -459,8 +535,8 @@ const openConnection = async (instance: SshInstance, presetKeyId?: number) => {
 	if (!sess) {
 		const terminal = new Terminal({
 			cursorBlink: true,
-			fontSize: 14,
-			fontFamily: 'Consolas, "Courier New", monospace',
+			fontSize: state.terminalFontSize,
+			fontFamily: state.terminalFontFamily,
 			theme: { background: '#1e1e1e', foreground: '#d4d4d4', cursor: '#ffffff' },
 			rows: 30,
 			cols: 100,
@@ -646,6 +722,32 @@ const safeFit = (id: number) => {
 	}
 };
 
+// 应用字体设置到所有已打开终端并持久化；随后重新自适应
+// （字体变化不会改变容器外框尺寸，ResizeObserver 不会触发，必须显式 fit，
+//    fitTerminal 内部会顺带把新的 cols/rows 通过 WebSocket 同步给远端 PTY）
+const applyFontSetting = () => {
+	Local.set('terminalFont', { fontFamily: state.terminalFontFamily, fontSize: state.terminalFontSize });
+	sessions.forEach((sess) => {
+		try {
+			sess.terminal.options.fontSize = state.terminalFontSize;
+			sess.terminal.options.fontFamily = state.terminalFontFamily;
+		} catch (e) {
+			// 忽略单个会话的设置异常
+		}
+	});
+	const id = state.activeInstanceId;
+	if (id != null) {
+		nextTick(() => safeFit(id));
+	}
+};
+
+// 恢复默认字体设置
+const resetFontSetting = () => {
+	state.terminalFontFamily = DEFAULT_FONT.fontFamily;
+	state.terminalFontSize = DEFAULT_FONT.fontSize;
+	applyFontSetting();
+};
+
 // 窗口大小变化时同步当前终端尺寸
 const onWindowResize = () => {
 	if (state.activeInstanceId != null) fitTerminal(state.activeInstanceId);
@@ -656,6 +758,10 @@ onMounted(async () => {
 	// 本页为全屏静态路由（不经过 layout），layout 中的 NextLoading.done 不会执行，
 	// 需在此处主动移除全局 loading 遮罩，否则其占满一屏会把 #app 顶出视口导致页面空白
 	NextLoading.done();
+	// 恢复持久化的终端字体设置
+	const savedFont = loadFontSetting();
+	state.terminalFontFamily = savedFont.fontFamily;
+	state.terminalFontSize = savedFont.fontSize;
 	await loadGroupTree();
 	// 支持从主机列表页跳转时自动选中并连接指定主机
 	const instanceId = Number(route.query.instanceId);
@@ -879,6 +985,46 @@ onBeforeUnmount(() => {
 }
 .wb-key-select {
 	width: 140px;
+}
+/* 字体设置 Popover：浅色系统面板，与「选择登录凭证」弹窗保持一致 */
+.wb-font-panel {
+	font-size: 13px;
+	color: #303133;
+}
+.wb-font-title {
+	font-weight: 600;
+	margin-bottom: 12px;
+}
+.wb-font-row {
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
+}
+.wb-font-label {
+	width: 40px;
+	flex-shrink: 0;
+	color: #606266;
+}
+.wb-font-select {
+	flex: 1;
+}
+.wb-font-size {
+	flex: 1;
+	width: 100%;
+}
+.wb-font-preview {
+	margin-top: 4px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	background-color: #1e1e1e;
+	color: #d4d4d4;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.wb-font-footer {
+	margin-top: 8px;
+	text-align: right;
 }
 .wb-terminal-body {
 	flex: 1;
