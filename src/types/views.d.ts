@@ -650,3 +650,102 @@ declare type MonitorRuleTestResultType = {
 	values: number[];
 	message: string;
 };
+
+declare type RowCmdbTagType = {
+	id: number;
+	name: string;
+	color: string;
+	remark: string;
+	createBy: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare type RowCmdbAssetType = {
+	id: number;
+	modelType: string;
+	name: string;
+	sn: string;
+	ip: string;
+	status: number;
+	owner: string;
+	provider: string;
+	location: string;
+	expiredAt: string | null;
+	attrs: string;
+	source: string;
+	instanceId: number;
+	remark: string;
+	createBy: string;
+	createdAt: string;
+	updatedAt: string;
+	tags?: RowCmdbTagType[];
+};
+
+declare type RowCmdbRelationType = {
+	id: number;
+	sourceId: number;
+	sourceName: string;
+	targetId: number;
+	targetName: string;
+	relationType: string;
+	remark: string;
+};
+
+declare type RowCmdbChangeLogType = {
+	id: number;
+	assetId: number;
+	action: string;
+	detail: string;
+	createBy: string;
+	createdAt: string;
+};
+
+declare type CmdbGraphNode = {
+	id: number;
+	name: string;
+	modelType: string;
+	status: number;
+};
+
+declare type CmdbGraphEdge = {
+	source: number;
+	target: number;
+	type: string;
+	sourceName?: string;
+	targetName?: string;
+};
+
+declare type CmdbGraphDataType = {
+	nodes: CmdbGraphNode[];
+	edges: CmdbGraphEdge[];
+	truncated: boolean;
+};
+
+declare type RowCmdbSubnetType = {
+	id: number;
+	name: string;
+	cidr: string;
+	gateway: string;
+	vlan: string;
+	remark: string;
+	createBy: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare type CmdbSubnetUsageType = {
+	ip: string;
+	kind: string;
+	id: number;
+	name: string;
+	owner: string;
+	status: string;
+	location: string;
+};
+
+declare type CmdbUsageResultType = {
+	capacity: number;
+	used: number;
+	usage: CmdbSubnetUsageType[];
+};
