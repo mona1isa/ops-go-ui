@@ -476,3 +476,177 @@ declare interface RecordTableType extends TableType {
 declare interface RecordState {
 	tableData: RecordTableType;
 }
+
+// Monitor 监控告警
+declare type RowMonitorTargetType = {
+	id: number;
+	instanceId: number;
+	instanceName: string;
+	instanceIp: string;
+	keyId: number;
+	enabled: string;
+	intervalSec: number;
+	timeoutSec: number;
+	lastCollectAt: string | null;
+	lastStatus: number;
+	lastError: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare interface MonitorTargetTableType extends TableType {
+	data: RowMonitorTargetType[];
+}
+
+declare interface MonitorTargetState {
+	tableData: MonitorTargetTableType;
+}
+
+declare type RowMonitorRuleType = {
+	id: number;
+	name: string;
+	metric: string;
+	promQl: string;
+	operator: string;
+	threshold: number;
+	severity: number;
+	forSec: number;
+	cooldownSec: number;
+	silenceUntil: number;
+	muted: string;
+	channelIds: string;
+	enabled: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare interface MonitorRuleTableType extends TableType {
+	data: RowMonitorRuleType[];
+}
+
+declare interface MonitorRuleState {
+	tableData: MonitorRuleTableType;
+}
+
+declare type RowMonitorNotifyLogType = {
+	id: number;
+	eventId: number;
+	ruleId: number;
+	channelId: number;
+	channelName: string;
+	recovered: number;
+	payload: string;
+	statusCode: number;
+	responseBody: string;
+	attempt: number;
+	success: number;
+	errorMsg: string;
+	createdAt: string;
+};
+
+declare type RowMonitorEventType = {
+	id: number;
+	ruleId: number;
+	ruleName: string;
+	fingerprint: string;
+	instanceIp: string;
+	labels: string;
+	value: number;
+	threshold: number;
+	severity: number;
+	status: number;
+	pendingSince: string | null;
+	firedAt: string | null;
+	resolvedAt: string | null;
+	lastNotifyAt: string | null;
+	notifyCount: number;
+	suppressed: number;
+	summary: string;
+	createdAt: string;
+	updatedAt: string;
+	lastNotify: RowMonitorNotifyLogType | null;
+};
+
+declare interface MonitorEventTableType extends TableType {
+	data: RowMonitorEventType[];
+}
+
+declare interface MonitorEventState {
+	tableData: MonitorEventTableType;
+}
+
+declare type RowMonitorChannelType = {
+	id: number;
+	name: string;
+	type: number;
+	url: string;
+	secret: string;
+	headers: string;
+	enabled: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare interface MonitorChannelTableType extends TableType {
+	data: RowMonitorChannelType[];
+}
+
+declare interface MonitorChannelState {
+	tableData: MonitorChannelTableType;
+}
+
+declare type MonitorMetricPoint = {
+	timestamp: number;
+	value: number;
+};
+
+declare type MonitorMetricSeries = {
+	metric: string;
+	name: string;
+	labels: Record<string, string>;
+	points: MonitorMetricPoint[];
+};
+
+declare type MonitorHostSnapshotType = {
+	instance: string;
+	metrics: MonitorMetricSeries[];
+	missing: boolean;
+	message: string;
+};
+
+declare type MonitorDatasourceStatusType = {
+	prometheusUrl: string;
+	pushgatewayUrl: string;
+	prometheusReady: boolean;
+	pushgatewayReady: boolean;
+	targetCount: number;
+	enabledTargetCount: number;
+	ruleCount: number;
+	firingCount: number;
+	metricNames: string[];
+	message: string;
+};
+
+declare type MonitorOverviewType = {
+	firing: number;
+	pending: number;
+	collectFailed: number;
+	enabledTargets: number;
+};
+
+declare type MonitorRuleTestResultType = {
+	expression: string;
+	matched: number;
+	hit: number;
+	values: number[];
+	message: string;
+};

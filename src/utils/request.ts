@@ -76,6 +76,9 @@ service.interceptors.response.use(
 			router.push('/login'); // 去登录页
 		} else if (error.response?.status === 500 || error.response?.data?.code === 500) {
 			ElMessage.error(error.response?.data.msg || '服务器错误');
+		} else if (error.response?.status === 503 || error.response?.data?.code === 503) {
+			// 监控数据源不可用等场景，后端返回中文诊断信息
+			ElMessage.error(error.response?.data?.msg || '依赖服务不可用');
 		} else {
 			ElMessage.error(error.response?.statusText || '接口路径找不到');
 		}
