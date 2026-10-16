@@ -749,3 +749,200 @@ declare type CmdbUsageResultType = {
 	used: number;
 	usage: CmdbSubnetUsageType[];
 };
+
+// Logs 日志中心
+declare type RowLogSourceType = {
+	id: number;
+	name: string;
+	instanceId: number;
+	instanceName: string;
+	instanceIp: string;
+	keyId: number;
+	path: string;
+	job: string;
+	source: string;
+	labels: string;
+	levelRegex: string;
+	enabled: string;
+	intervalSec: number;
+	timeoutSec: number;
+	maxBytes: number;
+	backBytes: number;
+	lastInode: number;
+	lastPos: number;
+	lastFile: string;
+	lastLines: number;
+	lastDrop: number;
+	lastCollectAt: string | null;
+	lastStatus: number;
+	lastError: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare interface LogSourceTableType extends TableType {
+	data: RowLogSourceType[];
+}
+
+declare interface LogSourceState {
+	tableData: LogSourceTableType;
+}
+
+declare type RowLogAlertRuleType = {
+	id: number;
+	name: string;
+	selector: string;
+	host: string;
+	source: string;
+	keyword: string;
+	level: string;
+	windowSec: number;
+	threshold: number;
+	severity: number;
+	cooldownSec: number;
+	silenceUntil: number;
+	muted: string;
+	channelIds: string;
+	groupByHost: string;
+	enabled: string;
+	createBy: string;
+	updateBy: string;
+	remark: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare interface LogAlertRuleTableType extends TableType {
+	data: RowLogAlertRuleType[];
+}
+
+declare interface LogAlertRuleState {
+	tableData: LogAlertRuleTableType;
+}
+
+declare type LogLineType = {
+	timestamp: string;
+	line: string;
+	labels: Record<string, string>;
+};
+
+declare type LogHistogramPointType = {
+	timestamp: number;
+	value: number;
+};
+
+declare type LogDatasourceStatusType = {
+	available: boolean;
+	url: string;
+};
+
+declare type LogAlertTestSampleType = {
+	labels: Record<string, string>;
+	value: number;
+	timestamp: string;
+};
+
+declare type LogAlertTestResultType = {
+	logql: string;
+	samples: LogAlertTestSampleType[];
+	hit: boolean;
+};
+
+declare type RowLoginLogType = {
+	id: number;
+	userName: string;
+	userId: number;
+	result: number;
+	reason: string;
+	ipAddr: string;
+	location: string;
+	userAgent: string;
+	browser: string;
+	os: string;
+	platform: string;
+	deptId: number;
+	createdAt: string;
+};
+
+declare interface LoginLogTableType extends TableType {
+	data: RowLoginLogType[];
+}
+
+declare interface LoginLogState {
+	tableData: LoginLogTableType;
+}
+
+declare type LogTopItemType = {
+	name: string;
+	count: number;
+};
+
+declare type LoginTrendPointType = {
+	date: string;
+	success: number;
+	fail: number;
+};
+
+declare type LoginOverviewType = {
+	days: number;
+	total: number;
+	success: number;
+	fail: number;
+	successRate: number;
+	trend: LoginTrendPointType[];
+	failUsers: LogTopItemType[];
+	failIps: LogTopItemType[];
+	activeUsers: LogTopItemType[];
+	suspicious: LogTopItemType[];
+};
+
+declare type RowAuditLogType = {
+	id: number;
+	deptId: number;
+	createUser: string;
+	method: string;
+	requestUri: string;
+	params: string;
+	resp: string;
+	ipAddr: string;
+	statusCode: string;
+	costTimeMs: number;
+	operModule: string;
+	operType: string;
+	sensitive: string;
+	bizCode: string;
+	bizMsg: string;
+	userAgent: string;
+	operateAt: string;
+	remark: string;
+	createdAt: string;
+};
+
+declare interface AuditLogTableType extends TableType {
+	data: RowAuditLogType[];
+}
+
+declare interface AuditLogState {
+	tableData: AuditLogTableType;
+}
+
+declare type AuditSlowApiType = {
+	requestUri: string;
+	cnt: number;
+	avgCostMs: number;
+	maxCostMs: number;
+};
+
+declare type AuditOverviewType = {
+	hours: number;
+	total: number;
+	fail: number;
+	sensitive: number;
+	modules: LogTopItemType[];
+	operators: LogTopItemType[];
+	sensitiveOps: LogTopItemType[];
+	slowApis: AuditSlowApiType[];
+};
