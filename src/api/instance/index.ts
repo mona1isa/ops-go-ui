@@ -102,6 +102,23 @@ export function useInstanceApi() {
                 method: 'post',
                 data,
             });
+        },
+        // 下载批量导入模板（后端返回 base64 内容）
+        getImportTemplate: () => {
+            return request({
+                url: '/api/instance/import/template',
+                method: 'post',
+            });
+        },
+        // 上传文件批量导入主机
+        batchImportInstance: (data: FormData) => {
+            return request({
+                url: '/api/instance/import',
+                method: 'post',
+                data,
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 0,
+            });
         }
     }
 }

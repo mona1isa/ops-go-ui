@@ -34,6 +34,12 @@
                     </el-icon>
                     同步主机
                 </el-button>
+                <el-button size="default" plain type="primary" class="ml10" @click="showImportDialog">
+                    <el-icon>
+                        <ele-Upload />
+                    </el-icon>
+                    批量导入
+                </el-button>
                 <el-button size="default" plain type="danger" class="ml10" :disabled="selectedHostIds.length === 0" :loading="batchDeleting" @click="onBatchDel">
                     <el-icon>
                         <ele-Delete />
@@ -115,6 +121,7 @@
         <DetailDrawer ref="detailDrawerRef" />
         <BindKeyDialog ref="bindKeyDialogRef" @refresh="getTableData()"/>
         <UnbindingKeyDialog ref="unbindingKeyDialogRef" @refresh="getTableData()"/>
+        <ImportDialog ref="importDialogRef" @refresh="getTableData()" />
 
         
         <!-- 同步主机对话框 -->
@@ -196,6 +203,9 @@ const BindKeyDialog = defineAsyncComponent(() => import('/@/views/instance/bingk
 // 引入解绑凭证对话框
 const UnbindingKeyDialog = defineAsyncComponent(() => import('/@/views/instance/unbindingkey.vue'));
 
+// 引入批量导入对话框
+const ImportDialog = defineAsyncComponent(() => import('/@/views/instance/importDialog.vue'));
+
 
 
 const router = useRouter();
@@ -214,6 +224,7 @@ const instanceDialogRef = ref();
 const detailDrawerRef = ref();
 const bindKeyDialogRef = ref();
 const unbindingKeyDialogRef = ref();
+const importDialogRef = ref();
 const instanceTableRef = ref();
 
 // 批量删除相关变量
@@ -315,6 +326,11 @@ const onOpenEditInstance = (type: string, row: RowInstanceType) => {
 // 打开新增窗口
 const onOpenAddInstance = (type: string) => {
     instanceDialogRef.value.openDialog(type);
+};
+
+// 打开批量导入窗口
+const showImportDialog = () => {
+    importDialogRef.value.openDialog();
 };
 
 // 主机详情
