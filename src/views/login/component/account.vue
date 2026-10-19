@@ -208,7 +208,30 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
 
 <style scoped lang="scss">
 .login-content-form {
-	margin-top: 20px;
+	:deep(.el-form-item__content) {
+		line-height: normal;
+	}
+	:deep(.el-input__wrapper),
+	:deep(.el-input__wrapper:hover),
+	:deep(.el-input__wrapper.is-focus) {
+		box-shadow: none;
+		background-color: transparent;
+		padding: 0 4px;
+	}
+	:deep(.el-input__inner) {
+		height: 34px;
+		font-size: 18px;
+		font-weight: 300;
+		color: #4a4f73;
+		&::placeholder {
+			color: #999;
+			font-weight: 300;
+		}
+	}
+	:deep(.el-input__prefix),
+	:deep(.el-input__suffix) {
+		color: #999;
+	}
 	@for $i from 1 through 4 {
 		.login-animation#{$i} {
 			opacity: 0;
@@ -218,25 +241,73 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
 			animation-delay: calc($i/10) + s;
 		}
 	}
+	.login-animation1,
+	.login-animation2,
+	.login-animation3 {
+		margin-bottom: 0;
+		padding: 8px 0;
+		border-bottom: 2px solid #99999955;
+		&:focus-within {
+			border-bottom-color: #6065d9;
+		}
+	}
+	.login-animation3 {
+		.el-col {
+			padding: 0 !important;
+		}
+	}
 	.login-content-password {
 		display: inline-block;
 		width: 20px;
 		cursor: pointer;
 		&:hover {
-			color: #909399;
+			color: #6065d9;
 		}
 	}
 	.login-content-code {
 		width: 100%;
+		height: auto;
 		padding: 0;
-		font-weight: bold;
-		letter-spacing: 5px;
+		border: none;
+		background-color: transparent;
+		--el-button-bg-color: transparent;
+		--el-button-border-color: transparent;
+		--el-button-hover-bg-color: transparent;
+		--el-button-hover-border-color: transparent;
+		--el-button-focus-bg-color: transparent;
+		--el-button-focus-border-color: transparent;
+		.login-content-code-img {
+			max-width: 100%;
+			height: auto;
+			border-radius: 4px;
+			display: block;
+		}
 	}
 	.login-content-submit {
-		width: 100%;
-		letter-spacing: 2px;
+		display: block;
+		width: 140px;
+		height: 42px;
+		margin: 32px auto 0;
+		padding: 0;
+		border: none;
+		border-radius: 50px;
+		background-color: transparent;
+		background-image: linear-gradient(to right, #6065d9, #17d7fa);
+		box-shadow: 0 8px 20px rgba(96, 101, 217, 0.25);
+		color: #fff;
+		font-size: 18px;
 		font-weight: 300;
-		margin-top: 15px;
+		letter-spacing: 2px;
+		--el-button-bg-color: transparent;
+		--el-button-border-color: transparent;
+		--el-button-hover-bg-color: transparent;
+		--el-button-text-color: #fff;
+		--el-button-hover-text-color: #fff;
+		&:hover,
+		&:focus {
+			background-image: linear-gradient(to right, #4f54c9, #0fc4e8);
+			color: #fff;
+		}
 	}
 }
 </style>
