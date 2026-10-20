@@ -1,5 +1,6 @@
 <template>
 	<el-form size="large" class="login-content-form">
+		<template v-if="!mfa.step">
 		<el-form-item class="login-animation1">
 			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.username" clearable autocomplete="off" aria-label="用户名">
 				<template #prefix>
@@ -56,6 +57,38 @@
 				<span>{{ $t('message.account.accountBtnText') }}</span>
 			</el-button>
 		</el-form-item>
+		</template>
+
+		<!-- MFA 第二步：动态验证码 / 恢复码 -->
+		<template v-else>
+			<el-form-item class="login-animation1">
+				<div class="login-mfa-title">二次验证{{ mfa.useRecovery ? '（恢复码）' : '' }}</div>
+			</el-form-item>
+			<el-form-item class="login-animation2">
+				<el-input
+					text
+					:maxlength="mfa.useRecovery ? 18 : 6"
+					:placeholder="mfa.useRecovery ? '请输入恢复码' : '请输入认证器 6 位动态码'"
+					v-model="mfa.code"
+					clearable
+					autocomplete="off"
+					:aria-label="mfa.useRecovery ? '恢复码' : '动态验证码'"
+				>
+					<template #prefix>
+						<el-icon class="el-input__icon"><ele-Lock /></el-icon>
+					</template>
+				</el-input>
+			</el-form-item>
+			<el-form-item class="login-animation3">
+				<el-button type="primary" class="login-content-submit" round v-waves @click="onMfaSignIn" :loading="mfa.loading">
+					<span>验证并登录</span>
+				</el-button>
+			</el-form-item>
+			<div class="login-mfa-links">
+				<el-link type="primary" :underline="false" @click="onToggleRecovery">{{ mfa.useRecovery ? '使用动态码' : '使用恢复码' }}</el-link>
+				<el-link type="info" :underline="false" @click="onCancelMfa">返回重新登录</el-link>
+			</div>
+		</template>
 	</el-form>
 </template>
 
@@ -92,6 +125,15 @@ const state = reactive({
 	},
 });
 
+// MFA 二次验证状态
+const mfa = reactive({
+	step: false,
+	loading: false,
+	preToken: '',
+	code: '',
+	useRecovery: false,
+});
+
 // 定义验证码
 const captcha = reactive({
 	code: 0,
@@ -115,7 +157,11 @@ onMounted(() => {
 // 处理 Enter 键事件
 const handleEnterKey = (event: KeyboardEvent) => {
 	if (event.key === 'Enter') {
-		onSignIn();
+		if (mfa.step) {
+			onMfaSignIn();
+		} else {
+			onSignIn();
+		}
 	}
 };
 
@@ -158,6 +204,15 @@ const onSignIn = async () => {
 		}
 		const response = await useLoginApi().signIn(loginData);
 		if (response.code === 200) {
+			// 已绑定 MFA：进入第二步，不存 token、不加载路由
+			if (response.mfaRequired === true) {
+				mfa.step = true;
+				mfa.preToken = response.preToken || '';
+				mfa.code = '';
+				mfa.useRecovery = false;
+				state.loading.signIn = false;
+				return;
+			}
 			// 存储 token 到浏览器缓存
 			Session.set('token', response.token);
 			// 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
@@ -168,18 +223,66 @@ const onSignIn = async () => {
 		// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
 		// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
 		const isNoPower = await initBackEndControlRoutes();
-		// 执行完 initBackEndControlRoutes，再执行 signInSuccess
-		signInSuccess(isNoPower);
+		// 执行完 initBackEndControlRoutes，再执行 signInSuccess；强制 MFA 未绑定用户引导至绑定页
+		signInSuccess(isNoPower, response.bindRequired === true);
 	} catch (error: any) {
-		// ElMessage.error(error.message || '登录失败，请重试');
+		// 400 错误（密码/验证码等）由 axios 拦截器统一提示，这里仅恢复按钮与验证码
 		state.loading.signIn = false;
 		if (captchaEnabled.value) {
 			getCaptchaCode();
 		}
 	}
 };
+
+// MFA 第二步提交
+const onMfaSignIn = async () => {
+	if (!mfa.code || mfa.code.trim().length === 0) {
+		ElMessage.warning(mfa.useRecovery ? '请输入恢复码' : '请输入 6 位动态码');
+		return;
+	}
+	mfa.loading = true;
+	try {
+		const response = await useLoginApi().signInMfa({
+			preToken: mfa.preToken,
+			code: mfa.useRecovery ? '' : mfa.code.trim(),
+			recovery: mfa.useRecovery ? mfa.code.trim() : '',
+		});
+		if (response.code === 200 && response.token) {
+			Session.set('token', response.token);
+			Cookies.set('username', state.ruleForm.username);
+			mfa.step = false;
+			const isNoPower = await initBackEndControlRoutes();
+			signInSuccess(isNoPower);
+		}
+	} catch (error: any) {
+		// 动态码错误由拦截器提示，票据作废时退回第一步
+		if (String(error?.message || '').indexOf('重新登录') > -1) {
+			cancelMfa();
+		}
+	} finally {
+		mfa.loading = false;
+	}
+};
+
+const cancelMfa = () => {
+	mfa.step = false;
+	mfa.preToken = '';
+	mfa.code = '';
+	mfa.useRecovery = false;
+	if (captchaEnabled.value) {
+		getCaptchaCode();
+	}
+};
+
+const onCancelMfa = () => cancelMfa();
+
+const onToggleRecovery = () => {
+	mfa.useRecovery = !mfa.useRecovery;
+	mfa.code = '';
+};
+
 // 登录成功后的跳转
-const signInSuccess = (isNoPower: boolean | undefined) => {
+const signInSuccess = (isNoPower: boolean | undefined, bindRequired = false) => {
 	if (isNoPower) {
 		ElMessage.warning('抱歉，您没有登录权限');
 		Session.clear();
@@ -188,7 +291,10 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
 		let currentTimeInfo = currentTime.value;
 		// 登录成功，跳到转首页
 		// 如果是复制粘贴的路径，非首页/登录页，那么登录成功后重定向到对应的路径中
-		if (route.query?.redirect) {
+		if (bindRequired) {
+			// 系统强制 MFA 且尚未绑定：登录后直接引导到个人中心绑定页
+			router.push({ path: '/personal', query: { tab: 'mfa', guide: '1' } });
+		} else if (route.query?.redirect) {
 			router.push({
 				path: <string>route.query?.redirect,
 				query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
@@ -255,6 +361,19 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
 		.el-col {
 			padding: 0 !important;
 		}
+	}
+	.login-mfa-title {
+		width: 100%;
+		font-size: 16px;
+		font-weight: 300;
+		color: #4a4f73;
+		letter-spacing: 1px;
+	}
+	.login-mfa-links {
+		display: flex;
+		justify-content: space-between;
+		padding: 0 4px;
+		font-size: 13px;
 	}
 	.login-content-password {
 		display: inline-block;

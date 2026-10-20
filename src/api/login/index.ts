@@ -46,6 +46,15 @@ export function useLoginApi() {
 				method: 'get',
 			});
 		},
+		// 登录第二步：MFA 动态验证码 / 一次性恢复码
+		signInMfa: async (data: object) => {
+			const res = await request({
+				url: '/api/user/login/mfa',
+				method: 'post',
+				data,
+			});
+			return res;
+		},
 	};
 }
 
