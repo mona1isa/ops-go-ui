@@ -85,11 +85,9 @@
                                     :key="item.id"
                                     :label="`${item.name}（${channelTypeName(item.type)}）`"
                                     :value="item.id"
-                                    :disabled="item.type !== 1"
                                 />
                             </el-select>
                             <div v-if="channelList.length === 0" class="form-tip">暂无启用的通知渠道，请先到「监控告警 - 通知渠道」页面添加</div>
-                            <div v-else class="form-tip">当前仅 Webhook 渠道可实际发送，邮件/钉钉/企业微信尚未实现</div>
                         </el-form-item>
                     </el-col>
                     <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
@@ -130,6 +128,7 @@ import { ElMessage } from 'element-plus';
 import { useLogsApi } from '/@/api/logs';
 import { useMonitorApi } from '/@/api/monitor';
 import { RowLogAlertRuleType } from '/@/types/views';
+import { channelTypeName } from '/@/views/monitor/channel/dict';
 
 const logsApi = useLogsApi();
 const monitorApi = useMonitorApi();
@@ -174,11 +173,6 @@ const state = reactive({
     ruleForm: { ...initState },
     dialog: { visible: false, title: '', type: '' },
 });
-
-const channelTypeName = (type: number) => {
-    const names: Record<number, string> = { 1: 'Webhook', 2: '邮件', 3: '钉钉', 4: '企业微信' };
-    return names[type] || '未知';
-};
 
 const loadOptions = async () => {
     try {

@@ -4,11 +4,8 @@
             <el-card shadow="hover">
             <div class="app-search mb15">
                 <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入渠道名称" style="max-width: 180px" clearable> </el-input>
-                <el-select v-model="state.tableData.param.type" size="default" placeholder="渠道类型" style="max-width: 140px; margin-left: 10px;" clearable>
-                    <el-option label="Webhook" :value="1" />
-                    <el-option label="邮件" :value="2" />
-                    <el-option label="钉钉" :value="3" />
-                    <el-option label="企业微信" :value="4" />
+                <el-select v-model="state.tableData.param.type" size="default" placeholder="渠道类型" style="max-width: 160px; margin-left: 10px;" clearable>
+                    <el-option v-for="item in CHANNEL_TYPES" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
                 <el-select v-model="state.tableData.param.enabled" size="default" placeholder="启用状态" style="max-width: 120px; margin-left: 10px;" clearable>
                     <el-option label="启用" value="1" />
@@ -42,14 +39,24 @@
                         <el-tag :type="channelTypeTag(scope.row.type)" size="small">{{ channelTypeName(scope.row.type) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="url" label="回调地址" show-overflow-tooltip></el-table-column>
+                <el-table-column prop="url" label="通知地址/收件人" show-overflow-tooltip>
+                    <template #default="scope">
+                        <span v-if="scope.row.type === 2">
+                            <el-tag size="small" effect="plain" class="mr5">{{ scope.row.url.split(/[,;，；]+/).filter(Boolean).length }} 个收件人</el-tag>
+                            {{ scope.row.url }}
+                        </span>
+                        <span v-else>{{ scope.row.url }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="secret" label="签名密钥" width="100">
                     <template #default="scope">
                         <el-tag v-if="scope.row.secret" type="success" size="small" effect="plain">已配置</el-tag>
                         <span v-else>—</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="headers" label="自定义请求头" show-overflow-tooltip></el-table-column>
+                <el-table-column prop="headers" label="自定义请求头" show-overflow-tooltip>
+                    <template #default="scope">{{ scope.row.type === 1 ? scope.row.headers : '' }}</template>
+                </el-table-column>
                 <el-table-column prop="enabled" label="启用状态" width="90">
                     <template #default="scope">
                         <el-switch
@@ -98,6 +105,7 @@ import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
 import { useMonitorApi } from '/@/api/monitor';
 import { MonitorChannelState, RowMonitorChannelType } from '/@/types/views';
 import { ElMessage, ElMessageBox, dayjs } from 'element-plus';
+import { CHANNEL_TYPES, channelTypeName, channelTypeTag } from './dict';
 
 // 引入组件
 const ChannelDialog = defineAsyncComponent(() => import('/@/views/monitor/channel/dialog.vue'));
@@ -119,16 +127,7 @@ const state = reactive<MonitorChannelState>({
     },
 });
 
-// 渠道类型名称
-const channelTypeName = (type: number) => {
-    const names: Record<number, string> = { 1: 'Webhook', 2: '邮件', 3: '钉钉', 4: '企业微信' };
-    return names[type] || '未知';
-};
-
-const channelTypeTag = (type: number) => {
-    const tags: Record<number, string> = { 1: 'primary', 2: 'info', 3: 'warning', 4: 'success' };
-    return tags[type] || 'info';
-};
+// 渠道类型名称/标签色使用 dict.ts 公共字典
 
 // 剔除空筛选字段（后端指针类型字段传空字符串会 400）
 const buildQuery = (param: Record<string, any>) => {

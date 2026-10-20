@@ -100,6 +100,7 @@ import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useMonitorApi } from '/@/api/monitor';
 import { RowMonitorRuleType } from '/@/types/views';
+import { channelTypeName } from '/@/views/monitor/channel/dict';
 
 const monitorApi = useMonitorApi();
 
@@ -122,11 +123,6 @@ const metricOptions = [
     { label: '网络接收(B/s)', value: 'ops_net_receive_bytes_per_second' },
     { label: '网络发送(B/s)', value: 'ops_net_transmit_bytes_per_second' },
 ];
-
-const channelTypeName = (type: number) => {
-    const names: Record<number, string> = { 1: 'Webhook', 2: '邮件', 3: '钉钉', 4: '企业微信' };
-    return names[type] || '未知';
-};
 
 const rules = reactive({
     name: [{ required: true, message: '请输入规则名称', trigger: 'blur' }],
