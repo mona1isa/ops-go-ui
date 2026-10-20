@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts" name="logsQueryIndex">
-import { computed, markRaw, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import * as echarts from 'echarts';
 import { dayjs, ElMessage } from 'element-plus';
 import { useLogsApi } from '/@/api/logs';
@@ -226,8 +226,11 @@ const context = reactive({
     after: [] as LogLineType[],
 });
 
-// 图表实例存放在响应式之外，避免 Vue 代理破坏 echarts 内部状态
-const global = reactive<{ trendChart: any }>({ trendChart: null });
+// 图表实例与宿主 DOM 放在一起：页面缓存后复用节点仍可继续用，节点被移除则丢弃旧实例重建，
+// 避免实例残留在脱离文档的元素上导致尺寸错乱
+let chartInstance: echarts.ECharts | null = null;
+let chartHost: HTMLElement | null = null;
+let chartObserver: ResizeObserver | null = null;
 
 const keywords = computed(() =>
     (state.param.keyword || '')
@@ -397,16 +400,29 @@ const loadHistogram = async () => {
 
 const renderChart = async () => {
     await nextTick();
-    if (!chartRef.value) return;
-    if (!global.trendChart) global.trendChart = markRaw(echarts.init(chartRef.value));
+    const el = chartRef.value;
+    if (!el) return;
+
+    if (!chartInstance || chartHost !== el) {
+        if (el.clientWidth === 0 || el.clientHeight === 0) return;
+        chartInstance = echarts.init(el);
+        chartHost = el;
+    }
+
+    // 无数据时彻底清空画布，只保留「暂无分布数据」占位；
+    // 否则空坐标系仍会渲染 0/1 刻度与残留轴标签
+    if (state.histogram.length === 0) {
+        chartInstance.clear();
+        return;
+    }
 
     const points = state.histogram.map((point) => ({
         time: dayjs(point.timestamp * 1000).format('MM-DD HH:mm'),
         value: point.value,
     }));
-    global.trendChart.setOption(
+    chartInstance.setOption(
         {
-            grid: { left: 50, right: 20, top: 20, bottom: 40 },
+            grid: { left: 50, right: 20, top: 30, bottom: 40 },
             tooltip: { trigger: 'axis' },
             xAxis: { type: 'category', data: points.map((item) => item.time), axisLabel: { fontSize: 10 } },
             yAxis: { type: 'value', name: '条数', minInterval: 1 },
@@ -422,7 +438,7 @@ const renderChart = async () => {
         },
         true
     );
-    global.trendChart.resize();
+    chartInstance.resize();
 };
 
 const onSearch = () => {
@@ -539,21 +555,36 @@ const onExport = () => {
     ElMessage.success(`已导出 ${state.lines.length} 行`);
 };
 
-const handleChartResize = () => global.trendChart?.resize();
+// 容器尺寸变化（窗口缩放、侧边栏折叠、标签页切换回来、字体缩放）都由 ResizeObserver 覆盖，
+// 比 window.resize 更全面；宽度从 0 变为可见时也会借它补渲染一次
+const observeChart = (el: HTMLElement) => {
+    if (chartObserver || typeof ResizeObserver === 'undefined') return;
+    chartObserver = new ResizeObserver(() => {
+        if (!chartRef.value) return;
+        if (!chartInstance) {
+            renderChart();
+        } else {
+            chartInstance.resize();
+        }
+    });
+    chartObserver.observe(el);
+};
 
 onMounted(() => {
     loadStatus();
     loadJobs();
     initOptions();
     renderChart();
-    window.addEventListener('resize', handleChartResize);
+    if (chartRef.value) observeChart(chartRef.value);
 });
 
 onUnmounted(() => {
     stopTail();
-    window.removeEventListener('resize', handleChartResize);
-    global.trendChart?.dispose();
-    global.trendChart = null;
+    chartObserver?.disconnect();
+    chartObserver = null;
+    chartInstance?.dispose();
+    chartInstance = null;
+    chartHost = null;
 });
 </script>
 

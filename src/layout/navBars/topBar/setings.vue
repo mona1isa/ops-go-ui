@@ -438,7 +438,6 @@ import { useThemeConfig } from '/@/stores/themeConfig';
 import { useChangeColor } from '/@/utils/theme';
 import { verifyAndSpace } from '/@/utils/toolsValidate';
 import { Local } from '/@/utils/storage';
-import Watermark from '/@/utils/watermark';
 import commonFunction from '/@/utils/commonFunction';
 import other from '/@/utils/other';
 import mittBus from '/@/utils/mitt';
@@ -565,16 +564,14 @@ const onAddDarkChange = () => {
 	if (getThemeConfig.value.isIsDark) body.setAttribute('data-theme', 'dark');
 	else body.setAttribute('data-theme', '');
 };
-// 4、界面显示 --> 开启水印
+// 4、界面显示 --> 开启水印（实际渲染由 App.vue 的 Watermark 组件响应 isWartermark）
 const onWartermarkChange = () => {
-	getThemeConfig.value.isWartermark ? Watermark.set(getThemeConfig.value.wartermarkText) : Watermark.del();
 	setLocalThemeConfig();
 };
 // 4、界面显示 --> 水印文案
 const onWartermarkTextInput = (val: string) => {
 	getThemeConfig.value.wartermarkText = verifyAndSpace(val);
 	if (getThemeConfig.value.wartermarkText === '') return false;
-	if (getThemeConfig.value.isWartermark) Watermark.set(getThemeConfig.value.wartermarkText);
 	setLocalThemeConfig();
 };
 // 5、布局切换
@@ -666,8 +663,6 @@ onMounted(() => {
 			if (getThemeConfig.value.isInvert) onAddFilterChange('invert');
 			// 深色模式
 			if (getThemeConfig.value.isIsDark) onAddDarkChange();
-			// 开启水印
-			onWartermarkChange();
 			// 语言国际化
 			if (Local.get('themeConfig')) locale.value = Local.get('themeConfig').globalI18n;
 			// 初始化菜单样式等

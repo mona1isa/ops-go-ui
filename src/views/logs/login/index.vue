@@ -36,7 +36,7 @@
                         </div>
 
                         <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
-                            <el-table-column prop="id" label="ID" width="70" />
+                            <el-table-column prop="id" label="ID" width="85" />
                             <el-table-column prop="createdAt" label="时间" width="165">
                                 <template #default="scope">{{ formatTime(scope.row.createdAt) }}</template>
                             </el-table-column>
@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts" name="logsLoginIndex">
-import { defineAsyncComponent, markRaw, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { defineAsyncComponent, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import * as echarts from 'echarts';
 import { dayjs, ElMessage } from 'element-plus';
 import { useLogsApi } from '/@/api/logs';
@@ -163,7 +163,6 @@ const activeTab = ref('list');
 const timeRange = ref<string[]>([]);
 const overviewLoading = ref(false);
 const trendRef = ref<HTMLElement>();
-const global = reactive<{ trendChart: any }>({ trendChart: null });
 
 const state = reactive<LoginLogState>({
     tableData: {
@@ -265,12 +264,31 @@ const loadOverview = async () => {
     }
 };
 
+// 图表实例与宿主 DOM 放在一起：实例所在节点被移除（Tab 重渲染）则重建，避免尺寸错乱
+let trendChartInstance: echarts.ECharts | null = null;
+let trendChartHost: HTMLElement | null = null;
+let trendChartObserver: ResizeObserver | null = null;
+
 const renderTrend = async () => {
     await nextTick();
-    if (!trendRef.value) return;
-    if (!global.trendChart) global.trendChart = markRaw(echarts.init(trendRef.value));
+    const el = trendRef.value;
+    if (!el) return;
+    observeTrendChart(el);
 
-    global.trendChart.setOption(
+    if (!trendChartInstance || trendChartHost !== el) {
+        // Tab 未激活时容器宽度为 0，此时 init 会按默认小尺寸建画布，留待 ResizeObserver 补渲染
+        if (el.clientWidth === 0 || el.clientHeight === 0) return;
+        trendChartInstance = echarts.init(el);
+        trendChartHost = el;
+    }
+
+    // 无数据时彻底清空画布，只保留「暂无数据」占位
+    if (overview.trend.length === 0) {
+        trendChartInstance.clear();
+        return;
+    }
+
+    trendChartInstance.setOption(
         {
             grid: { left: 50, right: 20, top: 30, bottom: 30 },
             tooltip: { trigger: 'axis' },
@@ -284,7 +302,7 @@ const renderTrend = async () => {
         },
         true
     );
-    global.trendChart.resize();
+    trendChartInstance.resize();
 };
 
 watch(activeTab, (tab) => {
@@ -293,17 +311,29 @@ watch(activeTab, (tab) => {
     }
 });
 
-const handleResize = () => global.trendChart?.resize();
+const observeTrendChart = (el: HTMLElement) => {
+    if (trendChartObserver || typeof ResizeObserver === 'undefined') return;
+    trendChartObserver = new ResizeObserver(() => {
+        if (!trendRef.value) return;
+        if (!trendChartInstance) {
+            renderTrend();
+        } else {
+            trendChartInstance.resize();
+        }
+    });
+    trendChartObserver.observe(el);
+};
 
 onMounted(() => {
     getTableData();
-    window.addEventListener('resize', handleResize);
 });
 
 onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
-    global.trendChart?.dispose();
-    global.trendChart = null;
+    trendChartObserver?.disconnect();
+    trendChartObserver = null;
+    trendChartInstance?.dispose();
+    trendChartInstance = null;
+    trendChartHost = null;
 });
 </script>
 

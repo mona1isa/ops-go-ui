@@ -39,7 +39,7 @@
                         </div>
 
                         <el-table :data="state.tableData.data" v-loading="state.tableData.loading" style="width: 100%">
-                            <el-table-column prop="id" label="ID" width="70" />
+                            <el-table-column prop="id" label="ID" width="85" />
                             <el-table-column prop="createdAt" label="操作时间" width="165">
                                 <template #default="scope">{{ formatTime(scope.row.createdAt) }}</template>
                             </el-table-column>
