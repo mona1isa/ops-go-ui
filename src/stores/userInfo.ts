@@ -27,17 +27,23 @@ export const useUserInfo = defineStore('userInfo', {
 	}),
 	actions: {
 		async setUserInfos() {
-			// 存储用户信息到浏览器缓存
-			if (Session.get('userInfo')) {
-				this.userInfos = Session.get('userInfo');
-			} else {
-				try {
-					const userInfos = <UserInfos>await this.getOpsUserInfo();
-					this.userInfos = userInfos;
-				} catch (error) {
+			// 缓存用于兜底：网络异常时仍能渲染出用户名等信息，不至于白屏
+			const cached = Session.get('userInfo');
+			if (cached) {
+				this.userInfos = cached;
+			}
+			// 每次进入都回源取最新的按钮权限（authBtnList）
+			// 之前是「有缓存就不再请求」，导致管理员在角色权限里新授予的按钮要用户清缓存/重开浏览器才生效，
+			// 表现为页面能打开但一个按钮都不显示（v-auths 在 mounted 时按过期的权限列表直接把元素移除）
+			try {
+				const userInfos = <UserInfos>await this.getOpsUserInfo();
+				this.userInfos = userInfos;
+			} catch (error) {
+				if (!cached) {
 					console.error('获取用户信息失败:', error);
 					throw error;
 				}
+				console.warn('用户信息接口不可用，沿用缓存的权限：', error);
 			}
 		},
 		
@@ -59,7 +65,7 @@ export const useUserInfo = defineStore('userInfo', {
 							ipAddr: res.data.ipAddr,
 							loginDate: res.data.loginDate,
 							roleNames: res.data.roleNames,
-							authBtnList: res.data.perms,
+							authBtnList: res.data.perms || [],
 						};
 						Session.set('userInfo', userInfos);
 						resolve(userInfos);

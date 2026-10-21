@@ -9,11 +9,16 @@ import { judementSameArr } from '/@/utils/arrayOperation';
  * @directive 多个权限验证，全部满足则显示（v-auth-all="[xxx,xxx]"）
  */
 export function authDirective(app: App) {
+	// 超管判定：与后端 middleware/casbin.go 的放行规则一致（用户 ID = 1），
+	// 仅按用户名判断会在用户信息未就绪或用户名被改写时把超管的按钮一并移除
+	const isSuperAdmin = (infos: any) => infos.username === 'admin' || Number(infos.id) === 1;
+
 	// 单个权限验证（v-auth="xxx"）
 	app.directive('auth', {
 		mounted(el, binding) {
 			const stores = useUserInfo();
-			if (!stores.userInfos.authBtnList.some((v: string) => v === binding.value)) el.parentNode.removeChild(el);
+			if (isSuperAdmin(stores.userInfos)) return;
+			if (!stores.userInfos.authBtnList.some((v: string) => v === binding.value)) el.parentNode?.removeChild(el);
 		},
 	});
 	// 多个权限验证，满足一个则显示（v-auths="[xxx,xxx]"）
@@ -22,21 +27,22 @@ export function authDirective(app: App) {
 			let flag = false;
 			const stores = useUserInfo();
 			// 跳过admin 用户权限验证
-			if(stores.userInfos.username === 'admin') return;
+			if (isSuperAdmin(stores.userInfos)) return;
 			stores.userInfos.authBtnList.map((val: string) => {
 				binding.value.map((v: string) => {
 					if (val === v) flag = true;
 				});
 			});
-			if (!flag) el.parentNode.removeChild(el);
+			if (!flag) el.parentNode?.removeChild(el);
 		},
 	});
 	// 多个权限验证，全部满足则显示（v-auth-all="[xxx,xxx]"）
 	app.directive('auth-all', {
 		mounted(el, binding) {
 			const stores = useUserInfo();
+			if (isSuperAdmin(stores.userInfos)) return;
 			const flag = judementSameArr(binding.value, stores.userInfos.authBtnList);
-			if (!flag) el.parentNode.removeChild(el);
+			if (!flag) el.parentNode?.removeChild(el);
 		},
 	});
 }
