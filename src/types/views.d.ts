@@ -120,7 +120,7 @@ declare type RowUserType<T = any> = {
 	id: number;
 	userName: string;
 	nickname: string;
-	roleName: string;
+	roleNames: string;
 	roleIds: number[];
 	deptId: number;
 	phone: string;
@@ -748,6 +748,38 @@ declare type CmdbUsageResultType = {
 	capacity: number;
 	used: number;
 	usage: CmdbSubnetUsageType[];
+};
+
+// 证书/域名到期告警
+declare type RowCmdbCertRuleType = {
+	id: number;
+	name: string;
+	modelTypes: string;
+	warningDays: number;
+	severity: number;
+	cooldownSec: number;
+	silenceUntil: number;
+	muted: string;
+	channelIds: string;
+	enabled: string;
+	remark: string;
+	createBy: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+declare type RowCmdbCertExpiringType = {
+	id: number;
+	name: string;
+	sn: string;
+	ip: string;
+	modelType: string;
+	status: number;
+	owner: string;
+	expiredAt: string | null;
+	remaining: number;
+	level: number;
+	levelText: string;
 };
 
 // Logs 日志中心

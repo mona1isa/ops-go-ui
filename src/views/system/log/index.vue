@@ -36,7 +36,7 @@
                 </el-table-column>
                 <el-table-column prop="params" label="请求参数" min-width="200" align="center" show-overflow-tooltip />
                 <el-table-column prop="resp" label="响应数据" min-width="120" align="center" show-overflow-tooltip />
-                <el-table-column prop="ipAddr" label="IP地址" min-width="120" align="center" />
+                <el-table-column prop="ipAddr" label="IP地址" min-width="150" align="center" />
                 <el-table-column prop="createTime" label="请求时间" min-width="180" align="center">
                     <template #default="scope">{{ dayjs(scope.row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
                 </el-table-column>

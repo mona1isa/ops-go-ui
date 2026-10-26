@@ -36,5 +36,12 @@ export function useDangerousCommandApi() {
                 data,
             });
         },
+        getBlockLogList: (data: object) => {
+            return request({
+                url: '/api/dangerousCommand/blockLog/list',
+                method: 'post',
+                data,
+            });
+        },
     };
 }

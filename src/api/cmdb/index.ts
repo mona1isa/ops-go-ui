@@ -177,5 +177,63 @@ export function useCmdbApi() {
                 data,
             });
         },
+
+        // 证书/域名到期告警
+        getCertRulePage: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/page',
+                method: 'post',
+                data,
+            });
+        },
+        addCertRule: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/add',
+                method: 'post',
+                data,
+            });
+        },
+        updateCertRule: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/edit',
+                method: 'post',
+                data,
+            });
+        },
+        deleteCertRule: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/delete',
+                method: 'post',
+                data,
+            });
+        },
+        toggleCertRule: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/toggle',
+                method: 'post',
+                data,
+            });
+        },
+        silenceCertRule: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/rule/silence',
+                method: 'post',
+                data,
+            });
+        },
+        getCertExpiring: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/expiring',
+                method: 'post',
+                data,
+            });
+        },
+        getCertEvents: (data: object) => {
+            return request({
+                url: '/api/cmdb/cert/events',
+                method: 'post',
+                data,
+            });
+        },
     };
 }

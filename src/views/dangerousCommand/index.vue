@@ -2,6 +2,8 @@
     <div class="layout-padding">
         <div class="layout-padding-view layout-padding-auto">
             <el-card shadow="hover">
+                <el-tabs v-model="activeTab" @tab-change="onTabChange">
+                    <el-tab-pane label="拦截规则" name="rule">
                 <div class="app-search mb15">
                     <el-input v-model="state.tableData.param.name" size="default" placeholder="请输入规则名称" style="max-width: 180px" clearable />
                     <el-button size="default" plain type="primary" class="ml10" @click="getTableData()">
@@ -68,6 +70,54 @@
                     layout="total, sizes, prev, pager, next, jumper"
                     :total="state.tableData.total"
                 />
+                    </el-tab-pane>
+
+                    <el-tab-pane label="拦截记录" name="blockLog">
+                        <div class="app-search mb15">
+                            <el-input v-model="logState.param.userName" size="default" placeholder="用户" style="max-width: 140px" clearable />
+                            <el-input v-model="logState.param.ruleName" size="default" placeholder="规则名称" style="max-width: 160px" clearable />
+                            <el-input v-model="logState.param.instanceName" size="default" placeholder="主机" style="max-width: 160px" clearable />
+                            <el-button size="default" plain type="primary" class="ml10" @click="onLogSearch()">
+                                <el-icon><ele-Search /></el-icon>
+                                查询
+                            </el-button>
+                            <el-button size="default" plain type="info" class="ml10" @click="onLogReset()">
+                                <el-icon><ele-Refresh /></el-icon>
+                                重置
+                            </el-button>
+                        </div>
+
+                        <el-table :data="logState.data" v-loading="logState.loading" style="width: 100%">
+                            <el-table-column prop="createdAt" label="拦截时间" width="170" :formatter="fmtTime" />
+                            <el-table-column prop="userName" label="用户" width="110" show-overflow-tooltip />
+                            <el-table-column prop="channel" label="渠道" width="100">
+                                <template #default="scope">
+                                    <el-tag :type="scope.row.channel === 2 ? 'primary' : 'info'">
+                                        {{ scope.row.channel === 2 ? 'Web 终端' : 'SSH 堡垒机' }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="instanceName" label="主机" show-overflow-tooltip />
+                            <el-table-column prop="keyUser" label="远端账号" width="110" show-overflow-tooltip />
+                            <el-table-column prop="command" label="被拦截命令" min-width="200" show-overflow-tooltip />
+                            <el-table-column prop="normalized" label="命中形态" min-width="160" show-overflow-tooltip />
+                            <el-table-column prop="ruleName" label="命中规则" width="140" show-overflow-tooltip />
+                        </el-table>
+
+                        <el-pagination
+                            @size-change="onLogSizeChange"
+                            @current-change="onLogCurrentChange"
+                            class="mt15"
+                            :pager-count="5"
+                            :page-sizes="[10, 20, 30]"
+                            v-model:current-page="logState.param.pageNum"
+                            background
+                            v-model:page-size="logState.param.pageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="logState.total"
+                        />
+                    </el-tab-pane>
+                </el-tabs>
             </el-card>
         </div>
 
@@ -106,6 +156,7 @@
 <script setup lang="ts" name="dangerousCommandIndex">
 import { reactive, ref } from 'vue';
 import { useDangerousCommandApi } from '/@/api/dangerousCommand';
+import { formatDate } from '/@/utils/formatTime';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 const dangerousCommandApi = useDangerousCommandApi();
@@ -142,6 +193,64 @@ const state = reactive<any>({
         },
     },
 });
+
+const activeTab = ref('rule');
+
+const logState = reactive<any>({
+    data: [],
+    total: 0,
+    loading: false,
+    loaded: false,
+    param: {
+        pageNum: 1,
+        pageSize: 10,
+        userName: '',
+        ruleName: '',
+        instanceName: '',
+    },
+});
+
+const fmtTime = (_row: any, _col: any, val: string) => (val ? formatDate(new Date(val), 'YYYY-mm-dd HH:MM:SS') : '-');
+
+const getBlockLogData = async () => {
+    logState.loading = true;
+    logState.loaded = true;
+    const res = await dangerousCommandApi.getBlockLogList(logState.param);
+    if (res && res.code === 200) {
+        logState.data = res.data;
+        logState.total = res.total;
+    }
+    logState.loading = false;
+};
+
+// 拦截记录按需加载，避免打开规则页就多打一次查询
+const onTabChange = (name: string) => {
+    if (name === 'blockLog' && !logState.loaded) {
+        getBlockLogData();
+    }
+};
+
+const onLogSearch = () => {
+    logState.param.pageNum = 1;
+    getBlockLogData();
+};
+
+const onLogReset = () => {
+    logState.param.userName = '';
+    logState.param.ruleName = '';
+    logState.param.instanceName = '';
+    onLogSearch();
+};
+
+const onLogSizeChange = (val: number) => {
+    logState.param.pageSize = val;
+    getBlockLogData();
+};
+
+const onLogCurrentChange = (val: number) => {
+    logState.param.pageNum = val;
+    getBlockLogData();
+};
 
 const getTableData = async () => {
     state.tableData.loading = true;
@@ -309,5 +418,16 @@ getTableData();
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+
+:deep(.el-tabs) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+:deep(.el-tabs__content) {
+    flex: 1;
+    overflow-y: auto;
 }
 </style>

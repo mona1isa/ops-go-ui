@@ -49,7 +49,7 @@
                             <el-table-column prop="reason" label="失败原因" min-width="170" show-overflow-tooltip>
                                 <template #default="scope">{{ scope.row.reason || '—' }}</template>
                             </el-table-column>
-                            <el-table-column prop="ipAddr" label="来源IP" width="135" show-overflow-tooltip />
+                            <el-table-column prop="ipAddr" label="来源IP" width="150" show-overflow-tooltip />
                             <el-table-column prop="location" label="归属" width="140" show-overflow-tooltip>
                                 <template #default="scope">{{ scope.row.location || '—' }}</template>
                             </el-table-column>

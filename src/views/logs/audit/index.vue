@@ -75,7 +75,7 @@
                             <el-table-column prop="costTimeMs" label="耗时" width="90">
                                 <template #default="scope">{{ scope.row.costTimeMs }} ms</template>
                             </el-table-column>
-                            <el-table-column prop="ipAddr" label="来源IP" width="130" show-overflow-tooltip />
+                            <el-table-column prop="ipAddr" label="来源IP" width="150" show-overflow-tooltip />
                             <el-table-column label="操作" width="80" fixed="right">
                                 <template #default="scope">
                                     <el-button size="small" text type="primary" @click="onOpenDetail(scope.row)">详情</el-button>
