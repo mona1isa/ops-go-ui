@@ -1,6 +1,6 @@
 <template>
     <div class="layout-padding">
-        <div class="layout-padding-view layout-padding-auto">
+        <div class="layout-padding-view layout-padding-auto logs-login">
             <el-card shadow="hover">
                 <el-tabs v-model="activeTab">
                     <el-tab-pane label="登录记录" name="list">
@@ -11,6 +11,7 @@
                                 <el-option label="失败" :value="0" />
                                 <el-option label="成功" :value="1" />
                                 <el-option label="登出" :value="2" />
+                                <el-option label="待验证" :value="3" />
                             </el-select>
                             <el-select v-model="state.tableData.param.platform" size="default" placeholder="登录端" style="max-width: 120px; margin-left: 10px" clearable>
                                 <el-option label="Web 管理端" value="web" />
@@ -48,6 +49,22 @@
                             </el-table-column>
                             <el-table-column prop="reason" label="失败原因" min-width="170" show-overflow-tooltip>
                                 <template #default="scope">{{ scope.row.reason || '—' }}</template>
+                            </el-table-column>
+                            <el-table-column prop="pwdLength" label="口令特征" width="190">
+                                <template #header>
+                                    <span>口令特征</span>
+                                    <el-tooltip placement="top">
+                                        <template #content>提交口令的字符数与输入特征，用于定位「密码正确却失败」<br />（多余空格、全角、零宽字符）。口令明文一律不落库。</template>
+                                        <el-icon style="vertical-align: middle; margin-left: 4px"><ele-QuestionFilled /></el-icon>
+                                    </el-tooltip>
+                                </template>
+                                <template #default="scope">
+                                    <template v-if="scope.row.pwdLength > 0">
+                                        <span>{{ scope.row.pwdLength }} 位</span>
+                                        <el-tag v-for="flag in splitFlags(scope.row.pwdFlags)" :key="flag" type="warning" size="small" style="margin-left: 5px">{{ flag }}</el-tag>
+                                    </template>
+                                    <span v-else>—</span>
+                                </template>
                             </el-table-column>
                             <el-table-column prop="ipAddr" label="来源IP" width="150" show-overflow-tooltip />
                             <el-table-column prop="location" label="归属" width="140" show-overflow-tooltip>
@@ -98,7 +115,10 @@
 
                         <el-row :gutter="15" class="mb15">
                             <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-                                <div class="overview-card"><div class="overview-num">{{ overview.total }}</div><div class="overview-label">登录次数</div></div>
+                                <div class="overview-card">
+                                    <div class="overview-num">{{ overview.total }}</div>
+                                    <div class="overview-label">{{ overview.pending > 0 ? `登录次数（另有 ${overview.pending} 条待MFA验证）` : '登录次数' }}</div>
+                                </div>
                             </el-col>
                             <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
                                 <div class="overview-card"><div class="overview-num">{{ overview.success }}</div><div class="overview-label">成功</div></div>
@@ -178,6 +198,7 @@ const overview = reactive<LoginOverviewType>({
     total: 0,
     success: 0,
     fail: 0,
+    pending: 0,
     successRate: 0,
     trend: [],
     failUsers: [],
@@ -188,9 +209,11 @@ const overview = reactive<LoginOverviewType>({
 
 const formatTime = (value: string) => (value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—');
 
-const resultName = (result: number) => ({ 0: '失败', 1: '成功', 2: '登出' }[result] || '未知');
-const resultTag = (result: number) => (({ 0: 'danger', 1: 'success', 2: 'info' } as any)[result] || 'info');
+const resultName = (result: number) => ({ 0: '失败', 1: '成功', 2: '登出', 3: '待验证' }[result] || '未知');
+const resultTag = (result: number) => (({ 0: 'danger', 1: 'success', 2: 'info', 3: 'warning' } as any)[result] || 'info');
 const platformName = (platform: string) => (platform === 'bastion' ? '堡垒机' : platform === 'web' ? 'Web' : platform || '—');
+// 口令特征由后端用「、」拼接，明文不落库，这里只做展示拆分
+const splitFlags = (flags: string) => (flags ? flags.split('、').filter(Boolean) : []);
 
 // 剔除空筛选字段（后端指针类型字段传空字符串会 400）
 const buildQuery = (param: Record<string, any>) => {
@@ -340,6 +363,17 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .layout-padding-view {
     overflow-y: auto;
+}
+
+// 与操作审计页同样的问题：外层是定高的弹性列容器，el-card 自带 overflow:hidden 会让 min-height:auto 失效，
+// 卡片被 flex 压缩后由自身 overflow:hidden 裁掉内容，容器没有真实溢出不出滚动条，
+// 行为分析底部的趋势图与 Top 榜看不到。
+// 单写 flex-shrink: 0 实测仍会被压缩，所以再显式给出内容高度作为最小高度
+.logs-login {
+    > * {
+        flex-shrink: 0;
+        min-height: max-content;
+    }
 }
 
 .toolbar-label {

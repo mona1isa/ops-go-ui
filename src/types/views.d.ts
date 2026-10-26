@@ -889,6 +889,8 @@ declare type RowLoginLogType = {
 	userId: number;
 	result: number;
 	reason: string;
+	pwdLength: number;
+	pwdFlags: string;
 	ipAddr: string;
 	location: string;
 	userAgent: string;
@@ -923,6 +925,7 @@ declare type LoginOverviewType = {
 	total: number;
 	success: number;
 	fail: number;
+	pending: number;
 	successRate: number;
 	trend: LoginTrendPointType[];
 	failUsers: LogTopItemType[];

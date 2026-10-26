@@ -1,6 +1,6 @@
 <template>
     <div class="layout-padding">
-        <div class="layout-padding-view layout-padding-auto">
+        <div class="layout-padding-view layout-padding-auto logs-audit">
             <el-card shadow="hover">
                 <el-tabs v-model="activeTab">
                     <el-tab-pane label="操作留痕" name="list">
@@ -341,6 +341,17 @@ onMounted(() => {
 <style scoped lang="scss">
 .layout-padding-view {
     overflow-y: auto;
+}
+
+// 外层是定高的弹性列容器，el-card 自带 overflow:hidden 会让 min-height:auto 失效，
+// 卡片被 flex 压缩到容器高度后由自身 overflow:hidden 裁掉内容：容器没有真实溢出，所以不出滚动条，
+// 行为分析底部的「慢接口 Top」整块看不到。
+// 单写 flex-shrink: 0 实测仍会被压缩（894 内容只剩 797），所以再显式给出内容高度作为最小高度
+.logs-audit {
+    > * {
+        flex-shrink: 0;
+        min-height: max-content;
+    }
 }
 
 .toolbar-label {
